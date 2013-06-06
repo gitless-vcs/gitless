@@ -1,3 +1,6 @@
+# Vi backup files
+*~
+
 *.py[cod]
 
 # C extensions
