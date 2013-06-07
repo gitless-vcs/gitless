@@ -107,6 +107,29 @@ def untrack_file(fp):
   return SUCCESS
 
 
+def repo_status():
+  """Gets the status of the repo.
+  
+  Returns:
+      A pair (tracked_mod_list, untracked_list) where each list contain
+      filepaths.
+  """
+  # TODO(sperezde): Will probably need to implement this smarter in the future.
+  tracked_mod_list = []
+  untracked_list = []
+  for (s, fp) in status.of_repo():
+    if s is status.TRACKED_UNMODIFIED:
+      # We don't return tracked modified files.
+      continue
+
+    if s is status.TRACKED_MODIFIED or s is status.STAGED:
+      tracked_mod_list.append(fp)
+    else:
+      untracked_list.append(fp)
+
+  return (tracked_mod_list, untracked_list)
+
+
 def _is_tracked_file(fp):
   """True if the given file is a tracked file."""
   s = status.of_file(fp)
