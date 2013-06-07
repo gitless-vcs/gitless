@@ -3,6 +3,9 @@
 import os.path
 import subprocess
 
+from gitpylib import file
+from gitpylib import status
+
 
 SUCCESS = 1
 FILE_NOT_FOUND = 2
@@ -44,15 +47,16 @@ def track_file(fp):
   # file. This means that in the Git world, the file could be either:
   #   (i)  a new file for Git => add the file.
   #   (ii) an assumed unchanged file => unmark it.
-  out, unused_err = _safe_git_call('status --porcelain %s' % fp)
-  if len(out) > 0 and out[0] is '?':
+  s = status.of_file(fp)
+  if s is status.UNTRACKED:
     # Case (i).
-    cmd = 'add %s'
-  else:
+    file.stage(fp)
+  elif s is status.ASSUME_UNCHANGED:
     # Case (ii).
-    cmd = 'update-index --no-assume-unchanged %s'
+    file.not_assume_unchanged(fp)
+  else:
+    raise Exception("File %s in unkown status %s" % (fp, s))
 
-  _safe_git_call(cmd  % fp)
   return SUCCESS
 
 
@@ -90,48 +94,23 @@ def untrack_file(fp):
   #        uncomitted file) => reset changes;
   #   (ii) the file is a previously committed file => mark it as assumed
   #        unchanged.
-  out, unused_err = _safe_git_call('status --porcelain %s' % fp)
-  if len(out) > 0 and out[0] is 'A':
+  s = status.of_file(fp)
+  if s is status.STAGED:
     # Case (i).
-    # "git reset" currently returns 0 (if successful) while "git reset
-    # $pathspec" returns 0 iff the index matches HEAD after resetting (on
-    # all paths, not just those matching $pathspec). See
-    # http://comments.gmane.org/gmane.comp.version-control.git/211242.
-    # So, we need to ignore the return code (unfortunately) and hope that it
-    # works.
-    _git_call('reset HEAD %s' % fp)
-  else:
+    file.unstage(fp)
+  elif s is (status.TRACKED_UNMODIFIED or status.TRACKED_MODIFIED):
     # Case (ii).
-    _safe_git_call('update-index --assume-unchanged %s' % fp)
+    file.assume_unchanged(fp)
+  else:
+    raise Exception("File %s in unkown status %s" % (fp, s))
+
   return SUCCESS
 
 
 def is_tracked_file(fp):
-  # ls-files will succeed if the file to be listed has been added or if it is
-  # what Git understands as a tracked file (a file which has been committed).
-  # But we also need to detect if the file is an assumed-unchanged file (-v
-  # option) since this is a untracked file to Gitless.
-  ok, out, unused_err = _git_call(
-      'ls-files -v --error-unmatch %s' % fp)
-  if not ok:
-    # The file doesn't even exist or hasn't been added => not a Gitless's
-    # tracked file.
-    return False
-  else:
-    # If it's an assumed-unchanged file => not a Gitless's tracked file.
-    # assumed-unchanged files appear listed with a lower-case letter.
-    return out[0].isupper()
-
-def _safe_git_call(cmd):
-  ok, out, err = _git_call(cmd)
-  if ok:
-    return out, err
-  raise Exception('%s failed: out is %s, err is %s' % (cmd, out, err))
-
-def _git_call(cmd):
-  with open(os.devnull, "w") as f_null:
-    p = subprocess.Popen(
-        'git %s' % cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-        shell=True)
-    out, err = p.communicate()
-    return p.returncode == 0, out, err
+  """True if the given file is a tracked file."""
+  s = status.of_file(fp)
+  return (
+      s is status.TRACKED_UNMODIFIED or
+      s is status.TRACKED_MODIFIED or
+      s is status.STAGED)
