@@ -1,0 +1,3 @@
+[submodule "gitpylib"]
+	path = gitpylib
+	url = https://github.com/spderosso/git-pylib.git
