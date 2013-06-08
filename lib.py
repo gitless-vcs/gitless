@@ -11,6 +11,7 @@ SUCCESS = 1
 FILE_NOT_FOUND = 2
 FILE_ALREADY_TRACKED = 3
 FILE_ALREADY_UNTRACKED = 4
+FILE_IS_UNTRACKED = 5
 
 
 def track_file(fp):
@@ -26,9 +27,9 @@ def track_file(fp):
       fp: The file path of the file to track.
 
   Returns:
-      FILE_NOT_FOUND: the given file was not found;
-      FILE_ALREADY_TRACKED: the given file is already a tracked file;
-      SUCCESS: the operation finished sucessfully.
+      - FILE_NOT_FOUND: the given file was not found;
+      - FILE_ALREADY_TRACKED: the given file is already a tracked file;
+      - SUCCESS: the operation finished sucessfully.
   """
   if not os.path.exists(fp):
     return FILE_NOT_FOUND
@@ -71,9 +72,9 @@ def untrack_file(fp):
       fp: The file path of the file to untrack.
 
   Returns:
-      FILE_NOT_FOUND: the given file was not found;
-      FILE_ALREADY_UNTRACKED: the given file is already an untracked file;
-      SUCCESS: the operation finished sucessfully.
+      - FILE_NOT_FOUND: the given file was not found;
+      - FILE_ALREADY_UNTRACKED: the given file is already an untracked file;
+      - SUCCESS: the operation finished sucessfully.
   """
   if not os.path.exists(fp):
     return FILE_NOT_FOUND
@@ -128,6 +129,28 @@ def repo_status():
       untracked_list.append(fp)
 
   return (tracked_mod_list, untracked_list)
+
+
+def diff(fp):
+  """Compute the diff of the given file with its last committed version.
+
+  Args:
+    fp: The file path of the file to diff.
+
+  Returns:
+    A pair (result, out) where result is one of:
+      - FILE_NOT_FOUND: the given file was not found;
+      - FILE_IS_UNTRACKED: the given file is an untracked file;
+      - SUCCESS: the operation finished sucessfully.
+    and out is the output of the diff command.
+  """
+  if not os.path.exists(fp):
+    return (FILE_NOT_FOUND, '')
+
+  if not _is_tracked_file(fp):
+    return (FILE_IS_UNTRACKED, '')
+
+  return (SUCCESS, file.diff(fp)[1])
 
 
 def _is_tracked_file(fp):
