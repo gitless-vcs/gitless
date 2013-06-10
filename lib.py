@@ -5,6 +5,7 @@ import subprocess
 
 from gitpylib import file
 from gitpylib import status
+from gitpylib import sync
 
 
 SUCCESS = 1
@@ -34,7 +35,7 @@ def track_file(fp):
   if not os.path.exists(fp):
     return FILE_NOT_FOUND
 
-  if _is_tracked_file(fp):
+  if is_tracked_file(fp):
     return FILE_ALREADY_TRACKED
 
   if os.path.isdir(fp) and not os.listdir(fp):
@@ -79,7 +80,7 @@ def untrack_file(fp):
   if not os.path.exists(fp):
     return FILE_NOT_FOUND
 
-  if not _is_tracked_file(fp):
+  if not is_tracked_file(fp):
     return FILE_ALREADY_UNTRACKED
 
   if os.path.isdir(fp) and not os.listdir(fp):
@@ -116,6 +117,7 @@ def repo_status():
       filepaths.
   """
   # TODO(sperezde): Will probably need to implement this smarter in the future.
+  # TODO(sperezde): using frozenset should improve performance.
   tracked_mod_list = []
   untracked_list = []
   for (s, fp) in status.of_repo():
@@ -147,13 +149,26 @@ def diff(fp):
   if not os.path.exists(fp):
     return (FILE_NOT_FOUND, '')
 
-  if not _is_tracked_file(fp):
+  if not is_tracked_file(fp):
     return (FILE_IS_UNTRACKED, '')
 
   return (SUCCESS, file.diff(fp)[1])
 
 
-def _is_tracked_file(fp):
+def commit(files, msg):
+  """Record changes in the local repository.
+  
+  Args:
+    files: the files to commit.
+    msg: the commit message.
+
+  Returns:
+    The output of the commit command.
+  """
+  return sync.commit(files, msg)
+
+
+def is_tracked_file(fp):
   """True if the given file is a tracked file."""
   s = status.of_file(fp)
   return (

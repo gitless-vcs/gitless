@@ -4,7 +4,7 @@
 # and so on in your shell. You only need to execute this script once.
 
 # You'll need to edit this array if you add/remove commands.
-cmds=("track" "untrack" "status" "diff")
+cmds=("track" "untrack" "status" "diff" "commit")
 
 dir=$(pwd)
 
