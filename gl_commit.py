@@ -6,6 +6,7 @@ Implements the gl-commit command, part of the Gitless suite.
 """
 
 import argparse
+import os
 
 import lib
 
@@ -76,17 +77,28 @@ def valid_input(only_files, exc_files, inc_files):
     return False
 
   ret = True
+  for fp in only_files:
+    if not os.path.exists(fp):
+      print 'File %s doesn\'t exist' % fp
+      ret = False
+
   for fp in exc_files:
-    # We check that the files to be excluded are tracked files.
+    # We check that the files to be excluded are existing tracked files.
     # TODO(sperezde): check that they are also modified.
-    if not lib.is_tracked_file(fp):
+    if not os.path.exists(fp):
+      print 'File %s doesn\'t exist' % fp
+      ret = False
+    elif not lib.is_tracked_file(fp):
       print (
           'File %s, listed to be excluded from commit, is not a tracked file.')
       ret = False
 
   for fp in inc_files:
-    # We check that the files to be included are untracked files.
-    if lib.is_tracked_file(fp):
+    # We check that the files to be included are existing untracked files.
+    if not os.path.exists(fp):
+      print 'File %s doesn\'t exist' % fp
+      ret = False
+    elif lib.is_tracked_file(fp):
       print (
           'File %s, listed to be included in the commit, is not a untracked '
           'file.')
