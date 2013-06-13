@@ -14,6 +14,17 @@ def create(name):
   branch.create(name)
 
 
+def delete(name):
+  """Deletes the branch with the given name.
+
+  Args:
+    name: the name of the branch to delete.
+  """
+  branch.force_delete(name)
+  # We also cleanup any stash left.
+  stash.drop(_stash_msg(name))
+
+
 def attach(name, remote):
   """Attaches the branch with the given name to remote.
 
@@ -39,9 +50,9 @@ def switch(name):
   Args:
     name: the name of the destination branch.
   """
-  stash.all('---gl-%s---' % branch.current())
+  stash.all(_stash_msg(branch.current()))
   branch.checkout(name)
-  stash.pop('---gl-%s---' % name)
+  stash.pop(_stash_msg(name))
 
 
 def status(name):
@@ -67,3 +78,8 @@ def status_all():
     the format 'remote_name/remote_branch') or None if it is a local branch.
   """
   return branch.status_all()
+
+
+def _stash_msg(name):
+  """Computes the stash msg to use for stashin changes in branch name."""
+  return '---gl-%s---' % name

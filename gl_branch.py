@@ -21,6 +21,8 @@ def main():
   parser.add_argument(
       '-l', '--list', nargs='*', help='List branch(es)', dest='list_b')
   args = parser.parse_args()
+
+
   if args.branch:
     exists, is_current, unused_tracks = branch_lib.status(args.branch)
     if exists and is_current:
@@ -35,7 +37,7 @@ def main():
     branch_lib.switch(args.branch)
     print 'Switched to branch %s' % args.branch
   elif args.delete_b:
-    print 'Delete'
+    _delete(args.delete_b)
   else:
     _list()
 
@@ -48,6 +50,25 @@ def _list():
 
   print ''
   print '* = current branch'
+
+
+def _delete(delete_b):
+  for b in delete_b:
+    exists, is_current, unused_tracks = branch_lib.status(b)
+    if not exists:
+      print 'Can\'t remove inexistent branch %s' % b
+    elif exists and is_current:
+      print 'Can\'t remove current branch %s' % b
+    elif not _conf_dialog('Branch %s will be removed' % b):
+      print 'Operation aborted'
+    else:
+      branch_lib.delete(b)
+      print 'Branch %s removed successfully' % b
+
+
+def _conf_dialog(msg):
+  user_input = raw_input('%s. Do you wish to continue? (y/N) ' % msg)
+  return user_input and user_input[0] == 'y'
 
 
 if __name__ == '__main__':
