@@ -100,7 +100,7 @@ def untrack_file(fp):
   if s is status.STAGED:
     # Case (i).
     file.unstage(fp)
-  elif s is (status.TRACKED_UNMODIFIED or status.TRACKED_MODIFIED):
+  elif (s is status.TRACKED_UNMODIFIED) or (s is status.TRACKED_MODIFIED):
     # Case (ii).
     file.assume_unchanged(fp)
   else:
