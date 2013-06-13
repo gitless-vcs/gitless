@@ -113,8 +113,9 @@ def repo_status():
   """Gets the status of the repo.
   
   Returns:
-      A pair (tracked_mod_list, untracked_list) where each list contain
-      filepaths.
+      A pair (tracked_mod_list, untracked_list) where each list contain a pair
+      (fp, exists_in_lr); fp a filepath and exists_in_lr is a boolean that is
+      True if the file exists in the local repo.
   """
   # TODO(sperezde): Will probably need to implement this smarter in the future.
   # TODO(sperezde): using frozenset should improve performance.
@@ -122,13 +123,17 @@ def repo_status():
   untracked_list = []
   for (s, fp) in status.of_repo():
     if s is status.TRACKED_UNMODIFIED:
-      # We don't return tracked modified files.
+      # We don't return tracked unmodified files.
       continue
 
-    if s is status.TRACKED_MODIFIED or s is status.STAGED:
-      tracked_mod_list.append(fp)
+    if s is status.TRACKED_MODIFIED:
+      tracked_mod_list.append((fp, True))
+    elif s is status.STAGED:
+      tracked_mod_list.append((fp, False))
+    elif s is status.ASSUME_UNCHANGED:
+      untracked_list.append((fp, True))
     else:
-      untracked_list.append(fp)
+      untracked_list.append((fp, False))
 
   return (tracked_mod_list, untracked_list)
 

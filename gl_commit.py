@@ -124,7 +124,7 @@ def compute_fs(only_files, exc_files, inc_files):
   else:
     tracked_modified, unused_untracked = lib.repo_status()
     # TODO(sperezde): push the use of frozenset to the library.
-    ret = frozenset(tracked_modified)
+    ret = frozenset(tm[0] for tm in tracked_modified)
     ret = ret.difference(exc_files)
     ret = ret.union(inc_files)
 

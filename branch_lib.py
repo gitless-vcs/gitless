@@ -50,7 +50,7 @@ def switch(name):
   Args:
     name: the name of the destination branch.
   """
-  stash.all(_stash_msg(branch.current()))
+  stash.all(_stash_msg(current()))
   branch.checkout(name)
   stash.pop(_stash_msg(name))
 
@@ -67,6 +67,11 @@ def status(name):
     the format 'remote_name/remote_branch') or None if it is a local branch.
   """
   return branch.status(name)
+
+
+def current():
+  """Get the name of the current branch."""
+  return branch.current()
 
 
 def status_all():
