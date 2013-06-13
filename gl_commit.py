@@ -8,6 +8,7 @@ Implements the gl-commit command, part of the Gitless suite.
 import argparse
 import os
 
+import commit_dialog
 import lib
 
 
@@ -34,29 +35,38 @@ def main():
       dest='m')
   args = parser.parse_args()
 
+  # TODO(sperezde): re-think this worflow a bit.
+
   only_files = frozenset(args.only_files)
   exc_files = frozenset(args.exc_files) if args.exc_files else []
   inc_files = frozenset(args.inc_files) if args.inc_files else []
 
-  if not valid_input(only_files, exc_files, inc_files):
-    print 'An error was encountered.'
+  if not _valid_input(only_files, exc_files, inc_files):
+    print 'An error was encountered'
     return
 
-  if args.m:
-    # The user provided a message, all ready to commit.
-    commit_files = compute_fs(only_files, exc_files, inc_files)
+  commit_files = _compute_fs(only_files, exc_files, inc_files)
 
+  if not commit_files:
+    print 'No files to commit'
+    return
+
+  msg = args.m
+  if not msg:
+    # Show the commit dialog.
+    msg, commit_files = commit_dialog.show(commit_files)
     if not commit_files:
       print 'No files to commit'
       return
+    if not _valid_input(commit_files, [], []):
+      print 'An error was encountered'
+      return
 
-    print lib.commit(commit_files, args.m)
-  else:
-    # Show the commit dialog.
-    print 'TODO: show the dialog'
-   
+  _auto_track(commit_files)
+  print lib.commit(commit_files, msg)
 
-def valid_input(only_files, exc_files, inc_files):
+
+def _valid_input(only_files, exc_files, inc_files):
   """Validates user input.
 
   This function will print to stdout in case user-provided values are invalid
@@ -90,7 +100,7 @@ def valid_input(only_files, exc_files, inc_files):
       ret = False
     elif not lib.is_tracked_file(fp):
       print (
-          'File %s, listed to be excluded from commit, is not a tracked file.')
+          'File %s, listed to be excluded from commit, is not a tracked file.' % fp)
       ret = False
 
   for fp in inc_files:
@@ -101,13 +111,13 @@ def valid_input(only_files, exc_files, inc_files):
     elif lib.is_tracked_file(fp):
       print (
           'File %s, listed to be included in the commit, is not a untracked '
-          'file.')
+          'file.' % fp)
       ret = False
 
   return ret
 
 
-def compute_fs(only_files, exc_files, inc_files):
+def _compute_fs(only_files, exc_files, inc_files):
   """Compute the final fileset to commit.
   
   Args:
@@ -128,12 +138,14 @@ def compute_fs(only_files, exc_files, inc_files):
     ret = ret.difference(exc_files)
     ret = ret.union(inc_files)
 
-  # We auto-track those untracked files listed.
-  for f in ret:
+  return ret
+
+
+def _auto_track(files):
+  """Tracks those untracked files in the list."""
+  for f in files:
     if not lib.is_tracked_file(f):
       lib.track_file(f)
-
-  return ret
 
 
 if __name__ == '__main__':
