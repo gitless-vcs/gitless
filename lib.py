@@ -183,6 +183,28 @@ def is_tracked_file(fp):
       s is status.STAGED)
 
 
+def reset(fp, cp):
+  """Resets the given file to the given commit point.
+  
+  Args:
+    fp: the filepath of the file to reset.
+    cp: the commit point to reset the file to. (e.g., 'HEAD', some sha1)
+  
+  Returns:
+    - FILE_NOT_FOUND: the given file was not found;
+    - FILE_IS_UNTRACKED: the given file is an untracked file;
+    - SUCCESS: the operation finished sucessfully.
+  """
+  if not os.path.exists(fp):
+    return FILE_NOT_FOUND
+
+  if not is_tracked_file(fp):
+    return FILE_IS_UNTRACKED
+
+  # TODO(sperezde): actually do the reset.
+  return SUCCESS
+
+
 def gl_dir():
   """Gets the path to the gl directory.
   
