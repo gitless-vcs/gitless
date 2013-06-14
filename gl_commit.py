@@ -55,6 +55,9 @@ def main():
   if not msg:
     # Show the commit dialog.
     msg, commit_files = commit_dialog.show(commit_files)
+    if not msg.strip():
+      print 'No commit message provided'
+      return
     if not commit_files:
       print 'No files to commit'
       return

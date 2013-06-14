@@ -1,8 +1,10 @@
 """Gitless's commit dialog."""
 
 
+import os
 import subprocess
 
+import lib
 import pprint
 
 
@@ -20,9 +22,13 @@ def show(files):
   """
   # TODO(sperezde): use git editor if present.
   # TODO(sperezde): detect if user exited with q!.
-  cf = open(_COMMIT_FILE, 'w')
+  cf = open(_commit_file(), 'w')
   cf.write('\n')
   pprint.sep(cf.write)
+  pprint.msg(
+      'Please enter the commit message for your changes above. Lines starting '
+      'with \'#\' will be ignored, and an empty message aborts the commit.',
+      cf.write)
   pprint.msg('These are the files that will be commited:', cf.write)
   pprint.exp('You can add/remove files to this list', cf.write)
   for f in files:
@@ -34,7 +40,7 @@ def show(files):
 
 
 def _launch_vim():
-  if subprocess.call('vim %s' % _COMMIT_FILE, shell=True) != 0:
+  if subprocess.call('vim %s' % _commit_file(), shell=True) != 0:
     raise Exception('Call to Vim failed')
 
 
@@ -45,7 +51,7 @@ def _extract_info():
     A tuple (msg, files) where msg is the commit msg and files are the files to
     commit provided by the user in the editor.
   """
-  cf = open(_COMMIT_FILE, "r")
+  cf = open(_commit_file(), "r")
   sep = pprint.sep(lambda x: x)
   msg = ''
   l = cf.readline()
@@ -65,3 +71,7 @@ def _extract_info():
 
   # We reached the separator, this marks the end of the file list.
   return msg, files
+
+
+def _commit_file():
+  return os.path.join(lib.gl_dir(), _COMMIT_FILE)

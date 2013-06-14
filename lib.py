@@ -3,6 +3,7 @@
 import os.path
 import subprocess
 
+from gitpylib import common
 from gitpylib import file
 from gitpylib import status
 from gitpylib import sync
@@ -180,3 +181,14 @@ def is_tracked_file(fp):
       s is status.TRACKED_UNMODIFIED or
       s is status.TRACKED_MODIFIED or
       s is status.STAGED)
+
+
+def gl_dir():
+  """Gets the path to the gl directory.
+  
+  Returns:
+    The absolute path to the gl directory or None if the current working
+    directory is not a Gitless repository.
+  """
+  # We use the same .git directory.
+  return common.git_dir()
