@@ -15,9 +15,9 @@ import lib
 
 def main():
   parser = argparse.ArgumentParser(
-      description="Start tracking changes to files")
+      description='Start tracking changes to files')
   parser.add_argument(
-      "file_pattern", help="a file_pattern representing the file(s) to track")
+      'file_pattern', help='a file_pattern representing the file(s) to track')
   args = parser.parse_args()
   ret = lib.track_file(args.file_pattern)
   if ret is lib.FILE_NOT_FOUND:

@@ -15,10 +15,10 @@ import lib
 
 def main():
   parser = argparse.ArgumentParser(
-      description="Stop tracking changes to files")
+      description='Stop tracking changes to files')
   parser.add_argument(
-      "file_pattern",
-      help="a file_pattern representing the file(s) to untrack")
+      'file_pattern',
+      help='a file_pattern representing the file(s) to untrack')
   args = parser.parse_args()
   ret = lib.untrack_file(args.file_pattern)
   if ret is lib.FILE_NOT_FOUND:
