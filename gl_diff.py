@@ -9,6 +9,7 @@ its version in the repo.
 
 import argparse
 
+import cmd
 import lib
 
 
@@ -38,4 +39,4 @@ def main():
 
 
 if __name__ == '__main__':
-  main()
+  cmd.run(main)

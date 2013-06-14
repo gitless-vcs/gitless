@@ -9,6 +9,7 @@ command allows the user to retrieve the status of the files in the repo.
 import argparse
 
 import branch_lib
+import cmd
 import lib
 
 
@@ -59,4 +60,4 @@ def _print_file(fp, msg):
 
 
 if __name__ == '__main__':
-  main()
+  cmd.run(main)

@@ -6,9 +6,12 @@ Implements the gl-untrack command, part of the Gitless suite. The gl-untrack
 command allows the user to stop tracking changes to the files passed as
 parameters."""
 
+
 import argparse
 
+import cmd
 import lib
+
 
 def main():
   parser = argparse.ArgumentParser(
@@ -29,4 +32,4 @@ def main():
 
 
 if __name__ == '__main__':
-  main()
+  cmd.run(main)

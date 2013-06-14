@@ -9,6 +9,7 @@ import argparse
 import os
 
 import commit_dialog
+import cmd
 import lib
 
 
@@ -152,4 +153,4 @@ def _auto_track(files):
 
 
 if __name__ == '__main__':
-  main()
+  cmd.run(main)

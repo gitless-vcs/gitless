@@ -7,6 +7,7 @@ Implements the gl-branch command, part of the Gitless suite.
 
 import argparse
 
+import cmd
 import branch_lib
 
 
@@ -72,4 +73,4 @@ def _conf_dialog(msg):
 
 
 if __name__ == '__main__':
-  main()
+  cmd.run(main)
