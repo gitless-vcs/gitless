@@ -13,6 +13,9 @@ def run(main):
     return
   try:
     main()
+  except SystemExit as se:
+    # This is from argsparse, we let it go through.
+    raise se
   except:
     print (
         'Oops...something went wrong (recall that Gitless is in beta). If you '
