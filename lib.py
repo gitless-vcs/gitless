@@ -176,7 +176,11 @@ def commit(files, msg):
 
 def is_tracked_file(fp):
   """True if the given file is a tracked file."""
-  s = status.of_file(fp)
+  return _is_tracked_status(status.of_file(fp))
+
+
+def _is_tracked_status(s):
+  """True if the given status corresponds to a gl tracked file."""
   return (
       s is status.TRACKED_UNMODIFIED or
       s is status.TRACKED_MODIFIED or
@@ -198,10 +202,19 @@ def reset(fp, cp):
   if not os.path.exists(fp):
     return FILE_NOT_FOUND
 
-  if not is_tracked_file(fp):
+  s = status.of_file(fp)
+
+  if not _is_tracked_status(s):
     return FILE_IS_UNTRACKED
 
-  # TODO(sperezde): actually do the reset.
+  if s is status.STAGED:
+    # We unstage it, and remove it.
+    # TODO(sperezde): show error if cp != HEAD
+    file.unstage(fp)
+    os.remove(fp)
+  else:
+    # We simply clobber the file with its content at cp.
+    file.show(fp, cp, fp)
   return SUCCESS
 
 
