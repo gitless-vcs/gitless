@@ -14,6 +14,7 @@ FILE_NOT_FOUND = 2
 FILE_ALREADY_TRACKED = 3
 FILE_ALREADY_UNTRACKED = 4
 FILE_IS_UNTRACKED = 5
+FILE_NOT_FOUND_AT_CP = 6
 
 
 def track_file(fp):
@@ -114,9 +115,11 @@ def repo_status():
   """Gets the status of the repo.
   
   Returns:
-      A pair (tracked_mod_list, untracked_list) where each list contain a pair
-      (fp, exists_in_lr); fp a filepath and exists_in_lr is a boolean that is
-      True if the file exists in the local repo.
+      A pair (tracked_mod_list, untracked_list) where
+      - tracked_mod_list: contains a tuple (fp, exists_in_lr, exists_in_wd); fp
+        a filepath, exists_in_lr is True if the file exists in the local repo
+        and exists_in_wd is True if the file exists in the working directory.
+      - untracked_list: contains a pair (fp, exists_in_lr).
   """
   # TODO(sperezde): Will probably need to implement this smarter in the future.
   # TODO(sperezde): using frozenset should improve performance.
@@ -128,15 +131,49 @@ def repo_status():
       continue
 
     if s is status.TRACKED_MODIFIED:
-      tracked_mod_list.append((fp, True))
+      tracked_mod_list.append((fp, True, True))
     elif s is status.STAGED:
-      tracked_mod_list.append((fp, False))
+      tracked_mod_list.append((fp, False, True))
     elif s is status.ASSUME_UNCHANGED:
       untracked_list.append((fp, True))
+    elif s is status.DELETED:
+      tracked_mod_list.append((fp, True, False))
+    elif s is status.DELETED_STAGED:
+      # The user broke the gl interface layer by using /usr/bin/rm directly.
+      raise Exception('Got a DELETED_STAGED status for %s' % fp)
+    elif s is status.DELETED_ASSUME_UNCHANGED:
+      # The user broke the gl interface layer by using /usr/bin/rm directly.
+      raise Exception('Got a DELETED_ASSUME_UNCHANGED status for %s' % fp)
     else:
       untracked_list.append((fp, False))
 
   return (tracked_mod_list, untracked_list)
+
+
+def rm(fp):
+  """Removes the given file
+ 
+  Args:
+    fp: the file path of the file to remove.
+
+  Returns:
+    - FILE_NOT_FOUND: the given file was not found;
+    - FILE_IS_UNTRACKED: the given file is an untracked file;
+    - SUCCESS: the operation finished sucessfully.
+  """
+  if not os.path.exists(fp):
+    return FILE_NOT_FOUND
+
+  if not is_tracked_file(fp):
+    return FILE_IS_UNTRACKED
+
+  s = status.of_file(fp)
+
+  if s is status.STAGED:
+    file.unstage(fp)
+ 
+  os.remove(fp)
+  return SUCCESS
 
 
 def diff(fp):
@@ -187,35 +224,23 @@ def _is_tracked_status(s):
       s is status.STAGED)
 
 
-def reset(fp, cp):
-  """Resets the given file to the given commit point.
+# TODO(sperezde): does this still work if the file was moved?
+def checkout(fp, cp):
+  """Checkouts file fp at cp.
   
   Args:
-    fp: the filepath of the file to reset.
-    cp: the commit point to reset the file to. (e.g., 'HEAD', some sha1)
-  
+    fp: the filepath to checkout.
+    cp: the commit point at which to checkout the file.
+ 
   Returns:
-    - FILE_NOT_FOUND: the given file was not found;
-    - FILE_IS_UNTRACKED: the given file is an untracked file;
-    - SUCCESS: the operation finished sucessfully.
+    a pair (status, out) where status is one of FILE_NOT_FOUND_AT_CP or SUCCESS
+    and out is the content of fp at cp.
   """
-  if not os.path.exists(fp):
-    return FILE_NOT_FOUND
+  ret, out = file.show(fp, cp)
+  if ret is file.FILE_NOT_FOUND_AT_CP:
+    return (FILE_NOT_FOUND_AT_CP, None)
 
-  s = status.of_file(fp)
-
-  if not _is_tracked_status(s):
-    return FILE_IS_UNTRACKED
-
-  if s is status.STAGED:
-    # We unstage it, and remove it.
-    # TODO(sperezde): show error if cp != HEAD
-    file.unstage(fp)
-    os.remove(fp)
-  else:
-    # We simply clobber the file with its content at cp.
-    file.show(fp, cp, fp)
-  return SUCCESS
+  return (SUCCESS, out)
 
 
 def gl_dir():

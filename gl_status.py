@@ -22,14 +22,18 @@ def main():
   _print_exp('these will be automatically considered for commit')
   _print_exp(
       'use gl untrack <f> if you don\'t want to track changes to file f')
-  _print_exp('use gl reset <f> to discard changes to file f')
   _print_blank()
   tracked_mod_list, untracked_list = lib.repo_status()
   if not tracked_mod_list:
     print '#     There are no tracked files with modifications to list'
   else:
-    for fp, exists_in_lr in tracked_mod_list:
-      _print_file(fp, ' (new file)' if not exists_in_lr else '')
+    for fp, exists_in_lr, exists_in_wd in tracked_mod_list:
+      str = ''
+      if not exists_in_lr:
+        str = ' (new file)'
+      elif not exists_in_wd:
+        str = ' (deleted)'
+      _print_file(fp, str)
   _print_blank()
   _print_blank()
   _print('Untracked files:')
