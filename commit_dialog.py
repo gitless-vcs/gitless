@@ -62,6 +62,7 @@ def _extract_info():
   # We exhaust the two following lines so that we get to the file list.
   cf.readline()
   cf.readline()
+  cf.readline()
 
   files = []
   l = cf.readline()
