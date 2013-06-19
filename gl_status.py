@@ -11,12 +11,21 @@ import argparse
 import branch_lib
 import cmd
 import lib
+import pprint
+import sync_lib
 
 
 def main():
   parser = argparse.ArgumentParser(
       description="Show status of the repo")
+
   _print('On branch %s' % branch_lib.current())
+
+  in_merge = sync_lib.merge_in_progress()
+  if in_merge:
+    _print_blank()
+    _print_merge_exp()
+
   _print_blank()
   _print('Tracked files with modifications:')
   _print_exp('these will be automatically considered for commit')
@@ -27,12 +36,17 @@ def main():
   if not tracked_mod_list:
     print '#     There are no tracked files with modifications to list'
   else:
-    for fp, exists_in_lr, exists_in_wd in tracked_mod_list:
+    for fp, exists_in_lr, exists_in_wd, in_conflict in tracked_mod_list:
       str = ''
+      # TODO(sperezde): sometimes files don't appear here if they were resolved.
       if not exists_in_lr:
         str = ' (new file)'
       elif not exists_in_wd:
         str = ' (deleted)'
+      elif in_conflict:
+        str = ' (with conflicts)'
+      elif in_merge and sync_lib.was_resolved(fp):
+        str = ' (conflicts resolved)'
       _print_file(fp, str)
   _print_blank()
   _print_blank()
@@ -61,6 +75,16 @@ def _print_exp(s):
 
 def _print_file(fp, msg):
   print '#     %s%s' % (fp, msg)
+
+
+def _print_merge_exp():
+  pprint.msg(
+      'You are in the middle of a merge; all conflicts must be resolved before '
+      'commiting')
+  pprint.exp('use gl merge --abort to go back to the state before the merge')
+  pprint.exp('use gl resolve <f> to mark file f as resolved')
+  pprint.exp('once you solved all conflicts do gl commit to complete the merge')
+  pprint.blank()
 
 
 if __name__ == '__main__':

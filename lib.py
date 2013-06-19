@@ -116,9 +116,7 @@ def repo_status():
   
   Returns:
       A pair (tracked_mod_list, untracked_list) where
-      - tracked_mod_list: contains a tuple (fp, exists_in_lr, exists_in_wd); fp
-        a filepath, exists_in_lr is True if the file exists in the local repo
-        and exists_in_wd is True if the file exists in the working directory.
+      - tracked_mod_list: contains a tuple (fp, exists_in_lr, exists_in_wd, in_conflict)
       - untracked_list: contains a pair (fp, exists_in_lr).
   """
   # TODO(sperezde): Will probably need to implement this smarter in the future.
@@ -131,19 +129,22 @@ def repo_status():
       continue
 
     if s is status.TRACKED_MODIFIED:
-      tracked_mod_list.append((fp, True, True))
+      tracked_mod_list.append((fp, True, True, False))
     elif s is status.STAGED:
-      tracked_mod_list.append((fp, False, True))
+      tracked_mod_list.append((fp, False, True, False))
     elif s is status.ASSUME_UNCHANGED:
-      untracked_list.append((fp, True))
+      untracked_list.append((fp, True, False))
     elif s is status.DELETED:
-      tracked_mod_list.append((fp, True, False))
+      tracked_mod_list.append((fp, True, False, False))
     elif s is status.DELETED_STAGED:
       # The user broke the gl interface layer by using /usr/bin/rm directly.
       raise Exception('Got a DELETED_STAGED status for %s' % fp)
     elif s is status.DELETED_ASSUME_UNCHANGED:
       # The user broke the gl interface layer by using /usr/bin/rm directly.
       raise Exception('Got a DELETED_ASSUME_UNCHANGED status for %s' % fp)
+    elif s is status.IN_CONFLICT:
+      # TODO: check what happens with deletion conflicts.
+      tracked_mod_list.append((fp, True, True, True))
     else:
       untracked_list.append((fp, False))
 

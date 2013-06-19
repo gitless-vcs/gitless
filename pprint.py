@@ -1,14 +1,20 @@
 """Module for pretty printing Gitless output."""
 
 
-def msg(msg, p):
+import sys
+
+
+def blank(p=sys.stdout.write):
+  return p('#\n')
+
+def msg(msg, p=sys.stdout.write):
   return p('# %s\n' % msg)
 
-def exp(msg, p):
+def exp(msg, p=sys.stdout.write):
   return p('#   (%s)\n' % msg)
 
-def file(fp, msg, p):
+def file(fp, msg, p=sys.stdout.write):
   return p('#     %s%s\n' % (fp, msg))
 
-def sep(p):
+def sep(p=sys.stdout.write):
   return p('############################################################\n')
