@@ -7,6 +7,7 @@ from gitpylib import common
 from gitpylib import file
 from gitpylib import status
 from gitpylib import sync
+import sync_lib
 
 
 SUCCESS = 1
@@ -15,6 +16,7 @@ FILE_ALREADY_TRACKED = 3
 FILE_ALREADY_UNTRACKED = 4
 FILE_IS_UNTRACKED = 5
 FILE_NOT_FOUND_AT_CP = 6
+UNRESOLVED_CONFLICTS = 7
 
 
 def track_file(fp):
@@ -207,9 +209,29 @@ def commit(files, msg):
     msg: the commit message.
 
   Returns:
-    The output of the commit command.
+    a pair (status, out) where status can be:
+    - UNRESOLVED_CONFLICTS -> out is the list of unresolved files.
+    - SUCCESS -> out is the output of the commit command.
   """
-  return sync.commit(files, msg)
+  if sync_lib.merge_in_progress():
+    # If we are doing a merge then we can't do a partial commit (Git won't let
+    # us do it). We can do commit -i which will stage all the files but we need
+    # to watch out for not commiting new Gitless's tracked files that are not in
+    # the list.
+    # To do this, we temporarily unstage these files and then re-stage them
+    # after the commit.
+    # TODO(sperezde): actually implement what the comment above says ;)
+    # TODO(sperezde): also need to do something with deletions?
+    unresolved = []
+    for fp, exists_in_lr, exists_in_wd, in_conflict in repo_status()[0]:
+      if in_conflict:
+        unresolved.append(fp)
+
+    if unresolved:
+      return (UNRESOLVED_CONFLICTS, unresolved)
+    print 'commiting files %s' % files
+    return (SUCCESS, sync.commit_include(files, msg))
+  return (SUCCESS, sync.commit(files, msg))
 
 
 def is_tracked_file(fp):
@@ -222,7 +244,8 @@ def _is_tracked_status(s):
   return (
       s is status.TRACKED_UNMODIFIED or
       s is status.TRACKED_MODIFIED or
-      s is status.STAGED)
+      s is status.STAGED or
+      s is status.IN_CONFLICT)
 
 
 # TODO(sperezde): does this still work if the file was moved?

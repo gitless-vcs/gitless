@@ -67,7 +67,15 @@ def main():
       return
 
   _auto_track(commit_files)
-  print lib.commit(commit_files, msg)
+  ret, out = lib.commit(commit_files, msg)
+  if ret is lib.SUCCESS:
+    print out
+  elif ret is lib.UNRESOLVED_CONFLICTS:
+    print 'You have unresolved conflicts:'
+    for f in out:
+      print f
+  else:
+    raise Exception('Unexpected return code %s' % ret)
 
 
 def _valid_input(only_files, exc_files, inc_files):

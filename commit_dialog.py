@@ -6,12 +6,27 @@ import subprocess
 
 import lib
 import pprint
+import sync_lib
 
 
 _COMMIT_FILE = '.GL_COMMIT_EDIT_MSG'
+_MERGE_MSG_FILE = 'MERGE_MSG' # TODO(sperezde): refactor this.
 
 
 def show(files):
+  """Show the dialog.
+
+  Args:
+    files: files for pre-populating the dialog.
+
+  Returns:
+    A tuple (msg, files) with the commit msg and the files to commit.
+  """
+  return _show_merge(files) if sync_lib.merge_in_progress() else _show(files)
+
+
+
+def _show(files):
   """Show the dialog.
 
   Args:
@@ -31,6 +46,39 @@ def show(files):
       cf.write)
   pprint.msg('These are the files that will be commited:', cf.write)
   pprint.exp('You can add/remove files to this list', cf.write)
+  for f in files:
+    pprint.file(f, '', cf.write)
+  pprint.sep(cf.write)
+  cf.close()
+  _launch_vim()
+  return _extract_info()
+
+
+def _show_merge(files):
+  """Show the dialog for a merge commit.
+
+  Args:
+    files: files that will be commited as part of the merge.
+
+  Returns:
+    A tuple (msg, files) with the commit msg and the files to commit.
+  """
+  # TODO(sperezde): use git editor if present.
+  # TODO(sperezde): detect if user exited with q!.
+  cf = open(_commit_file(), 'w')
+  merge_msg = open(_merge_msg_file(), 'r').read()
+  cf.write(merge_msg)
+  pprint.sep(cf.write)
+  pprint.msg(
+      'Please enter the commit message for your changes above. Lines starting '
+      'with \'#\' will be ignored, and an empty message aborts the commit.',
+      cf.write)
+  pprint.msg(
+      'These are the files that will be commited as part of the merge:',
+      cf.write)
+  pprint.exp(
+      'You can add/remove files to this list, but you must commit resolved '
+      'files', cf.write)
   for f in files:
     pprint.file(f, '', cf.write)
   pprint.sep(cf.write)
@@ -76,3 +124,7 @@ def _extract_info():
 
 def _commit_file():
   return os.path.join(lib.gl_dir(), _COMMIT_FILE)
+
+
+def _merge_msg_file():
+  return os.path.join(lib.gl_dir(), _MERGE_MSG_FILE)
