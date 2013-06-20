@@ -17,6 +17,7 @@ SRC_IS_CURRENT_BRANCH = 4
 NOTHING_TO_MERGE = 5
 FILE_NOT_FOUND = 6
 FILE_NOT_IN_CONFLICT = 7
+MERGE_NOT_IN_PROGRESS = 8
 
 
 def merge(src):
@@ -43,6 +44,12 @@ def merge(src):
 def merge_in_progress():
   return sync.merge_in_progress()
 
+
+def abort_merge():
+  if not merge_in_progress():
+    return MERGE_NOT_IN_PROGRESS
+  sync.abort_merge()
+  return SUCCESS
 
 def was_resolved(fp):
   """Returns True if the given file had conflicts and was marked as resolved."""

@@ -16,8 +16,24 @@ import sync_lib
 def main():
   parser = argparse.ArgumentParser(
       description='Merge the divergent changes of one branch onto another')
-  parser.add_argument('src', help='The source branch to read changes from')
+  parser.add_argument('src', nargs='?', help='the source branch to read changes from')
+  parser.add_argument('-a', '--abort', help='abort the merge in progress', action='store_true')
   args = parser.parse_args()
+
+
+  if args.abort:
+    if sync_lib.abort_merge() is sync_lib.MERGE_NOT_IN_PROGRESS:
+      pprint.msg('No merge in progress, nothing to abort')
+      pprint.exp(
+          'To merge divergent changes of branch b onto the current branch do gl'
+          ' merge <b>')
+    else:
+     pprint.msg('Merge aborted')
+    return
+
+  if not args.src:
+    parser.error('No src branch specified')
+
   ret, out = sync_lib.merge(args.src)
   if ret is sync_lib.SRC_NOT_FOUND:
     pprint.msg('Branch %s not found' % args.src, sys.stdout.write)
