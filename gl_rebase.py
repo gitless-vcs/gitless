@@ -22,8 +22,14 @@ def main():
     'the source branch to use as a base for rebasing'))
   parser.add_argument(
       '-a', '--abort', help='abort the rebase in progress', action='store_true')
+  parser.add_argument(
+      '-s', '--skip',
+      help='skip the current commit and continue with the next one',
+      action='store_true')
   args = parser.parse_args()
 
+  if args.abort and args.skip:
+    parser.error('Only one of --abort and --skip is possible')
 
   if args.abort:
     if sync_lib.abort_rebase() is sync_lib.REBASE_NOT_IN_PROGRESS:
@@ -33,6 +39,16 @@ def main():
           'rebasing the current branch out of b do gl rebase <b>')
     else:
      pprint.msg('Rebase aborted')
+    return
+
+  if args.skip:
+    if sync_lib.skip_rebase_commit() is sync_lib.REBASE_NOT_IN_PROGRESS:
+      pprint.msg('No rebase in progress, nothing to skip')
+      pprint.exp(
+          'To converge divergent changes of the current branch and branch b by '
+          'rebasing the current branch out of b do gl rebase <b>')
+    else:
+      pprint.msg('Rebase commit skipped')
     return
 
   if not args.src:

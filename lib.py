@@ -213,7 +213,9 @@ def commit(files, msg):
     - UNRESOLVED_CONFLICTS -> out is the list of unresolved files.
     - SUCCESS -> out is the output of the commit command.
   """
-  if sync_lib.merge_in_progress():
+  in_rebase = sync_lib.rebase_in_progress()
+  in_merge = sync_lib.merge_in_progress()
+  if in_rebase or in_merge:
     # If we are doing a merge then we can't do a partial commit (Git won't let
     # us do it). We can do commit -i which will stage all the files but we need
     # to watch out for not commiting new Gitless's tracked files that are not in
@@ -230,7 +232,21 @@ def commit(files, msg):
     if unresolved:
       return (UNRESOLVED_CONFLICTS, unresolved)
     print 'commiting files %s' % files
-    out = sync.commit_include(files, msg)
+    out = None
+    if in_rebase:
+      # TODO(sperezde): save the message to use it later.
+      for f in files:
+        file.stage(f)
+      s = sync.rebase_continue()
+      if s[0] is sync.SUCCESS:
+        sync_lib.conclude_rebase()
+        return (SUCCESS, s[1])
+      elif s[0] is sync.CONFLICT:
+        return (SUCCESS, s[1])
+      else:
+        raise Exception('Unrecognized ret code %s' % s[0])
+    else:
+      out = sync.commit_include(files, msg)
     sync_lib.internal_resolved_cleanup()
     return (SUCCESS, out)
   return (SUCCESS, sync.commit(files, msg))

@@ -22,8 +22,11 @@ def show(files):
   Returns:
     A tuple (msg, files) with the commit msg and the files to commit.
   """
-  return _show_merge(files) if sync_lib.merge_in_progress() else _show(files)
-
+  if sync_lib.merge_in_progress():
+    return _show_merge(files)
+  elif sync_lib.rebase_in_progress():
+    return _show_rebase(files)
+  return _show(files)
 
 
 def _show(files):
@@ -85,6 +88,39 @@ def _show_merge(files):
   cf.close()
   _launch_vim()
   return _extract_info()
+
+
+def _show_rebase(files):
+  """Show the dialog for a rebase commit.
+
+  Args:
+    files: files that will be commited as part of the rebase.
+
+  Returns:
+    A tuple (msg, files) with the commit msg and the files to commit.
+  """
+  # TODO(sperezde): use git editor if present.
+  # TODO(sperezde): detect if user exited with q!.
+  cf = open(_commit_file(), 'w')
+  cf.write('\n')
+  pprint.sep(cf.write)
+  pprint.msg(
+      'Please enter the commit message for your changes above. Lines starting '
+      'with \'#\' will be ignored, and an empty message aborts the commit.',
+      cf.write)
+  pprint.msg(
+      'These are the files that will be commited as part of the rebase:',
+      cf.write)
+  pprint.exp(
+      'You can add/remove files to this list, but you must commit resolved '
+      'files', cf.write)
+  for f in files:
+    pprint.file(f, '', cf.write)
+  pprint.sep(cf.write)
+  cf.close()
+  _launch_vim()
+  return _extract_info()
+
 
 
 def _launch_vim():

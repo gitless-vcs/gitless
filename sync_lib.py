@@ -62,11 +62,11 @@ def rebase(new_base):
   current = branch_lib.current()
   ret, out = sync.rebase(new_base)
   if ret is sync.SUCCESS:
-    # We write a file to note the current branch being rebased and the new base.
     return (SUCCESS, out)
   elif ret is sync.LOCAL_CHANGES_WOULD_BE_LOST:
     return (LOCAL_CHANGES_WOULD_BE_LOST, out)
   elif ret is sync.CONFLICT:
+    # We write a file to note the current branch being rebased and the new base.
     _write_rebase_file(current, new_base)
     return (CONFLICT, out)
   elif ret is sync.NOTHING_TO_REBASE:
@@ -90,9 +90,26 @@ def abort_rebase():
   if not rebase_in_progress():
     return REBASE_NOT_IN_PROGRESS
   sync.abort_rebase()
+  conclude_rebase()
+  return SUCCESS
+
+
+def skip_rebase_commit():
+  if not rebase_in_progress():
+    return REBASE_NOT_IN_PROGRESS
+  s = sync.skip_rebase_commit()
+  if s[0] is sync.SUCCESS:
+    conclude_rebase()
+    return (SUCCESS, s[1])
+  elif s[0] is sync.CONFLICT:
+    return (SUCCESS, s[1])
+  else:
+    raise Exception('Unrecognized ret code %s' % s[0])
+
+
+def conclude_rebase():
   internal_resolved_cleanup()
   os.remove(_rebase_file())
-  return SUCCESS
 
 
 def _write_rebase_file(current, new_base):
@@ -151,7 +168,7 @@ def resolve(fp):
 def internal_resolved_cleanup():
   for f in os.listdir(lib.gl_dir()):
     if f.startswith('GL_RESOLVED'):
-      os.remove(os.path.join(lib.gl_dir, f))
+      os.remove(os.path.join(lib.gl_dir(), f))
       print 'removed %s' % f
 
 
