@@ -18,6 +18,8 @@ NOTHING_TO_MERGE = 5
 FILE_NOT_FOUND = 6
 FILE_NOT_IN_CONFLICT = 7
 MERGE_NOT_IN_PROGRESS = 8
+CONFLICT = 9
+REBASE_NOT_IN_PROGRESS = 10
 
 
 def merge(src):
@@ -26,11 +28,10 @@ def merge(src):
   Args:
     src: the source branch to pick up changes from.
   """
-  exists, is_current, unused_tracks = branch_lib.status(src)
-  if not exists:
-    return (SRC_NOT_FOUND, None)
-  if exists and is_current:
-    return (SRC_IS_CURRENT_BRANCH, None)
+  is_valid, error = _valid_branch(src)
+  if not is_valid:
+    return (error, None)
+
   ret, out = sync.merge(src)
   if ret is sync.SUCCESS:
     return (SUCCESS, out)
@@ -49,7 +50,70 @@ def abort_merge():
   if not merge_in_progress():
     return MERGE_NOT_IN_PROGRESS
   sync.abort_merge()
+  internal_resolved_cleanup()
   return SUCCESS
+
+
+def rebase(new_base):
+  is_valid, error = _valid_branch(new_base)
+  if not is_valid:
+    return (error, None)
+
+  current = branch_lib.current()
+  ret, out = sync.rebase(new_base)
+  if ret is sync.SUCCESS:
+    # We write a file to note the current branch being rebased and the new base.
+    return (SUCCESS, out)
+  elif ret is sync.LOCAL_CHANGES_WOULD_BE_LOST:
+    return (LOCAL_CHANGES_WOULD_BE_LOST, out)
+  elif ret is sync.CONFLICT:
+    _write_rebase_file(current, new_base)
+    return (CONFLICT, out)
+  elif ret is sync.NOTHING_TO_REBASE:
+    return (NOTHING_TO_REBASE, out)
+  raise Exception("Unexpected ret code %s" % ret)
+
+
+def rebase_in_progress():
+  return os.path.exists(os.path.join(lib.gl_dir(), 'GL_REBASE'))
+
+
+def rebase_info():
+  """Gets the name of the current branch being rebased and the new base."""
+  rf = open(_rebase_file(), 'r')
+  current = rf.readline().strip()
+  new_base = rf.readline().strip()
+  return (current, new_base)
+
+
+def abort_rebase():
+  if not rebase_in_progress():
+    return REBASE_NOT_IN_PROGRESS
+  sync.abort_rebase()
+  internal_resolved_cleanup()
+  os.remove(_rebase_file())
+  return SUCCESS
+
+
+def _write_rebase_file(current, new_base):
+  rf = open(_rebase_file(), 'w')
+  rf.write(current + '\n')
+  rf.write(new_base + '\n')
+  rf.close()
+
+
+def _rebase_file():
+  return os.path.join(lib.gl_dir(), 'GL_REBASE')
+
+ 
+def _valid_branch(b):
+  exists, is_current, unused_tracks = branch_lib.status(b)
+  if not exists:
+    return (False, SRC_NOT_FOUND)
+  if exists and is_current:
+    return (False, SRC_IS_CURRENT_BRANCH)
+  return (True, None)
+
 
 def was_resolved(fp):
   """Returns True if the given file had conflicts and was marked as resolved."""
@@ -84,5 +148,12 @@ def resolve(fp):
   return SUCCESS
 
 
+def internal_resolved_cleanup():
+  for f in os.listdir(lib.gl_dir()):
+    if f.startswith('GL_RESOLVED'):
+      os.remove(os.path.join(lib.gl_dir, f))
+      print 'removed %s' % f
+
+
 def _resolved_file(fp):
-  return os.path.join(lib.gl_dir(), '.GL_%s_%s' % (branch_lib.current(), fp))
+  return os.path.join(lib.gl_dir(), 'GL_RESOLVED_%s_%s' % (branch_lib.current(), fp))

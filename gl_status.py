@@ -22,9 +22,13 @@ def main():
   _print('On branch %s' % branch_lib.current())
 
   in_merge = sync_lib.merge_in_progress()
+  in_rebase = sync_lib.rebase_in_progress()
   if in_merge:
     _print_blank()
     _print_merge_exp()
+  elif in_rebase:
+    _print_blank()
+    _print_rebase_exp()
 
   _print_blank()
   _print('Tracked files with modifications:')
@@ -45,7 +49,7 @@ def main():
         str = ' (deleted)'
       elif in_conflict:
         str = ' (with conflicts)'
-      elif in_merge and sync_lib.was_resolved(fp):
+      elif (in_merge or in_rebase) and sync_lib.was_resolved(fp):
         str = ' (conflicts resolved)'
       _print_file(fp, str)
   _print_blank()
@@ -84,6 +88,16 @@ def _print_merge_exp():
   pprint.exp('use gl merge --abort to go back to the state before the merge')
   pprint.exp('use gl resolve <f> to mark file f as resolved')
   pprint.exp('once you solved all conflicts do gl commit to complete the merge')
+  pprint.blank()
+
+
+def _print_rebase_exp():
+  pprint.msg(
+      'You are in the middle of a rebase; all conflicts must be resolved before '
+      'commiting')
+  pprint.exp('use gl rebase --abort to go back to the state before the rebase')
+  pprint.exp('use gl resolve <f> to mark file f as resolved')
+  pprint.exp('once you solved all conflicts do gl commit to keep rebasing')
   pprint.blank()
 
 

@@ -230,7 +230,9 @@ def commit(files, msg):
     if unresolved:
       return (UNRESOLVED_CONFLICTS, unresolved)
     print 'commiting files %s' % files
-    return (SUCCESS, sync.commit_include(files, msg))
+    out = sync.commit_include(files, msg)
+    sync_lib.internal_resolved_cleanup()
+    return (SUCCESS, out)
   return (SUCCESS, sync.commit(files, msg))
 
 
