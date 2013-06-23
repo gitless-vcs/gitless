@@ -42,16 +42,16 @@ def _show(files):
   # TODO(sperezde): detect if user exited with q!.
   cf = open(_commit_file(), 'w')
   cf.write('\n')
-  pprint.sep(cf.write)
+  pprint.sep(p=cf.write)
   pprint.msg(
       'Please enter the commit message for your changes above. Lines starting '
       'with \'#\' will be ignored, and an empty message aborts the commit.',
-      cf.write)
-  pprint.msg('These are the files that will be commited:', cf.write)
-  pprint.exp('You can add/remove files to this list', cf.write)
+      p=cf.write)
+  pprint.msg('These are the files that will be commited:', p=cf.write)
+  pprint.exp('You can add/remove files to this list', p=cf.write)
   for f in files:
-    pprint.file(f, '', cf.write)
-  pprint.sep(cf.write)
+    pprint.item(f, p=cf.write)
+  pprint.sep(p=cf.write)
   cf.close()
   _launch_vim()
   return _extract_info()
@@ -71,20 +71,20 @@ def _show_merge(files):
   cf = open(_commit_file(), 'w')
   merge_msg = open(_merge_msg_file(), 'r').read()
   cf.write(merge_msg)
-  pprint.sep(cf.write)
+  pprint.sep(p=cf.write)
   pprint.msg(
       'Please enter the commit message for your changes above. Lines starting '
       'with \'#\' will be ignored, and an empty message aborts the commit.',
-      cf.write)
+      p=cf.write)
   pprint.msg(
       'These are the files that will be commited as part of the merge:',
-      cf.write)
+      p=cf.write)
   pprint.exp(
       'You can add/remove files to this list, but you must commit resolved '
-      'files', cf.write)
+      'files', p=cf.write)
   for f in files:
-    pprint.file(f, '', cf.write)
-  pprint.sep(cf.write)
+    pprint.item(f, p=cf.write)
+  pprint.sep(p=cf.write)
   cf.close()
   _launch_vim()
   return _extract_info()
@@ -103,20 +103,20 @@ def _show_rebase(files):
   # TODO(sperezde): detect if user exited with q!.
   cf = open(_commit_file(), 'w')
   cf.write('\n')
-  pprint.sep(cf.write)
+  pprint.sep(p=cf.write)
   pprint.msg(
       'Please enter the commit message for your changes above. Lines starting '
       'with \'#\' will be ignored, and an empty message aborts the commit.',
-      cf.write)
+      p=cf.write)
   pprint.msg(
       'These are the files that will be commited as part of the rebase:',
-      cf.write)
+      p=cf.write)
   pprint.exp(
       'You can add/remove files to this list, but you must commit resolved '
-      'files', cf.write)
+      'files', p=cf.write)
   for f in files:
-    pprint.file(f, '', cf.write)
-  pprint.sep(cf.write)
+    pprint.item(f, p=cf.write)
+  pprint.sep(p=cf.write)
   cf.close()
   _launch_vim()
   return _extract_info()

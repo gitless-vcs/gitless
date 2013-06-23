@@ -7,6 +7,7 @@ command allows the user to retrieve the status of the files in the repo.
 """
 
 import argparse
+import os
 
 import branch_lib
 import cmd
@@ -19,26 +20,31 @@ def main():
   parser = argparse.ArgumentParser(
       description="Show status of the repo")
 
-  _print('On branch %s' % branch_lib.current())
+  pprint.msg('On branch %s' % branch_lib.current())
+  pprint.blank()
+  pprint.msg('On directory %s' % lib.gl_cwd())
 
   in_merge = sync_lib.merge_in_progress()
   in_rebase = sync_lib.rebase_in_progress()
   if in_merge:
-    _print_blank()
+    pprint.blank()
     _print_merge_exp()
   elif in_rebase:
-    _print_blank()
+    pprint.blank()
     _print_rebase_exp()
 
-  _print_blank()
-  _print('Tracked files with modifications:')
-  _print_exp('these will be automatically considered for commit')
-  _print_exp(
+  pprint.blank()
+  pprint.msg('Tracked files with modifications:')
+  pprint.exp('these will be automatically considered for commit')
+  pprint.exp(
       'use gl untrack <f> if you don\'t want to track changes to file f')
-  _print_blank()
+  pprint.exp(
+      'if file f was commmitted before, use gl checkout HEAD <f> to discard '
+      'local changes')
+  pprint.blank()
   tracked_mod_list, untracked_list = lib.repo_status()
   if not tracked_mod_list:
-    print '#     There are no tracked files with modifications to list'
+    pprint.item(' There are no tracked files with modifications to list')
   else:
     for fp, exists_in_lr, exists_in_wd, in_conflict in tracked_mod_list:
       str = ''
@@ -51,34 +57,18 @@ def main():
         str = ' (with conflicts)'
       elif (in_merge or in_rebase) and sync_lib.was_resolved(fp):
         str = ' (conflicts resolved)'
-      _print_file(fp, str)
-  _print_blank()
-  _print_blank()
-  _print('Untracked files:')
-  _print_exp('these won\'t be considered for commit')
-  _print_exp('use gl track <f> if you want to track changes to file f')
-  _print_blank()
+      pprint.item(fp, opt_msg=str)
+  pprint.blank()
+  pprint.blank()
+  pprint.msg('Untracked files:')
+  pprint.exp('these won\'t be considered for commit')
+  pprint.exp('use gl track <f> if you want to track changes to file f')
+  pprint.blank()
   if not untracked_list:
-    print '#     There are no untracked files to list'
+    pprint.item('There are no untracked files to list')
   else:
     for fp, exists_in_lr in untracked_list:
-      _print_file(fp, ' (exists in local repo)' if exists_in_lr else '')
-
-
-def _print_blank():
-  print '#'
-
-
-def _print(s):
-  print '# %s' % s
-
-
-def _print_exp(s):
-  print '#   (%s)' % s
-
-
-def _print_file(fp, msg):
-  print '#     %s%s' % (fp, msg)
+      pprint.item(fp, opt_msg=' (exists in local repo)' if exists_in_lr else '')
 
 
 def _print_merge_exp():
@@ -93,8 +83,8 @@ def _print_merge_exp():
 
 def _print_rebase_exp():
   pprint.msg(
-      'You are in the middle of a rebase; all conflicts must be resolved before '
-      'commiting')
+      'You are in the middle of a rebase; all conflicts must be resolved before'
+      ' commiting')
   pprint.exp('use gl rebase --abort to go back to the state before the rebase')
   pprint.exp('use gl resolve <f> to mark file f as resolved')
   pprint.exp('once you solved all conflicts do gl commit to keep rebasing')

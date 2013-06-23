@@ -20,16 +20,16 @@ def main():
       help='Switch to branch (will be created if it doesn\'t exist yet)')
   parser.add_argument(
       '-d', '--delete', nargs='+', help='Delete branch(es)', dest='delete_b')
-  parser.add_argument(
-      '-l', '--list', nargs='*', help='List branch(es)', dest='list_b')
   args = parser.parse_args()
 
 
   if args.branch:
     exists, is_current, unused_tracks = branch_lib.status(args.branch)
     if exists and is_current:
-      pprint.msg('You are already in branch %s' % args.branch)
-      return
+      pprint.err(
+          'You are already in branch %s. No need to switch.' % args.branch)
+      pprint.err_exp('to list existing branches do gl branch')
+      return cmd.ERRORS_FOUND
 
     if not exists:
       branch_lib.create(args.branch)
@@ -39,9 +39,12 @@ def main():
     branch_lib.switch(args.branch)
     pprint.msg('Switched to branch %s' % args.branch)
   elif args.delete_b:
-    _delete(args.delete_b)
+    if not _delete(args.delete_b):
+      return cmd.ERRORS_FOUND
   else:
     _list()
+
+  return cmd.SUCCESS
 
 
 def _list():
@@ -58,26 +61,27 @@ def _list():
 
 
 def _delete(delete_b):
+  errors_found = False
+
   for b in delete_b:
     exists, is_current, unused_tracks = branch_lib.status(b)
     if not exists:
-      pprint.msg('Can\'t remove inexistent branch %s' % b)
-      pprint.exp('To list existing branches do gl branch')
+      pprint.err('Can\'t remove inexistent branch %s' % b)
+      pprint.err_exp('to list existing branches do gl branch')
+      errors_found = True
     elif exists and is_current:
-      pprint.msg('Can\'t remove current branch %s' % b)
-      pprint.exp(
+      pprint.err('Can\'t remove current branch %s' % b)
+      pprint.err_exp(
           'use gl branch <b> to create or switch to another branch b and then '
           'gl branch -d %s to remove branch %s' % (b, b))
-    elif not _conf_dialog('Branch %s will be removed' % b):
-      pprint.msg('Aborted: removal of branch %s')
+      errors_found = True
+    elif not pprint.conf_dialog('Branch %s will be removed' % b):
+      pprint.msg('Aborted: removal of branch %s' % b)
     else:
       branch_lib.delete(b)
       pprint.msg('Branch %s removed successfully' % b)
 
-
-def _conf_dialog(msg):
-  user_input = raw_input('%s. Do you wish to continue? (y/N) ' % msg)
-  return user_input and user_input[0] == 'y'
+  return not errors_found
 
 
 if __name__ == '__main__':

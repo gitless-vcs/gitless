@@ -23,41 +23,44 @@ def main():
 
   if args.abort:
     if sync_lib.abort_merge() is sync_lib.MERGE_NOT_IN_PROGRESS:
-      pprint.msg('No merge in progress, nothing to abort')
-      pprint.exp(
+      pprint.err('No merge in progress, nothing to abort')
+      pprint.err_exp(
           'To merge divergent changes of branch b onto the current branch do gl'
           ' merge <b>')
-    else:
-     pprint.msg('Merge aborted')
-    return
+      return cmd.ERRORS_FOUND
+    pprint.msg('Merge aborted successfully')
+    return cmd.SUCCESS
 
   if not args.src:
     parser.error('No src branch specified')
 
   ret, out = sync_lib.merge(args.src)
   if ret is sync_lib.SRC_NOT_FOUND:
-    pprint.msg('Branch %s not found' % args.src, sys.stdout.write)
-    pprint.exp('do gl branch to list all existing branches', sys.stdout.write)
+    pprint.err('Branch %s not found' % args.src)
+    pprint.err_exp('do gl branch to list all existing branches')
+    return cmd.ERRORS_FOUND
   elif ret is sync_lib.SRC_IS_CURRENT_BRANCH:
-    pprint.msg('Branch %s is the current branch' % args.src, sys.stdout.write)
-    pprint.exp(
+    pprint.err('Branch %s is the current branch' % args.src)
+    pprint.err_exp(
         'to merge branch %s onto another branch b, do gl branch b, and gl merge'
-        ' %s from there' % (args.src, args.src), sys.stdout.write)
+        ' %s from there' % (args.src, args.src))
+    return cmd.ERRORS_FOUND
   elif ret is sync_lib.NOTHING_TO_MERGE:
-    pprint.msg(
-        'No divergent changes to merge from %s' % args.src, sys.stdout.write)
+    pprint.err(
+        'No divergent changes to merge from %s' % args.src)
+    return cmd.ERRORS_FOUND
   elif ret is sync_lib.LOCAL_CHANGES_WOULD_BE_LOST:
-    pprint.msg(
+    pprint.err(
         'Merge was aborted because your local changes to the following files '
-        'would be overwritten by merge:', sys.stdout.write)
-    pprint.exp('use gl commit to commit your changes', sys.stdout.write)
-    pprint.exp(
-        'use gl checkout HEAD f to discard changes to tracked file f',
-        sys.stdout.write)
+        'would be overwritten by merge:')
+    pprint.err_exp('use gl commit to commit your changes')
+    pprint.err_exp(
+        'use gl checkout HEAD f to discard changes to tracked file f')
     for fp in out:
-      pprint.file(fp, '', sys.stdout.write)
-
-
+      pprint.err_item(fp)
+    
+    return cmd.ERRORS_FOUND
+  return cmd.SUCCESS
 
 
 if __name__ == '__main__':

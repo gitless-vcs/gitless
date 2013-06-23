@@ -11,23 +11,31 @@ import argparse
 
 import cmd
 import lib
+import pprint
 
 
 def main():
   parser = argparse.ArgumentParser(
       description='Start tracking changes to files')
   parser.add_argument(
-      'file_pattern', help='a file_pattern representing the file(s) to track')
+      'files', nargs='+', help='the file(s) to track')
   args = parser.parse_args()
-  ret = lib.track_file(args.file_pattern)
-  if ret is lib.FILE_NOT_FOUND:
-    print 'Can\'t track an inexistent file: %s' % args.file_pattern
-  elif ret is lib.FILE_ALREADY_TRACKED:
-    print 'File %s is already tracked' % args.file_pattern
-  elif ret is lib.SUCCESS:
-    print 'File %s is now a tracked file' % args.file_pattern
-  else:
-    raise Exception('Unexpected return code')
+  errors_found = False
+
+  for fp in args.files:
+    ret = lib.track_file(fp)
+    if ret is lib.FILE_NOT_FOUND:
+      pprint.err('Can\'t track an inexistent file: %s' % fp)
+      errors_found = True
+    elif ret is lib.FILE_ALREADY_TRACKED:
+      pprint.err('File %s is already tracked' % fp)
+      errors_found = True
+    elif ret is lib.SUCCESS:
+      pprint.msg('File %s is now a tracked file' % fp)
+    else:
+      raise Exception('Unexpected return code')
+
+  return cmd.ERRORS_FOUND if errors_found else cmd.SUCCESS
 
 
 if __name__ == '__main__':

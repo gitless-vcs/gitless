@@ -33,64 +33,66 @@ def main():
 
   if args.abort:
     if sync_lib.abort_rebase() is sync_lib.REBASE_NOT_IN_PROGRESS:
-      pprint.msg('No rebase in progress, nothing to abort')
-      pprint.exp(
+      pprint.err('No rebase in progress, nothing to abort')
+      pprint.err_exp(
           'To converge divergent changes of the current branch and branch b by '
           'rebasing the current branch out of b do gl rebase <b>')
-    else:
-     pprint.msg('Rebase aborted')
-    return
+      return cmd.ERRORS_FOUND
+    pprint.msg('Rebase aborted')
+    return cmd.SUCCESS
 
   if args.skip:
     if sync_lib.skip_rebase_commit() is sync_lib.REBASE_NOT_IN_PROGRESS:
-      pprint.msg('No rebase in progress, nothing to skip')
-      pprint.exp(
+      pprint.err('No rebase in progress, nothing to skip')
+      pprint.err_exp(
           'To converge divergent changes of the current branch and branch b by '
           'rebasing the current branch out of b do gl rebase <b>')
-    else:
-      pprint.msg('Rebase commit skipped')
-    return
+      return cmd.ERRORS_FOUND
+
+    pprint.msg('Rebase commit skipped')
+    return cmd.SUCCESS
 
   if not args.src:
     parser.error('No src branch specified')
 
   ret, out = sync_lib.rebase(args.src)
   if ret is sync_lib.SRC_NOT_FOUND:
-    pprint.msg('Branch %s not found' % args.src, sys.stdout.write)
-    pprint.exp('do gl branch to list all existing branches', sys.stdout.write)
+    pprint.err('Branch %s not found' % args.src)
+    pprint.err_exp('do gl branch to list all existing branches')
+    return cmd.ERRORS_FOUND
   elif ret is sync_lib.SRC_IS_CURRENT_BRANCH:
-    pprint.msg('Branch %s is the current branch' % args.src, sys.stdout.write)
-    pprint.exp(
+    pprint.err('Branch %s is the current branch' % args.src)
+    pprint.err_exp(
         'to rebase branch %s onto another branch b, do gl branch b, and gl '
-        'rebase  %s from there' % (args.src, args.src), sys.stdout.write)
+        'rebase %s from there' % (args.src, args.src))
+    return cmd.ERRORS_FOUND
   elif ret is sync_lib.CONFLICT:
-    pprint.msg('There are conflicts you need to resolve')
-    pprint.exp(
+    pprint.err('There are conflicts you need to resolve')
+    pprint.err_exp(
         'edit the files in conflict and do gl resolve <f> to mark file f as '
         'resolved')
-    pprint.exp(
+    pprint.err_exp(
         'once all conflicts have been resolved do gl commit to commit the '
         'changes and continue rebasing')
-    pprint.blank()
-    pprint.msg('Files in conflict:')
+    pprint.err_blank()
+    pprint.err('Files in conflict:')
     for f in out:
-      pprint.file(f, '')
+      pprint.err_item(f)
+    return cmd.ERRORS_FOUND
   elif ret is sync_lib.NOTHING_TO_REBASE:
-    pprint.msg(
-        'No divergent changes to rebase from %s' % args.src, sys.stdout.write)
- # elif ret is sync_lib.LOCAL_CHANGES_WOULD_BE_LOST:
- #   pprint.msg(
- #       'Rebase was aborted because your local changes to the following files '
- #       'would be overwritten by merge:', sys.stdout.write)
- #   pprint.exp('use gl commit to commit your changes', sys.stdout.write)
- #   pprint.exp(
- #       'use gl checkout HEAD f to discard changes to tracked file f',
- #       sys.stdout.write)
- #   for fp in out:
- #     pprint.file(fp, '', sys.stdout.write)
-
-
-
+    pprint.err(
+        'No divergent changes to rebase from %s' % args.src)
+  elif ret is sync_lib.LOCAL_CHANGES_WOULD_BE_LOST:
+    pprint.err(
+        'Rebase was aborted because you have uncommited local changes')
+    pprint.err_exp('use gl commit to commit your changes')
+    return cmd.ERRORS_FOUND
+  elif ret is sync_lib.SUCCESS:
+    pprint.msg('Rebase succeded')
+    return cmd.SUCCESS
+  else:
+    raise Exception('Unexpected ret code %s' % ret)
+ 
 
 if __name__ == '__main__':
   cmd.run(main)

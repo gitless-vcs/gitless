@@ -11,6 +11,7 @@ import os
 import commit_dialog
 import cmd
 import lib
+import pprint
 
 
 def main():
@@ -18,16 +19,16 @@ def main():
       description="Record changes in the local repository")
   parser.add_argument(
       'only_files', nargs='*',
-      help='Only the files listed as arguments will be committed (files could '
+      help='only the files listed as arguments will be committed (files could '
            'be tracked or untracked files)')
   parser.add_argument(
       '-exc', '--exclude', nargs='+',
-      help=('Files listed as arguments will be excluded from the commit (files '
+      help=('files listed as arguments will be excluded from the commit (files '
             'must be tracked files)'),
       dest='exc_files')
   parser.add_argument(
       '-inc', '--include', nargs='+',
-      help=('Files listed as arguments will be included to the commit (files '
+      help=('files listed as arguments will be included to the commit (files '
             'must be untracked files)'),
       dest='inc_files')
   parser.add_argument(
@@ -43,39 +44,43 @@ def main():
   inc_files = frozenset(args.inc_files) if args.inc_files else []
 
   if not _valid_input(only_files, exc_files, inc_files):
-    print 'An error was encountered'
-    return
+    return cmd.ERRORS_FOUND
 
   commit_files = _compute_fs(only_files, exc_files, inc_files)
 
   if not commit_files:
-    print 'No files to commit'
-    return
+    pprint.err('No files to commit')
+    return cmd.ERRORS_FOUND
 
   msg = args.m
   if not msg:
     # Show the commit dialog.
     msg, commit_files = commit_dialog.show(commit_files)
     if not msg.strip():
-      print 'No commit message provided'
-      return
+      pprint.err('No commit message provided')
+      return cmd.ERRORS_FOUND
     if not commit_files:
-      print 'No files to commit'
-      return
+      pprint.err('No files to commit')
+      return cmd.ERRORS_FOUND
     if not _valid_input(commit_files, [], []):
-      print 'An error was encountered'
-      return
+      return cmd.ERRORS_FOUND
 
   _auto_track(commit_files)
   ret, out = lib.commit(commit_files, msg)
   if ret is lib.SUCCESS:
-    print out
+    pprint.msg(out)
   elif ret is lib.UNRESOLVED_CONFLICTS:
-    print 'You have unresolved conflicts:'
+    pprint.err('You have unresolved conflicts:')
+    pprint.err_exp(
+        'use gl resolve <f> to mark file f as resolved once you fixed the '
+        'conflicts')
     for f in out:
-      print f
+      pprint.item(f)
+    return cmd.ERRORS_FOUND
   else:
     raise Exception('Unexpected return code %s' % ret)
+
+  return cmd.SUCCESS
 
 
 def _valid_input(only_files, exc_files, inc_files):
@@ -93,37 +98,42 @@ def _valid_input(only_files, exc_files, inc_files):
     True if the input is valid, False if otherwise.
   """
   if only_files and (exc_files or inc_files):
-    print (
+    pprint.msg(
         'You provided a list of filenames to be committed only but also '
         'provided a list of files to be excluded or included.')
     return False
 
   ret = True
   for fp in only_files:
-    if not os.path.exists(fp):
-      print 'File %s doesn\'t exist' % fp
+    if not os.path.exists(fp) and not lib.is_deleted_file(fp):
+      pprint.err('File %s doesn\'t exist' % fp)
       ret = False
 
   for fp in exc_files:
     # We check that the files to be excluded are existing tracked files.
-    # TODO(sperezde): check that they are also modified.
-    if not os.path.exists(fp):
-      print 'File %s doesn\'t exist' % fp
+    if not os.path.exists(fp) and not lib.is_deleted_file(fp):
+      pprint.err('File %s doesn\'t exist' % fp)
       ret = False
     elif not lib.is_tracked_file(fp):
-      print (
-          'File %s, listed to be excluded from commit, is not a tracked file.' % fp)
+      pprint.err(
+          'File %s, listed to be excluded from commit, is not a tracked file' %
+          fp)
+      ret = False
+    elif not lib.is_tracked_modified(fp):
+      pprint.err(
+          'File %s, listed to be excluded from commit, is a tracked file but '
+          'has no modifications' % fp)
       ret = False
 
   for fp in inc_files:
     # We check that the files to be included are existing untracked files.
-    if not os.path.exists(fp):
-      print 'File %s doesn\'t exist' % fp
+    if not os.path.exists(fp) and not lib.is_deleted_file(fp):
+      pprint.err('File %s doesn\'t exist' % fp)
       ret = False
     elif lib.is_tracked_file(fp):
-      print (
+      pprint.err(
           'File %s, listed to be included in the commit, is not a untracked '
-          'file.' % fp)
+          'file' % fp)
       ret = False
 
   return ret

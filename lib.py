@@ -135,7 +135,7 @@ def repo_status():
     elif s is status.STAGED:
       tracked_mod_list.append((fp, False, True, False))
     elif s is status.ASSUME_UNCHANGED:
-      untracked_list.append((fp, True, False))
+      untracked_list.append((fp, True))
     elif s is status.DELETED:
       tracked_mod_list.append((fp, True, False, False))
     elif s is status.DELETED_STAGED:
@@ -263,7 +263,16 @@ def _is_tracked_status(s):
       s is status.TRACKED_UNMODIFIED or
       s is status.TRACKED_MODIFIED or
       s is status.STAGED or
-      s is status.IN_CONFLICT)
+      s is status.IN_CONFLICT or
+      s is status.DELETED)
+
+
+def is_tracked_modified(fp):
+  s = status.of_file(fp)
+  return _is_tracked_status(s) and not s is status.TRACKED_UNMODIFIED
+
+def is_deleted_file(fp):
+  return status.of_file(fp) is status.DELETED
 
 
 # TODO(sperezde): does this still work if the file was moved?
@@ -282,7 +291,27 @@ def checkout(fp, cp):
   if ret is file.FILE_NOT_FOUND_AT_CP:
     return (FILE_NOT_FOUND_AT_CP, None)
 
+  s = status.of_file(fp)
+  unstaged = False
+  if s is status.STAGED:
+    file.unstage(fp)
+    unstaged = True
+
+  dst = open(fp, 'w')
+  dst.write(out)
+  dst.close()
+
+  if unstaged:
+    file.stage(fp)
+
   return (SUCCESS, out)
+
+
+def gl_cwd():
+  """Gets the Gitless's cwd."""
+  dr = os.path.dirname(gl_dir())
+  cwd = os.getcwd()
+  return '/' if dr == cwd else cwd[len(dr):]
 
 
 def gl_dir():
