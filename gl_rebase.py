@@ -55,6 +55,12 @@ def main():
   if not args.src:
     parser.error('No src branch specified')
 
+
+  if sync_lib.rebase_in_progress():
+    pprint.err('You are already in the middle of a rebase')
+    pprint.err_exp('use gl rebase --abort to abort the current rebase')
+    return cmd.ERRORS_FOUND
+
   ret, out = sync_lib.rebase(args.src)
   if ret is sync_lib.SRC_NOT_FOUND:
     pprint.err('Branch %s not found' % args.src)
@@ -68,6 +74,7 @@ def main():
     return cmd.ERRORS_FOUND
   elif ret is sync_lib.CONFLICT:
     pprint.err('There are conflicts you need to resolve')
+    pprint.err_exp('use gl status to look at the files in conflict')
     pprint.err_exp(
         'edit the files in conflict and do gl resolve <f> to mark file f as '
         'resolved')
@@ -75,9 +82,9 @@ def main():
         'once all conflicts have been resolved do gl commit to commit the '
         'changes and continue rebasing')
     pprint.err_blank()
-    pprint.err('Files in conflict:')
-    for f in out:
-      pprint.err_item(f)
+    # pprint.err('Files in conflict:')
+    # for f in out:
+    #  pprint.err_item(f)
     return cmd.ERRORS_FOUND
   elif ret is sync_lib.NOTHING_TO_REBASE:
     pprint.err(

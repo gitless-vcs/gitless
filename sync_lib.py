@@ -36,6 +36,8 @@ def merge(src):
   ret, out = sync.merge(src)
   if ret is sync.SUCCESS:
     return (SUCCESS, out)
+  elif ret is sync.CONFLICT:
+    return (CONFLICT, out)
   elif ret is sync.LOCAL_CHANGES_WOULD_BE_LOST:
     return (LOCAL_CHANGES_WOULD_BE_LOST, out)
   elif ret is sync.NOTHING_TO_MERGE:
@@ -149,10 +151,10 @@ def resolve(fp):
     - FILE_NOT_IN_CONFLICT
     - SUCCESS
   """
-  if not os.path.exists(fp):
+  s = status.of_file(fp)
+  if not os.path.exists(fp) and not (s is status.IN_CONFLICT):
     return FILE_NOT_FOUND
 
-  s = status.of_file(fp)
   if s is not status.IN_CONFLICT:
     return FILE_NOT_IN_CONFLICT
 

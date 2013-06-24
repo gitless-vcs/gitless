@@ -28,6 +28,8 @@ def main():
       pprint.err('File %s is already untracked' % fp)
     elif ret is lib.SUCCESS:
       pprint.msg('File %s is now a untracked file' % fp)
+    elif ret is lib.FILE_IN_CONFLICT:
+      pprint.err('Can\'t untrack a file in conflict')
     else:
       raise Exception('Unexpected return code')
 

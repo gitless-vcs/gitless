@@ -60,6 +60,20 @@ def main():
       pprint.err_item(fp)
     
     return cmd.ERRORS_FOUND
+  elif ret is sync_lib.CONFLICT:
+    pprint.err(
+        'Merge was aborted becase there are conflicts you need to resolve')
+    pprint.err_exp(
+        'use gl status to look at the files in conflict')
+    pprint.err_exp(
+        'use gl merge --abort to go back to the state before the merge')
+    pprint.err_exp('use gl resolve <f> to mark file f as resolved')
+    pprint.err_exp(
+        'once you solved all conflicts do gl commit to complete the merge')
+    return cmd.ERRORS_FOUND
+  elif ret is sync_lib.SUCCESS:
+    pprint.msg('Merged succeeded')
+
   return cmd.SUCCESS
 
 

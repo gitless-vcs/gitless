@@ -17,6 +17,7 @@ FILE_ALREADY_UNTRACKED = 4
 FILE_IS_UNTRACKED = 5
 FILE_NOT_FOUND_AT_CP = 6
 UNRESOLVED_CONFLICTS = 7
+FILE_IN_CONFLICT = 8
 
 
 def track_file(fp):
@@ -80,6 +81,7 @@ def untrack_file(fp):
       - FILE_NOT_FOUND: the given file was not found;
       - FILE_ALREADY_UNTRACKED: the given file is already an untracked file;
       - SUCCESS: the operation finished sucessfully.
+      - FILE_IN_CONFLICT: the file is in conflict.
   """
   if not os.path.exists(fp):
     return FILE_NOT_FOUND
@@ -107,6 +109,8 @@ def untrack_file(fp):
   elif (s is status.TRACKED_UNMODIFIED) or (s is status.TRACKED_MODIFIED):
     # Case (ii).
     file.assume_unchanged(fp)
+  elif s is status.IN_CONFLICT:
+    return FILE_IN_CONFLICT
   else:
     raise Exception("File %s in unkown status %s" % (fp, s))
 
