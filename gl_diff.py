@@ -20,7 +20,7 @@ def main():
   parser.add_argument(
       "file", help="the file to diff")
   args = parser.parse_args()
-  fp = args.file_pattern
+  fp = args.file
   ret, out = lib.diff(fp)
   errors_found = False
 
