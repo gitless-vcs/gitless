@@ -26,6 +26,9 @@ def main():
       pprint.err('Can\'t untrack an inexistent file: %s' % fp)
     elif ret is lib.FILE_ALREADY_UNTRACKED:
       pprint.err('File %s is already untracked' % fp)
+    elif ret is lib.FILE_IS_IGNORED:
+      pprint.err('File %s is ignored. Nothing to untrack' % fp)
+      pprint.err_exp('edit the .gitignore file to stop ignoring file %s' % fp)
     elif ret is lib.SUCCESS:
       pprint.msg('File %s is now a untracked file' % fp)
     elif ret is lib.FILE_IN_CONFLICT:

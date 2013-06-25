@@ -18,6 +18,7 @@ FILE_IS_UNTRACKED = 5
 FILE_NOT_FOUND_AT_CP = 6
 UNRESOLVED_CONFLICTS = 7
 FILE_IN_CONFLICT = 8
+FILE_IS_IGNORED = 9
 
 
 def track_file(fp):
@@ -35,13 +36,18 @@ def track_file(fp):
   Returns:
       - FILE_NOT_FOUND: the given file was not found;
       - FILE_ALREADY_TRACKED: the given file is already a tracked file;
+      - FILE_IS_IGNORED: the given file is an ignored file;
       - SUCCESS: the operation finished sucessfully.
   """
   if not os.path.exists(fp):
     return FILE_NOT_FOUND
 
-  if is_tracked_file(fp):
+  s = status.of_file(fp)
+  if _is_tracked_status(s):
     return FILE_ALREADY_TRACKED
+  if _is_ignored_status(s):
+    return FILE_IS_IGNORED
+
 
   if os.path.isdir(fp) and not os.listdir(fp):
     # fp is a directory and is empty; we need to do some magic for Git to
@@ -80,13 +86,18 @@ def untrack_file(fp):
   Returns:
       - FILE_NOT_FOUND: the given file was not found;
       - FILE_ALREADY_UNTRACKED: the given file is already an untracked file;
-      - SUCCESS: the operation finished sucessfully.
-      - FILE_IN_CONFLICT: the file is in conflict.
+      - SUCCESS: the operation finished sucessfully;
+      - FILE_IN_CONFLICT: the file is in conflict;
+      - FILE_IS_IGNORED: the file is ignored.
   """
   if not os.path.exists(fp):
     return FILE_NOT_FOUND
 
-  if not is_tracked_file(fp):
+  s = status.of_file(fp)
+  if _is_ignored_status(s):
+    return FILE_IS_IGNORED
+
+  if not _is_tracked_status(s):
     return FILE_ALREADY_UNTRACKED
 
   if os.path.isdir(fp) and not os.listdir(fp):
@@ -151,6 +162,12 @@ def repo_status():
     elif s is status.IN_CONFLICT:
       # TODO: check what happens with deletion conflicts.
       tracked_mod_list.append((fp, True, True, True))
+    elif s is status.IGNORED:
+      # We don't return ignored files.
+      pass
+    elif s is status.IGNORED_STAGED:
+      # We don't return it. But we also unstage it.
+      file.unstage(fp)
     else:
       untracked_list.append((fp, False))
 
@@ -275,8 +292,17 @@ def is_tracked_modified(fp):
   s = status.of_file(fp)
   return _is_tracked_status(s) and not s is status.TRACKED_UNMODIFIED
 
+
 def is_deleted_file(fp):
-  return status.of_file(fp) is status.DELETED
+  return _is_deleted_status(status.of_file(fp))
+
+
+def _is_deleted_status(s):
+  return s is status.DELETED
+
+
+def _is_ignored_status(s):
+  return s is status.IGNORED
 
 
 # TODO(sperezde): does this still work if the file was moved?

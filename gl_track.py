@@ -30,6 +30,9 @@ def main():
     elif ret is lib.FILE_ALREADY_TRACKED:
       pprint.err('File %s is already tracked' % fp)
       errors_found = True
+    elif ret is lib.FILE_IS_IGNORED:
+      pprint.err('File %s is ignored' % fp)
+      pprint.err_exp('edit the .gitignore file to stop ignoring file %s' % fp)
     elif ret is lib.SUCCESS:
       pprint.msg('File %s is now a tracked file' % fp)
     else:
