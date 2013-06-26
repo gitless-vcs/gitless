@@ -6,7 +6,7 @@
 # You'll need to edit this array if you add/remove commands.
 cmds=(
     "track" "untrack" "status" "diff" "commit" "branch" "checkout" "rm" "merge"
-    "resolve" "rebase")
+    "resolve" "rebase" "remote")
 
 dir=$(pwd)
 
@@ -14,3 +14,7 @@ for cmd in ${cmds[@]}; do
   sudo rm "/usr/bin/gl-${cmd}"
   sudo ln -s "${dir}/gl_${cmd}.py" "/usr/bin/gl-${cmd}"
 done
+
+# The gl command.
+sudo rm "/usr/bin/gl"
+sudo ln -s "${dir}/gl.py" "/usr/bin/gl"
