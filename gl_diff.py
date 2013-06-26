@@ -36,13 +36,14 @@ def main():
   elif ret is lib.SUCCESS:
     pprint.msg('Diff of file %s with its last committed version' % fp)
     pprint.exp(
-        'lines starting with \'-\' are lines that are not in the current '
+        'lines starting with \'-\' are lines that are not in the working '
         'version but that are present in the last committed version of the '
         'file')
     pprint.exp (
-        'lines starting with \'+\' are lines that are in the current version '
+        'lines starting with \'+\' are lines that are in the working version '
         'but not in the last committed version of the file')
-    pprint.msg("\n".join(out.splitlines()[4:]))
+    pprint.blank()
+    print out
   else:
     raise Exception('Unrecognized ret code %s' % ret)
 

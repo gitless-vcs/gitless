@@ -216,10 +216,19 @@ def diff(fp):
   if not os.path.exists(fp):
     return (FILE_NOT_FOUND, '')
 
-  if not is_tracked_file(fp):
+  s = status.of_file(fp)
+  if not _is_tracked_status(s):
     return (FILE_IS_UNTRACKED, '')
 
-  return (SUCCESS, file.diff(fp)[1])
+  out = ''
+  if s is status.STAGED:
+    diff_out = file.staged_diff(fp)[1]
+    out = "\n".join(diff_out.splitlines()[5:])
+  else:
+    diff_out = file.diff(fp)[1]
+    out = "\n".join(diff_out.splitlines()[4:])
+
+  return (SUCCESS, out)
 
 
 def commit(files, msg):
