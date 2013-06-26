@@ -1,10 +1,18 @@
 """Gitless's branching lib."""
 
 
+import os
+import re
+
 from gitpylib import branch
 from gitpylib import stash
-
 import sync_lib
+import remote_lib
+import lib
+
+
+SUCCESS = 1
+REMOTE_NOT_FOUND = 2
 
 
 def create(name):
@@ -27,14 +35,26 @@ def delete(name):
   stash.drop(_stash_msg(name))
 
 
-def attach(name, remote):
-  """Attaches the branch with the given name to remote.
-
+def set_upstream(upstream_remote, upstream_branch):
+  """Sets the upstream branch of the current branch.
+  
   Args:
-    name: the name of the branch to attach to the remote.
-    remote: the remote branch.
+    upstream_remote: the upstream remote.
+    upstream_branch: upstream branch to set in the format remote/branch.
   """
-  # TBD
+  if not remote_lib.is_set(upstream_remote):
+    return REMOTE_NOT_FOUND
+
+  ub = '/'.join([upstream_remote, upstream_branch])
+
+  current_b = current()
+  ret = branch.set_upstream(current_b, ub)
+  if ret is branch.UNFETCHED_OBJECT:
+    # We work around this, it could be the case that the user is trying to push
+    # a new branch to the remote.
+    print 'unfetched object'
+    open(_upstream_file(current_b, upstream_remote, upstream_branch), 'w').close()
+  return SUCCESS
 
 
 def detach(name):
@@ -103,5 +123,26 @@ def status_all():
 
 
 def _stash_msg(name):
-  """Computes the stash msg to use for stashin changes in branch name."""
+  """Computes the stash msg to use for stashing changes in branch name."""
   return '---gl-%s---' % name
+
+
+def _upstream_file(branch, upstream_remote, upstream_branch):
+  return 'GL_UPSTREAM_%s_%s_%s' % (branch, upstream_remote, upstream_branch)
+
+
+def upstream(branch):
+  """Gets the upstream branch of the given branch.
+  
+  Returns:
+    a pair (upstream_remote, upstream_branch) or None if the given branch has no
+    upstream set.
+  """
+  exists, is_current, tracks = status(branch)
+  if tracks:
+    return tracks.split('/')
+  for f in os.listdir(lib.gl_dir()):
+    result = re.match('GL_UPSTREAM_%s_(\w+)_(\w+)' % branch, f)
+    if result:
+      return (result.group(1), result.group(2))
+  return (None, None)

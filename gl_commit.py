@@ -108,7 +108,7 @@ def _valid_input(only_files, exc_files, inc_files):
     if not os.path.exists(fp) and not lib.is_deleted_file(fp):
       pprint.err('File %s doesn\'t exist' % fp)
       ret = False
-    elif not lib.is_tracked_modified(fp):
+    elif lib.is_tracked_file(fp) and not lib.is_tracked_modified(fp):
       pprint.err(
           'File %s is a tracked file but has no modifications' % fp)
       ret = False

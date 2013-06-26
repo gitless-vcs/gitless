@@ -21,6 +21,8 @@ MERGE_NOT_IN_PROGRESS = 8
 CONFLICT = 9
 REBASE_NOT_IN_PROGRESS = 10
 NOTHING_TO_REBASE = 11
+UPSTREAM_NOT_SET = 12
+NOTHING_TO_PUSH = 13
 
 
 def merge(src):
@@ -173,6 +175,20 @@ def internal_resolved_cleanup():
     if f.startswith('GL_RESOLVED'):
       os.remove(os.path.join(lib.gl_dir(), f))
       print 'removed %s' % f
+
+
+def push():
+  current_b = branch_lib.current()
+  remote, remote_b = branch_lib.upstream(current_b)
+  if remote is None:
+    return (UPSTREAM_NOT_SET, None)
+  ret, out = sync.push(current_b, remote, remote_b)
+  if ret is sync.SUCCESS:
+    return (SUCCESS, out)
+  elif ret is sync.NOTHING_TO_PUSH:
+    return (NOTHING_TO_PUSH, None)
+  else:
+    raise Exception('Unrecognized ret code %s' % ret)
 
 
 def _resolved_file(fp):

@@ -19,7 +19,9 @@ def main():
       'branch', nargs='?',
       help='Switch to branch (will be created if it doesn\'t exist yet)')
   parser.add_argument(
-      '-d', '--delete', nargs='+', help='Delete branch(es)', dest='delete_b')
+      '-d', '--delete', nargs='+', help='delete branch(es)', dest='delete_b')
+  parser.add_argument(
+      '-su', '--set-upstream', help='set the upstream branch', dest='upstream_b')
   args = parser.parse_args()
 
 
@@ -41,6 +43,8 @@ def main():
   elif args.delete_b:
     if not _delete(args.delete_b):
       return cmd.ERRORS_FOUND
+  elif args.upstream_b:
+    return _do_set_upstream(args.upstream_b)
   else:
     _list()
 
@@ -82,6 +86,27 @@ def _delete(delete_b):
       pprint.msg('Branch %s removed successfully' % b)
 
   return not errors_found
+
+
+def _do_set_upstream(upstream):
+  if '/' not in upstream:
+    pprint.err(
+        'Invalid upstream branch. It must be in the format remote/branch')
+    return True
+  upstream_remote, upstream_branch = upstream.split('/')
+
+  ret = branch_lib.set_upstream(upstream_remote, upstream_branch)
+  errors_found = False
+
+  if ret is branch_lib.REMOTE_NOT_FOUND:
+    pprint.err('Remote %s not found' % upstream_remote)
+    pprint.err_exp('do gl remote show to list all available remotes')
+    pprint.err_exp('to add %s as a new remote do gl remote add %s remote_url' % (upstream_remote, upstream_remote))
+    errors_found = True
+  elif ret is branch_lib.SUCCESS:
+    pprint.msg('Current branch %s set to track %s/%s' % (branch_lib.current(), upstream_remote, upstream_branch))
+
+  return errors_found
 
 
 if __name__ == '__main__':

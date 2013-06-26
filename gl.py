@@ -18,6 +18,7 @@ import gl_merge
 import gl_resolve
 import gl_rebase
 import gl_remote
+import gl_push
 import pprint
 
 
@@ -31,7 +32,8 @@ def main():
       'track': gl_track, 'untrack': gl_untrack, 'status': gl_status,
       'diff': gl_diff, 'commit': gl_commit, 'branch': gl_branch,
       'checkout': gl_checkout, 'rm': gl_rm, 'merge': gl_merge,
-      'resolve': gl_resolve, 'rebase': gl_rebase, 'remote': gl_remote}
+      'resolve': gl_resolve, 'rebase': gl_rebase, 'remote': gl_remote,
+      'push': gl_push}
 
   action = sys.argv[1]
   if action not in cmds:
