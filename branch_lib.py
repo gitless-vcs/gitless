@@ -13,6 +13,7 @@ import lib
 
 SUCCESS = 1
 REMOTE_NOT_FOUND = 2
+INVALID_NAME = 3
 
 
 def create(name):
@@ -20,8 +21,17 @@ def create(name):
 
   Args:
     name: the name of the branch to create.
+
+  Returns:
+    INVALID_NAME if the name is invalid or SUCCESS if the branch was created
+    successfully.
   """
+  if '/' in name:
+    # Branches can't have a '/' so that we don't confuse them with remote
+    # branches that can be specified in the form remote/branch.
+    return INVALID_NAME
   branch.create(name)
+  return SUCCESS
 
 
 def delete(name):

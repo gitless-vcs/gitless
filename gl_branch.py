@@ -34,8 +34,14 @@ def main():
       return cmd.ERRORS_FOUND
 
     if not exists:
-      branch_lib.create(args.branch)
-      pprint.msg('Created new branch %s' % args.branch)
+      ret = branch_lib.create(args.branch)
+      if ret is branch_lib.INVALID_NAME:
+        pprint.err('Invalid character \'/\' in branch name')
+        return cmd.ERRORS_FOUND
+      elif ret is branch_lib.SUCCESS:
+        pprint.msg('Created new branch %s' % args.branch)
+      else:
+        raise Exception('Unrecognized ret code %s' % ret)
 
 
     branch_lib.switch(args.branch)
