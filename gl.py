@@ -19,6 +19,7 @@ import gl_resolve
 import gl_rebase
 import gl_remote
 import gl_push
+import gl_init
 import pprint
 
 
@@ -33,7 +34,7 @@ def main():
       'diff': gl_diff, 'commit': gl_commit, 'branch': gl_branch,
       'checkout': gl_checkout, 'rm': gl_rm, 'merge': gl_merge,
       'resolve': gl_resolve, 'rebase': gl_rebase, 'remote': gl_remote,
-      'push': gl_push}
+      'push': gl_push, 'init': gl_init}
 
   action = sys.argv[1]
   if action not in cmds:
@@ -46,8 +47,9 @@ def main():
   sys.argv.pop(1)
   sys.argv[0] = '/usr/bin/gl-%s' % action
 
-  return cmds[action].main()
+  return cmd.run(cmds[action].main, is_init=(action == 'init'))
 
 
 if __name__ == '__main__':
-  cmd.run(main)
+  # Potentially init.
+  cmd.run(main, is_init=True)

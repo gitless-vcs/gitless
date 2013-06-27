@@ -7,6 +7,7 @@ from gitpylib import common
 from gitpylib import file
 from gitpylib import status
 from gitpylib import sync
+from gitpylib import init
 import sync_lib
 
 
@@ -19,6 +20,8 @@ FILE_NOT_FOUND_AT_CP = 6
 UNRESOLVED_CONFLICTS = 7
 FILE_IN_CONFLICT = 8
 FILE_IS_IGNORED = 9
+REPO_UNREACHABLE = 10
+NOTHING_TO_INIT = 11
 
 
 def track_file(fp):
@@ -362,3 +365,17 @@ def gl_dir():
   """
   # We use the same .git directory.
   return common.git_dir()
+
+
+def init_from_repo(repo):
+  if gl_dir():
+    return NOTHING_TO_INIT
+  init.clone(repo)
+  return SUCCESS
+
+
+def init_dir():
+  if gl_dir():
+    return NOTHING_TO_INIT
+  init.init()
+  return SUCCESS

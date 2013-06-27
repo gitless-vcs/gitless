@@ -6,7 +6,7 @@
 # You'll need to edit this array if you add/remove commands.
 cmds=(
     "track" "untrack" "status" "diff" "commit" "branch" "checkout" "rm" "merge"
-    "resolve" "rebase" "remote" "push")
+    "resolve" "rebase" "remote" "push" "init")
 
 dir=$(pwd)
 

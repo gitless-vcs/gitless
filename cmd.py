@@ -11,13 +11,14 @@ ERRORS_FOUND = 1
 INTERNAL_ERROR = 3
 NOT_IN_GL_REPO = 4
 
-def run(main):
-  if not lib.gl_dir():
+def run(main, is_init=False):
+  if not is_init and not lib.gl_dir():
     pprint.err(
         'You are not in a Gitless repository. To make this directory a '
         'repository do gl init. For cloning existing repositories do gl clone '
         'src.')
     sys.exit(NOT_IN_GL_REPO)
+
   try:
     ret_code = main()
     sys.exit(ret_code)
