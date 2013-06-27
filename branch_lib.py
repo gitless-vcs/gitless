@@ -49,11 +49,14 @@ def set_upstream(upstream_remote, upstream_branch):
 
   current_b = current()
   ret = branch.set_upstream(current_b, ub)
+  uf = _upstream_file(current_b, upstream_remote, upstream_branch)
+  if os.path.exists(uf):
+    os.remove(uf)
   if ret is branch.UNFETCHED_OBJECT:
     # We work around this, it could be the case that the user is trying to push
     # a new branch to the remote.
     print 'unfetched object'
-    open(_upstream_file(current_b, upstream_remote, upstream_branch), 'w').close()
+    open(uf, 'a').close()
   return SUCCESS
 
 
@@ -104,20 +107,32 @@ def status_all():
   """Get the status of all existing branches.
   
   Returns:
-    Tuples of the form (name, is_current, tracks) where is_current is a boolean
-    value and tracks is a string representing the remote branch it tracks (in 
-    the format 'remote_name/remote_branch') or None if it is a local branch.
+    Tuples of the form (name, is_current, upstream, upstream_in_remote).
+    upstream is in the format 'remote_name/remote_branch'.
   """
-  ret = branch.status_all()
-  if sync_lib.rebase_in_progress():
+
+  rebase_in_progress = sync_lib.rebase_in_progress()
+  if rebase_in_progress:
     current = sync_lib.rebase_info()[0]
-    new_ret = []
-    for name, is_current, tracks in ret:
-      if name == current:
-        new_ret.append((name, True, tracks))
-      elif name != '(no branch)':
-        new_ret.append((name, is_current, tracks))
-    ret = new_ret
+
+  ret = []
+  for name, is_current, tracks in branch.status_all():
+    if name == '(no branch)':
+      continue
+
+    new_current = is_current
+    new_tracks = tracks
+    upstream_in_remote = True
+    if rebase_in_progress and name == current:
+        new_current = True
+    if not tracks:
+      # We check if the branch has an unpushed upstream
+      ur, ub = upstream(name)
+      if ur:
+        new_tracks = '/'.join([ur, ub])
+        upstream_in_remote = False
+
+    ret.append((name, new_current, new_tracks, upstream_in_remote))
 
   return ret
 
@@ -128,7 +143,12 @@ def _stash_msg(name):
 
 
 def _upstream_file(branch, upstream_remote, upstream_branch):
-  return 'GL_UPSTREAM_%s_%s_%s' % (branch, upstream_remote, upstream_branch)
+  upstream_fn = 'GL_UPSTREAM_%s_%s_%s' % (branch, upstream_remote, upstream_branch)
+  return os.path.join(lib.gl_dir(), upstream_fn)
+
+
+def has_unpushed_upstream(branch, upstream_remote, upstream_branch):
+  return os.path.exists(_upstream_file(branch, upstream_remote, upstream_branch))
 
 
 def upstream(branch):

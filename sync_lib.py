@@ -184,6 +184,8 @@ def push():
     return (UPSTREAM_NOT_SET, None)
   ret, out = sync.push(current_b, remote, remote_b)
   if ret is sync.SUCCESS:
+    if branch_lib.has_unpushed_upstream(current_b, remote, remote_b):
+      branch_lib.set_upstream(remote, remote_b)
     return (SUCCESS, out)
   elif ret is sync.NOTHING_TO_PUSH:
     return (NOTHING_TO_PUSH, None)

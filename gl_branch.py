@@ -57,11 +57,13 @@ def _list():
   pprint.exp('use gl branch -d <b> to delete branch b')
   pprint.exp('* = current branch')
   pprint.blank()
-  for name, is_current, tracks in branch_lib.status_all():
-    pprint.item(
-        '%s %s %s' % (
-        '*' if is_current else ' ', name,
-        ('(tracks %s)' % tracks) if tracks else ''))
+  for name, is_current, upstream, upstream_in_remote in branch_lib.status_all():
+    current_str = '*' if is_current else ' '
+    upstream_str = ''
+    if upstream:
+      np_str = ' --not present in remote yet' if not upstream_in_remote else ''
+      upstream_str = '(upstream is %s%s)' % (upstream, np_str)
+    pprint.item('%s %s %s' % (current_str, name, upstream_str))
 
 
 def _delete(delete_b):
