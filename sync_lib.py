@@ -6,7 +6,9 @@ import os
 from gitpylib import file
 from gitpylib import status
 from gitpylib import sync
+from gitpylib import remote
 import branch_lib
+import remote_lib
 import lib
 
 
@@ -23,6 +25,10 @@ REBASE_NOT_IN_PROGRESS = 10
 NOTHING_TO_REBASE = 11
 UPSTREAM_NOT_SET = 12
 NOTHING_TO_PUSH = 13
+REMOTE_NOT_FOUND = 14
+REMOTE_UNREACHABLE = 15
+REMOTE_BRANCH_NOT_FOUND = 16
+PUSH_FAIL = 17
 
 
 def merge(src):
@@ -60,12 +66,19 @@ def abort_merge():
 
 
 def rebase(new_base):
-  is_valid, error = _valid_branch(new_base)
+  is_remote_b = _is_remote_branch(new_base)
+  is_valid, error = (
+      _valid_remote_branch(new_base)
+      if is_remote_b else _valid_branch(new_base))
   if not is_valid:
     return (error, None)
 
   current = branch_lib.current()
-  ret, out = sync.rebase(new_base)
+  if is_remote_b:
+    remote, remote_b = _parse_from_remote_branch(new_base)
+    ret, out = sync.pull_rebase(remote, remote_b)
+  else:
+    ret, out = sync.rebase(new_base)
   if ret is sync.SUCCESS:
     return (SUCCESS, out)
   elif ret is sync.LOCAL_CHANGES_WOULD_BE_LOST:
@@ -137,6 +150,31 @@ def _valid_branch(b):
   return (True, None)
 
 
+def _valid_remote_branch(b):
+  remote_n, remote_b = b.split('/')
+  if not remote_lib.is_set(remote_n):
+    return (False, REMOTE_NOT_FOUND)
+
+  # We know the remote exists, let's see if the branch exists.
+  exists, err = remote.head_exist(remote_n, remote_b)
+  if not exists:
+    if err is remote.REMOTE_UNREACHABLE:
+      ret_err = REMOTE_UNREACHABLE
+    else:
+      ret_err = REMOTE_BRANCH_NOT_FOUND
+    return (False, ret_err)
+
+  return (True, None)
+
+
+def _is_remote_branch(b):
+  return '/' in b
+
+
+def _parse_from_remote_branch(b):
+  return b.split('/')
+
+
 def was_resolved(fp):
   """Returns True if the given file had conflicts and was marked as resolved."""
   return os.path.exists(_resolved_file(fp))
@@ -189,6 +227,8 @@ def push():
     return (SUCCESS, out)
   elif ret is sync.NOTHING_TO_PUSH:
     return (NOTHING_TO_PUSH, None)
+  elif ret is sync.PUSH_FAIL:
+    return (PUSH_FAIL, None)
   else:
     raise Exception('Unrecognized ret code %s' % ret)
 

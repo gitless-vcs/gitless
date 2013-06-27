@@ -25,6 +25,10 @@ def main():
   elif ret is sync_lib.NOTHING_TO_PUSH:
     pprint.err('Nothing to push')
     errors_found = True
+  elif ret is sync_lib.PUSH_FAIL:
+    pprint.err('Push failed, there are conflicting changes you need to converge')
+    pprint.err_exp('use gl rebase or gl merge to converge the upstream changes')
+    errors_found = True
   else:
     raise Exception('Unrecognized ret code %s' % ret)
 
