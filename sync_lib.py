@@ -37,11 +37,19 @@ def merge(src):
   Args:
     src: the source branch to pick up changes from.
   """
-  is_valid, error = _valid_branch(src)
+  is_remote_b = _is_remote_branch(src)
+  is_valid, error = (
+      _valid_remote_branch(src)
+      if is_remote_b else _valid_branch(src))
   if not is_valid:
     return (error, None)
 
-  ret, out = sync.merge(src)
+  if is_remote_b:
+    remote, remote_b = _parse_from_remote_branch(src)
+    ret, out = sync.pull_merge(remote, remote_b)
+  else:
+    ret, out = sync.merge(src)
+
   if ret is sync.SUCCESS:
     return (SUCCESS, out)
   elif ret is sync.CONFLICT:

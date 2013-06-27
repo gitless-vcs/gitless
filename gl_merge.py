@@ -45,6 +45,20 @@ def main():
         'to merge branch %s onto another branch b, do gl branch b, and gl merge'
         ' %s from there' % (args.src, args.src))
     return cmd.ERRORS_FOUND
+  elif ret is sync_lib.REMOTE_NOT_FOUND:
+    pprint.err('The remote of %s doesn\'t exist' % args.src)
+    pprint.err_exp('to list available remotes do gl remote show')
+    pprint.err_exp(
+        'to add a new remote use gl remote add remote_name remote_url')
+    return cmd.ERRORS_FOUND
+  elif ret is sync_lib.REMOTE_UNREACHABLE:
+    pprint.err('Can\'t reach the remote')
+    pprint.err_exp('make sure that you are still connected to the internet')
+    pprint.err_exp('make sure you still have permissions to access the remote')
+    return cmd.ERRORS_FOUND
+  elif ret is sync_lib.REMOTE_BRANCH_NOT_FOUND:
+    pprint.err('The branch doesn\'t exist in the remote')
+    return cmd.ERRORS_FOUND
   elif ret is sync_lib.NOTHING_TO_MERGE:
     pprint.err(
         'No divergent changes to merge from %s' % args.src)

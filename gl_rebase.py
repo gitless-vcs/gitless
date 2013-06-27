@@ -75,7 +75,8 @@ def main():
   elif ret is sync_lib.REMOTE_NOT_FOUND:
     pprint.err('The remote of %s doesn\'t exist' % args.src)
     pprint.err_exp('to list available remotes do gl remote show')
-    pprint.err_exp('to add a new remote use gl remote add remote_name remote_url')
+    pprint.err_exp(
+        'to add a new remote use gl remote add remote_name remote_url')
     return cmd.ERRORS_FOUND
   elif ret is sync_lib.REMOTE_UNREACHABLE:
     pprint.err('Can\'t reach the remote')
