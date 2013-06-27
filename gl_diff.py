@@ -28,7 +28,7 @@ def main():
     pprint.err('Can\'t diff an inexistent file: %s' % fp)
     errors_found = True
   elif ret is lib.FILE_IS_UNTRACKED:
-    ppring.err(
+    pprint.err(
         'You tried to diff untracked file %s. It\'s probably a mistake. If you '
         'really care about changes in this file you should start tracking '
         'changes to it with gl track %s' % (fp, fp))
