@@ -39,7 +39,7 @@ def main():
   pprint.exp(
       'use gl untrack <f> if you don\'t want to track changes to file f')
   pprint.exp(
-      'if file f was commmitted before, use gl checkout HEAD <f> to discard '
+      'if file f was committed before, use gl checkout HEAD <f> to discard '
       'local changes')
   pprint.blank()
   tracked_mod_list, untracked_list = lib.repo_status()
