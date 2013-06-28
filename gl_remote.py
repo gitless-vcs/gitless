@@ -57,10 +57,11 @@ def _do_add(args):
     pprint.exp(
         'to get information about %s do gl remote show %s' % (rn, rn))
     pprint.exp('to remove %s do gl remote rm %s' % (rn, rn))
-    pprint.blank()
-    pprint.msg('Info about remote:')
-    pprint.blank()
-    pprint.item(info)
+    # TODO(sperezde): Print the info was we parse it.
+    #pprint.blank()
+    #pprint.msg('Info about remote:')
+    #pprint.blank()
+    #pprint.item(info)
   else:
     raise Exception('Unrecognized ret code %s' % ret)
 
