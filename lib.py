@@ -8,6 +8,7 @@ from gitpylib import file
 from gitpylib import status
 from gitpylib import sync
 from gitpylib import init
+from gitpylib import log
 import sync_lib
 
 
@@ -379,3 +380,11 @@ def init_dir():
     return NOTHING_TO_INIT
   init.init()
   return SUCCESS
+
+
+def show_history():
+  log.log()
+
+
+def show_history_verbose():
+  log.log_p()

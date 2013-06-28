@@ -20,6 +20,7 @@ import gl_rebase
 import gl_remote
 import gl_push
 import gl_init
+import gl_history
 import pprint
 
 
@@ -34,7 +35,7 @@ def main():
       'diff': gl_diff, 'commit': gl_commit, 'branch': gl_branch,
       'checkout': gl_checkout, 'rm': gl_rm, 'merge': gl_merge,
       'resolve': gl_resolve, 'rebase': gl_rebase, 'remote': gl_remote,
-      'push': gl_push, 'init': gl_init}
+      'push': gl_push, 'init': gl_init, 'history': gl_history}
 
   action = sys.argv[1]
   if action not in cmds:
