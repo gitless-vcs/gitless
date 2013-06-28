@@ -16,9 +16,9 @@ import pprint
 
 def main():
   parser = argparse.ArgumentParser(
-      description="Show changes in files.")
+      description='Show changes in files')
   parser.add_argument(
-      "file", help="the file to diff")
+      'file', help='the file to diff')
   args = parser.parse_args()
   fp = args.file
   ret, out = lib.diff(fp)
