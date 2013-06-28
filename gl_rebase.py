@@ -8,6 +8,7 @@ Implements the gl-rebase command, part of the Gitless suite.
 import argparse
 import sys
 
+import branch_lib
 import cmd
 import pprint
 import sync_lib
@@ -53,7 +54,25 @@ def main():
     return cmd.SUCCESS
 
   if not args.src:
-    parser.error('No src branch specified')
+    # We use the upstream branch, if any.
+    current = branch_lib.current()
+    ur, ub = branch_lib.upstream(current)
+    if ur is None:
+      parser.error(
+          'No src branch specified and the current branch has no upstream '
+          'branch set')
+
+    if branch_lib.has_unpushed_upstream(current, ur, ub):
+        pprint.err(
+            'Current branch has an upstream set but it hasn\'t been pushed yet')
+        return cmd.ERRORS_FOUND
+
+    # If we reached this point, it is safe to use the upstream branch to get
+    # changes from.
+    args.src = '/'.join([ur, ub])
+    pprint.msg(
+        'No src branch specified, defaulted to getting changes from upstream '
+        'branch %s' % args.src)
 
 
   if sync_lib.rebase_in_progress():
