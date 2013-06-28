@@ -20,13 +20,16 @@ def main():
     print out
   elif ret is sync_lib.UPSTREAM_NOT_SET:
     pprint.err('Current branch has no upstream set')
-    pprint.err_exp('to set an upstream branch do gl branch --set-upstream remote/remote_branch')
+    pprint.err_exp(
+        'to set an upstream branch do gl branch --set-upstream '
+        'remote/remote_branch')
     errors_found = True
   elif ret is sync_lib.NOTHING_TO_PUSH:
     pprint.err('Nothing to push')
     errors_found = True
   elif ret is sync_lib.PUSH_FAIL:
-    pprint.err('Push failed, there are conflicting changes you need to converge')
+    pprint.err(
+        'Push failed, there are conflicting changes you need to converge')
     pprint.err_exp('use gl rebase or gl merge to converge the upstream changes')
     errors_found = True
   else:
