@@ -65,7 +65,6 @@ def set_upstream(upstream_remote, upstream_branch):
   if ret is branch.UNFETCHED_OBJECT:
     # We work around this, it could be the case that the user is trying to push
     # a new branch to the remote.
-    print 'unfetched object'
     open(uf, 'a').close()
   return SUCCESS
 

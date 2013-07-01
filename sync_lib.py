@@ -220,7 +220,7 @@ def internal_resolved_cleanup():
   for f in os.listdir(lib.gl_dir()):
     if f.startswith('GL_RESOLVED'):
       os.remove(os.path.join(lib.gl_dir(), f))
-      print 'removed %s' % f
+      #print 'removed %s' % f
 
 
 def push():

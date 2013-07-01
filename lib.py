@@ -57,7 +57,7 @@ def track_file(fp):
     # fp is a directory and is empty; we need to do some magic for Git to
     # track it.
     # TODO(sperezde): Implement this.
-    print 'Dir is empty!'
+    # print 'Dir is empty!'
     return SUCCESS
  
   # If we reached this point we know that the file to track is a untracked
@@ -108,7 +108,7 @@ def untrack_file(fp):
     # fp is a directory and is empty; we need to do some magic for Git to
     # untrack it.
     # TODO(sperezde): Implement this.
-    print 'Dir is empty!'
+    # print 'Dir is empty!'
     return SUCCESS
 
   # If we reached this point we know that the file to untrack is a tracked
@@ -265,7 +265,7 @@ def commit(files, msg):
 
     if unresolved:
       return (UNRESOLVED_CONFLICTS, unresolved)
-    print 'commiting files %s' % files
+    # print 'commiting files %s' % files
     out = None
     if in_rebase:
       # TODO(sperezde): save the message to use it later.
