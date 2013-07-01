@@ -25,11 +25,6 @@ import pprint
 
 
 def main():
-  #parser = argparse.ArgumentParser(
-  #    description='Gitless\' main command')
-  #parser.add_argument(
-  #    'action', help='the action to perform')
-  #args = parser.parse_args()
   cmds = {
       'track': gl_track, 'untrack': gl_untrack, 'status': gl_status,
       'diff': gl_diff, 'commit': gl_commit, 'branch': gl_branch,
@@ -37,14 +32,20 @@ def main():
       'resolve': gl_resolve, 'rebase': gl_rebase, 'remote': gl_remote,
       'push': gl_push, 'init': gl_init, 'history': gl_history}
 
+  if len(sys.argv) <= 1:
+    # No action was provided.
+    pprint.err('No action was provided')
+    pprint.err_exp(
+        'action must be one of the following: %s' % ', '.join(cmds.keys()))
+    return cmd.ERRORS_FOUND
+  
   action = sys.argv[1]
   if action not in cmds:
     pprint.err('Unrecognized action %s' % action)
     pprint.err_exp(
-        'Action must be one of the following: %s' % ', '.join(cmds.keys()))
+        'action must be one of the following: %s' % ', '.join(cmds.keys()))
     return cmd.ERRORS_FOUND
 
-  # Not sure if this megahack works.
   sys.argv.pop(1)
   sys.argv[0] = '/usr/bin/gl-%s' % action
 
