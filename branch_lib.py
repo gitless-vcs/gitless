@@ -26,9 +26,11 @@ def create(name):
     INVALID_NAME if the name is invalid or SUCCESS if the branch was created
     successfully.
   """
-  if '/' in name:
+  if '/' in name or '_' in name:
     # Branches can't have a '/' so that we don't confuse them with remote
     # branches that can be specified in the form remote/branch.
+    # Also, they can't have a '_' so that it doesn't conflict with our way of
+    # naming internal files.
     return INVALID_NAME
   branch.create(name)
   return SUCCESS
