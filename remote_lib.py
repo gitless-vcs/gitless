@@ -13,7 +13,7 @@ REMOTE_UNREACHABLE = 5
 
 def add(remote_name, remote_url):
   """Add a remote for the current Gitless repo.
-  
+
   Args:
     remote_name: the name of the remote.
     remote_url: the url of the remote

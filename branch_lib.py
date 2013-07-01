@@ -49,7 +49,7 @@ def delete(name):
 
 def set_upstream(upstream_remote, upstream_branch):
   """Sets the upstream branch of the current branch.
-  
+
   Args:
     upstream_remote: the upstream remote.
     upstream_branch: upstream branch to set in the format remote/branch.
@@ -96,7 +96,7 @@ def status(name):
 
   Args:
     name: the name of the branch to status.
-  
+
   Returns:
     A tuple (exists, is_current, tracks) where exists and is_current are boolean
     values and tracks is a string representing the remote branch it tracks (in
@@ -116,7 +116,7 @@ def current():
 
 def status_all():
   """Get the status of all existing branches.
-  
+
   Returns:
     Tuples of the form (name, is_current, upstream, upstream_in_remote).
     upstream is in the format 'remote_name/remote_branch'.
@@ -154,17 +154,19 @@ def _stash_msg(name):
 
 
 def _upstream_file(branch, upstream_remote, upstream_branch):
-  upstream_fn = 'GL_UPSTREAM_%s_%s_%s' % (branch, upstream_remote, upstream_branch)
+  upstream_fn = 'GL_UPSTREAM_%s_%s_%s' % (
+      branch, upstream_remote, upstream_branch)
   return os.path.join(lib.gl_dir(), upstream_fn)
 
 
 def has_unpushed_upstream(branch, upstream_remote, upstream_branch):
-  return os.path.exists(_upstream_file(branch, upstream_remote, upstream_branch))
+  return os.path.exists(
+      _upstream_file(branch, upstream_remote, upstream_branch))
 
 
 def upstream(branch):
   """Gets the upstream branch of the given branch.
-  
+
   Returns:
     a pair (upstream_remote, upstream_branch) or None if the given branch has no
     upstream set.

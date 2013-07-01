@@ -34,7 +34,7 @@ def main():
 
 def _checkout_file(fp, cp):
   """Checkout file fp to commit point cp.
-  
+
   Will output to screen if some error is encountered.
 
   Returns:

@@ -53,7 +53,6 @@ def track_file(fp):
   if _is_ignored_status(s):
     return FILE_IS_IGNORED
 
-
   if os.path.isdir(fp) and not os.listdir(fp):
     # fp is a directory and is empty; we need to do some magic for Git to
     # track it.
@@ -135,10 +134,11 @@ def untrack_file(fp):
 
 def repo_status():
   """Gets the status of the repo.
-  
+
   Returns:
       A pair (tracked_mod_list, untracked_list) where
-      - tracked_mod_list: contains a tuple (fp, exists_in_lr, exists_in_wd, in_conflict)
+      - tracked_mod_list: contains a tuple (fp, exists_in_lr, exists_in_wd,
+        in_conflict)
       - untracked_list: contains a pair (fp, exists_in_lr).
   """
   # TODO(sperezde): Will probably need to implement this smarter in the future.
@@ -242,7 +242,7 @@ def diff(fp):
 
 def commit(files, msg):
   """Record changes in the local repository.
-  
+
   Args:
     files: the files to commit.
     msg: the commit message.
@@ -278,7 +278,7 @@ def commit(files, msg):
         resolved_not_in_ci.append(resolved_f)
     if resolved_not_in_ci:
       return (RESOLVED_FILES_NOT_IN_COMMIT, resolved_not_in_ci)
- 
+
     # print 'commiting files %s' % files
     out = None
     if in_rebase:
@@ -340,11 +340,11 @@ def _is_ignored_status(s):
 # TODO(sperezde): does this still work if the file was moved?
 def checkout(fp, cp):
   """Checkouts file fp at cp.
-  
+
   Args:
     fp: the filepath to checkout.
     cp: the commit point at which to checkout the file.
- 
+
   Returns:
     a pair (status, out) where status is one of FILE_NOT_FOUND_AT_CP or SUCCESS
     and out is the content of fp at cp.
@@ -378,7 +378,7 @@ def gl_cwd():
 
 def gl_dir():
   """Gets the path to the gl directory.
-  
+
   Returns:
     The absolute path to the gl directory or None if the current working
     directory is not a Gitless repository.

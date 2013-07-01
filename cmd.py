@@ -11,6 +11,7 @@ ERRORS_FOUND = 1
 INTERNAL_ERROR = 3
 NOT_IN_GL_REPO = 4
 
+
 def run(main, is_init=False):
   if not is_init and not lib.gl_dir():
     pprint.err(

@@ -149,7 +149,7 @@ def _write_rebase_file(current, new_base):
 def _rebase_file():
   return os.path.join(lib.gl_dir(), 'GL_REBASE')
 
- 
+
 def _valid_branch(b):
   exists, is_current, unused_tracks = branch_lib.status(b)
   if not exists:
@@ -257,4 +257,5 @@ def push():
 
 
 def _resolved_file(fp):
-  return os.path.join(lib.gl_dir(), 'GL_RESOLVED_%s_%s' % (branch_lib.current(), fp))
+  return os.path.join(
+      lib.gl_dir(), 'GL_RESOLVED_%s_%s' % (branch_lib.current(), fp))

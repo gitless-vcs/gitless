@@ -40,7 +40,7 @@ def main():
           'lines starting with \'-\' are lines that are not in the working '
           'version but that are present in the last committed version of the '
           'file')
-      pprint.exp (
+      pprint.exp(
           'lines starting with \'+\' are lines that are in the working version '
           'but not in the last committed version of the file')
       pprint.blank()

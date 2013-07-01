@@ -15,8 +15,8 @@ import pprint
 def main():
   parser = argparse.ArgumentParser(
       description=(
-        'Create an empty Gitless\'s repository or create one from an existing '
-        'remote repository.'))
+          'Create an empty Gitless\'s repository or create one from an '
+          'existing remote repository.'))
   parser.add_argument(
       'repo', nargs='?', help='an optional repo path to create the repo from')
   args = parser.parse_args()
@@ -40,7 +40,6 @@ def main():
     return cmd.SUCCESS
   else:
     raise Exception('Unexpected return code %s' % ret)
-
 
 
 if __name__ == '__main__':

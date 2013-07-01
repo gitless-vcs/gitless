@@ -10,7 +10,7 @@ import sync_lib
 
 
 _COMMIT_FILE = '.GL_COMMIT_EDIT_MSG'
-_MERGE_MSG_FILE = 'MERGE_MSG' # TODO(sperezde): refactor this.
+_MERGE_MSG_FILE = 'MERGE_MSG'  # TODO(sperezde): refactor this.
 
 
 def show(files):
@@ -119,7 +119,6 @@ def _show_rebase(files):
   cf.close()
   _launch_vim()
   return _extract_info()
-
 
 
 def _launch_vim():

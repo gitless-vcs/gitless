@@ -17,10 +17,11 @@ import sync_lib
 def main():
   parser = argparse.ArgumentParser(
       description='Merge the divergent changes of one branch onto another')
-  parser.add_argument('src', nargs='?', help='the source branch to read changes from')
-  parser.add_argument('-a', '--abort', help='abort the merge in progress', action='store_true')
+  parser.add_argument(
+      'src', nargs='?', help='the source branch to read changes from')
+  parser.add_argument(
+      '-a', '--abort', help='abort the merge in progress', action='store_true')
   args = parser.parse_args()
-
 
   if args.abort:
     if sync_lib.abort_merge() is sync_lib.MERGE_NOT_IN_PROGRESS:
@@ -52,7 +53,6 @@ def main():
     pprint.msg(
         'No src branch specified, defaulted to getting changes from upstream '
         'branch %s' % args.src)
-
 
   ret, out = sync_lib.merge(args.src)
   if ret is sync_lib.SRC_NOT_FOUND:
@@ -92,7 +92,7 @@ def main():
         'use gl checkout HEAD f to discard changes to tracked file f')
     for fp in out:
       pprint.err_item(fp)
-    
+
     return cmd.ERRORS_FOUND
   elif ret is sync_lib.CONFLICT:
     pprint.err(

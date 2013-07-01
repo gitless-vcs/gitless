@@ -121,7 +121,6 @@ def _valid_input(only_files, exc_files, inc_files):
           'File %s is a tracked file but has no modifications' % fp)
       ret = False
 
-
   for fp in exc_files:
     # We check that the files to be excluded are existing tracked files.
     if not os.path.exists(fp) and not lib.is_deleted_file(fp):
@@ -157,7 +156,7 @@ def _valid_input(only_files, exc_files, inc_files):
 
 def _compute_fs(only_files, exc_files, inc_files):
   """Compute the final fileset to commit.
-  
+
   Args:
     only_files: list of filenames to be committed only.
     exc_files: list of filenames to be excluded from commit.

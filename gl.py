@@ -38,7 +38,7 @@ def main():
     pprint.err_exp(
         'action must be one of the following: %s' % ', '.join(cmds.keys()))
     return cmd.ERRORS_FOUND
-  
+
   action = sys.argv[1]
   if action not in cmds:
     pprint.err('Unrecognized action %s' % action)

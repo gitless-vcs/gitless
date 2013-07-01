@@ -22,9 +22,9 @@ def main():
   parser.add_argument(
       '-d', '--delete', nargs='+', help='delete branch(es)', dest='delete_b')
   parser.add_argument(
-      '-su', '--set-upstream', help='set the upstream branch', dest='upstream_b')
+      '-su', '--set-upstream', help='set the upstream branch',
+      dest='upstream_b')
   args = parser.parse_args()
-
 
   if args.branch:
     exists, is_current, unused_tracks = branch_lib.status(args.branch)
@@ -55,7 +55,6 @@ def main():
         pprint.msg('Created new branch %s' % args.branch)
       else:
         raise Exception('Unrecognized ret code %s' % ret)
-
 
     branch_lib.switch(args.branch)
     pprint.msg('Switched to branch %s' % args.branch)
@@ -122,10 +121,13 @@ def _do_set_upstream(upstream):
   if ret is branch_lib.REMOTE_NOT_FOUND:
     pprint.err('Remote %s not found' % upstream_remote)
     pprint.err_exp('do gl remote show to list all available remotes')
-    pprint.err_exp('to add %s as a new remote do gl remote add %s remote_url' % (upstream_remote, upstream_remote))
+    pprint.err_exp(
+        'to add %s as a new remote do gl remote add %s remote_url' % (
+          upstream_remote, upstream_remote))
     errors_found = True
   elif ret is branch_lib.SUCCESS:
-    pprint.msg('Current branch %s set to track %s/%s' % (branch_lib.current(), upstream_remote, upstream_branch))
+    pprint.msg('Current branch %s set to track %s/%s' % (
+        branch_lib.current(), upstream_remote, upstream_branch))
 
   return errors_found
 

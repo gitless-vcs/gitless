@@ -74,7 +74,6 @@ def main():
         'No src branch specified, defaulted to getting changes from upstream '
         'branch %s' % args.src)
 
-
   if sync_lib.rebase_in_progress():
     pprint.err('You are already in the middle of a rebase')
     pprint.err_exp('use gl rebase --abort to abort the current rebase')
@@ -132,7 +131,7 @@ def main():
     return cmd.SUCCESS
   else:
     raise Exception('Unexpected ret code %s' % ret)
- 
+
 
 if __name__ == '__main__':
   cmd.run(main)
