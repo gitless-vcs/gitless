@@ -12,6 +12,7 @@ import commit_dialog
 import cmd
 import lib
 import pprint
+import sync_lib
 
 
 def main():
@@ -56,7 +57,7 @@ def main():
   if not msg:
     # Show the commit dialog.
     msg, commit_files = commit_dialog.show(commit_files)
-    if not msg.strip():
+    if not msg.strip() and not sync_lib.rebase_in_progress():
       pprint.err('No commit message provided')
       return cmd.ERRORS_FOUND
     if not commit_files:
@@ -68,14 +69,21 @@ def main():
   _auto_track(commit_files)
   ret, out = lib.commit(commit_files, msg)
   if ret is lib.SUCCESS:
-    pprint.msg(out)
+    if out:
+      pprint.msg(out)
   elif ret is lib.UNRESOLVED_CONFLICTS:
     pprint.err('You have unresolved conflicts:')
     pprint.err_exp(
         'use gl resolve <f> to mark file f as resolved once you fixed the '
         'conflicts')
     for f in out:
-      pprint.item(f)
+      pprint.err_item(f)
+    return cmd.ERRORS_FOUND
+  elif ret is lib.RESOLVED_FILES_NOT_IN_COMMIT:
+    pprint.err('You have resolved files that were not included in the commit:')
+    pprint.err_exp('these must be part of the commit')
+    for f in out:
+      pprint.err_item(f)
     return cmd.ERRORS_FOUND
   else:
     raise Exception('Unexpected return code %s' % ret)
@@ -128,6 +136,9 @@ def _valid_input(only_files, exc_files, inc_files):
       pprint.err(
           'File %s, listed to be excluded from commit, is a tracked file but '
           'has no modifications' % fp)
+      ret = False
+    elif sync_lib.is_resolved_file(fp):
+      pprint.err('You can\'t exclude a file that has been resolved')
       ret = False
 
   for fp in inc_files:

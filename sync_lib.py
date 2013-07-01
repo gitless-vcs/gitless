@@ -2,6 +2,7 @@
 
 
 import os
+import re
 
 from gitpylib import file
 from gitpylib import status
@@ -221,6 +222,20 @@ def internal_resolved_cleanup():
     if f.startswith('GL_RESOLVED'):
       os.remove(os.path.join(lib.gl_dir(), f))
       #print 'removed %s' % f
+
+
+def resolved_files():
+  ret = []
+  if merge_in_progress() or rebase_in_progress():
+    for f in os.listdir(lib.gl_dir()):
+      match = re.match('GL_RESOLVED_\w+_(\w+)', f)
+      if match:
+        ret.append(match.group(1))
+  return ret
+
+
+def is_resolved_file(fp):
+  return fp in resolved_files()
 
 
 def push():

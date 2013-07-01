@@ -23,6 +23,7 @@ FILE_IN_CONFLICT = 8
 FILE_IS_IGNORED = 9
 REPO_UNREACHABLE = 10
 NOTHING_TO_INIT = 11
+RESOLVED_FILES_NOT_IN_COMMIT = 12
 
 
 def track_file(fp):
@@ -172,6 +173,10 @@ def repo_status():
     elif s is status.IGNORED_STAGED:
       # We don't return it. But we also unstage it.
       file.unstage(fp)
+    elif s is status.MODIFIED_SINCE_STAGED:
+      # The file was marked as resolved and then modified. To Gitless, this is
+      # just a regular tracked file.
+      tracked_mod_list.append((fp, True, True, False))
     else:
       untracked_list.append((fp, False))
 
@@ -265,12 +270,22 @@ def commit(files, msg):
 
     if unresolved:
       return (UNRESOLVED_CONFLICTS, unresolved)
+    # We know that there are no pending conflicts to be resolved.
+    # Let's check that all resolved files are in the commit.
+    resolved_not_in_ci = []
+    for resolved_f in sync_lib.resolved_files():
+      if resolved_f not in files:
+        resolved_not_in_ci.append(resolved_f)
+    if resolved_not_in_ci:
+      return (RESOLVED_FILES_NOT_IN_COMMIT, resolved_not_in_ci)
+ 
     # print 'commiting files %s' % files
     out = None
     if in_rebase:
       # TODO(sperezde): save the message to use it later.
       for f in files:
         file.stage(f)
+      sync_lib.internal_resolved_cleanup()
       s = sync.rebase_continue()
       if s[0] is sync.SUCCESS:
         sync_lib.conclude_rebase()
@@ -279,10 +294,13 @@ def commit(files, msg):
         return (SUCCESS, s[1])
       else:
         raise Exception('Unrecognized ret code %s' % s[0])
-    else:
-      out = sync.commit_include(files, msg)
+
+    # It's a merge.
+    out = sync.commit_include(files, msg)
     sync_lib.internal_resolved_cleanup()
     return (SUCCESS, out)
+
+  # It's a regular commit.
   return (SUCCESS, sync.commit(files, msg))
 
 
@@ -298,7 +316,8 @@ def _is_tracked_status(s):
       s is status.TRACKED_MODIFIED or
       s is status.STAGED or
       s is status.IN_CONFLICT or
-      s is status.DELETED)
+      s is status.DELETED or
+      s is status.MODIFIED_SINCE_STAGED)
 
 
 def is_tracked_modified(fp):

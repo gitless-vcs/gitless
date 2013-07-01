@@ -101,13 +101,12 @@ def _show_rebase(files):
   """
   # TODO(sperezde): use git editor if present.
   # TODO(sperezde): detect if user exited with q!.
+  # TODO(sperezde): let the user enter a message.
   cf = open(_commit_file(), 'w')
-  cf.write('\n')
+  #cf.write('\n')
   pprint.sep(p=cf.write)
   pprint.msg(
-      'Please enter the commit message for your changes above. Lines starting '
-      'with \'#\' will be ignored, and an empty message aborts the commit.',
-      p=cf.write)
+      'The commit will have the original commit message.', p=cf.write)
   pprint.msg(
       'These are the files that will be commited as part of the rebase:',
       p=cf.write)
