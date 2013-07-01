@@ -10,6 +10,7 @@ import argparse
 import cmd
 import branch_lib
 import pprint
+import sync_lib
 
 
 def main():
@@ -31,6 +32,18 @@ def main():
       pprint.err(
           'You are already in branch %s. No need to switch.' % args.branch)
       pprint.err_exp('to list existing branches do gl branch')
+      return cmd.ERRORS_FOUND
+
+    if sync_lib.rebase_in_progress():
+      pprint.err(
+          'You can\'t switch branches when a rebase is in progress (yet '
+          '-- this will be implemented in the future)')
+      return cmd.ERRORS_FOUND
+
+    if sync_lib.merge_in_progress():
+      pprint.err(
+          'You can\'t switch branches when merge is in progress (yet '
+          '-- this will be implemented in the future)')
       return cmd.ERRORS_FOUND
 
     if not exists:
