@@ -77,6 +77,8 @@ def _list():
   pprint.msg('Existing branches:')
   pprint.exp('use gl branch <b> to create or switch to branch b')
   pprint.exp('use gl branch -d <b> to delete branch b')
+  pprint.exp(
+      'use gl branch -su <upstream> to set an upstream for the current branch')
   pprint.exp('* = current branch')
   pprint.blank()
   for name, is_current, upstream, upstream_in_remote in branch_lib.status_all():

@@ -70,7 +70,9 @@ def set_upstream(upstream_remote, upstream_branch):
     os.remove(uf)
   if ret is branch.UNFETCHED_OBJECT:
     # We work around this, it could be the case that the user is trying to push
-    # a new branch to the remote.
+    # a new branch to the remote or it could be that the branch exists but it
+    # hasn't been fetched yet.
+    # TODO(sperezde): fix the fetch case.
     open(uf, 'a').close()
   return SUCCESS
 
