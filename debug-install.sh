@@ -8,6 +8,9 @@
 # script you can execute the commands by just typing "gl-track", "gl-untrack"
 # and so on in your shell. You only need to execute this script once.
 
+# This script is intended for Gitless developers to be able to rapidly try out
+# their changes.
+
 # You'll need to edit this array if you add/remove commands.
 cmds=(
     "track" "untrack" "status" "diff" "commit" "branch" "checkout" "rm" "merge"
