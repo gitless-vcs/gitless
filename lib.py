@@ -177,10 +177,14 @@ def repo_status():
     elif s is status.IGNORED_STAGED:
       # We don't return it. But we also unstage it.
       file.unstage(fp)
-    elif s is status.MODIFIED_SINCE_STAGED:
+    elif s is status.MODIFIED_MODIFIED:
       # The file was marked as resolved and then modified. To Gitless, this is
       # just a regular tracked file.
       tracked_mod_list.append((fp, True, True, False))
+    elif s is status.ADDED_MODIFIED:
+      # The file is a new file that was added and then modified. This can only
+      # happen if the user gl tracks a file and then modifies it.
+      tracked_mod_list.append((fp, False, True, False))
     else:
       untracked_list.append((fp, False))
 
@@ -235,6 +239,10 @@ def diff(fp):
 
   out = ''
   if s is status.STAGED:
+    diff_out = file.staged_diff(fp)[1]
+    out = "\n".join(diff_out.splitlines()[5:])
+  elif s is status.ADDED_MODIFIED or s is status.MODIFIED_MODIFIED:
+    file.stage(fp)
     diff_out = file.staged_diff(fp)[1]
     out = "\n".join(diff_out.splitlines()[5:])
   else:
@@ -321,7 +329,8 @@ def _is_tracked_status(s):
       s is status.STAGED or
       s is status.IN_CONFLICT or
       s is status.DELETED or
-      s is status.MODIFIED_SINCE_STAGED)
+      s is status.MODIFIED_MODIFIED or
+      s is status.ADDED_MODIFIED)
 
 
 def is_tracked_modified(fp):
