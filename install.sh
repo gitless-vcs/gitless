@@ -1,4 +1,9 @@
 #!/bin/bash
+
+# Gitless - a version control system built on top of Git.
+# Copyright (c) 2013  Santiago Perez De Rosso.
+# Licensed under GNU GPL, version 2.
+
 # Creates symlinks to the python files in /usr/bin. After running the install
 # script you can execute the commands by just typing "gl-track", "gl-untrack"
 # and so on in your shell. You only need to execute this script once.

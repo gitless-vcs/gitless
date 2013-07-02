@@ -1,5 +1,9 @@
 #!/usr/bin/python
 
+# Gitless - a version control system built on top of Git.
+# Copyright (c) 2013  Santiago Perez De Rosso.
+# Licensed under GNU GPL, version 2.
+
 """gl-remote - Set the remote for the repo, get info about it.
 
 Implements the gl-remote command, part of the Gitless suite.

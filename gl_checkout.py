@@ -1,5 +1,9 @@
 #!/usr/bin/python
 
+# Gitless - a version control system built on top of Git.
+# Copyright (c) 2013  Santiago Perez De Rosso.
+# Licensed under GNU GPL, version 2.
+
 """gl-checkout - Checkout commited versions of files.
 
 Implements the gl-checkout command, part of the Gitless suite.

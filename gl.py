@@ -1,6 +1,11 @@
 #!/usr/bin/python
 
+# Gitless - a version control system built on top of Git.
+# Copyright (c) 2013  Santiago Perez De Rosso.
+# Licensed under GNU GPL, version 2.
+
 """gl - Main Gitless's command. Dispatcher to the other cmds."""
+
 
 import argparse
 import sys

@@ -1,5 +1,9 @@
 #!/usr/bin/python
 
+# Gitless - a version control system built on top of Git.
+# Copyright (c) 2013  Santiago Perez De Rosso.
+# Licensed under GNU GPL, version 2.
+
 """gl-log - Show commit history.
 
 Implements the gl-log command, part of the Gitless suite.
