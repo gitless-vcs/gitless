@@ -27,6 +27,7 @@ def main():
   cwd = os.getcwd()
 
   print 'Compiling all python files'
+  # TODO(sperezde): compile with -OO.
   compileall.compile_dir(cwd, ddir=args.version, force=True, rx=rx)
   print 'Done compiling'
 
@@ -56,7 +57,7 @@ def main():
 
   shutil.copy('LICENSE.md', os.path.join(args.version, 'LICENSE.md'))
 
-  _create_pf_file(args.version)
+  _create_postflight_file(args.version)
 
   print 'Done'
 
@@ -86,7 +87,8 @@ def _create_exec_file(cmd, dst, is_gl=False):
   print 'Done creating exec file for %s at %s' % (cmd, path)
 
 
-def _create_pf_file(dst):
+def _create_postflight_file(dst):
+  print 'Creating postflight file'
   path = os.path.join(dst, 'postflight')
   f = open(path, 'a')
   f.write('#!/bin/bash\n')
@@ -94,6 +96,7 @@ def _create_pf_file(dst):
   f.close()
   os.chmod(path, (
     stat.S_IXUSR | stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR | stat.S_IRGRP))
+  print 'Done creating postflight file'
 
 
 if __name__ == '__main__':
