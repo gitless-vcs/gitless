@@ -1,38 +1,44 @@
+build:
+	./build.py bin
+
+clean:
+	-rm -rf bin
+
 install:
-	sudo mkdir /usr/local/gitless
-	sudo cp -rf * /usr/local/gitless
-	sudo ln /usr/local/gitless/gl /usr/local/bin/gl 
-	sudo ln /usr/local/gitless/gl-track /usr/local/bin/gl-track
-	sudo ln /usr/local/gitless/gl-untrack /usr/local/bin/gl-untrack
-	sudo ln /usr/local/gitless/gl-status /usr/local/bin/gl-status
-	sudo ln /usr/local/gitless/gl-diff /usr/local/bin/gl-diff
-	sudo ln /usr/local/gitless/gl-commit /usr/local/bin/gl-commit
-	sudo ln /usr/local/gitless/gl-branch /usr/local/bin/gl-branch
-	sudo ln /usr/local/gitless/gl-checkout /usr/local/bin/gl-checkout
-	sudo ln /usr/local/gitless/gl-rm /usr/local/bin/gl-rm
-	sudo ln /usr/local/gitless/gl-merge /usr/local/bin/gl-merge
-	sudo ln /usr/local/gitless/gl-resolve /usr/local/bin/gl-resolve
-	sudo ln /usr/local/gitless/gl-rebase /usr/local/bin/gl-rebase
-	sudo ln /usr/local/gitless/gl-remote /usr/local/bin/gl-remote
-	sudo ln /usr/local/gitless/gl-push /usr/local/bin/gl-push
-	sudo ln /usr/local/gitless/gl-init /usr/local/bin/gl-init
-	sudo ln /usr/local/gitless/gl-history /usr/local/bin/gl-history
+	mkdir /usr/local/gitless
+	cp -rf bin /usr/local/gitless
+	ln -s /usr/local/gitless/bin/gl /usr/local/bin/gl 
+	ln -s /usr/local/gitless/bin/gl-track /usr/local/bin/gl-track
+	ln -s /usr/local/gitless/bin/gl-untrack /usr/local/bin/gl-untrack
+	ln -s /usr/local/gitless/bin/gl-status /usr/local/bin/gl-status
+	ln -s /usr/local/gitless/bin/gl-diff /usr/local/bin/gl-diff
+	ln -s /usr/local/gitless/bin/gl-commit /usr/local/bin/gl-commit
+	ln -s /usr/local/gitless/bin/gl-branch /usr/local/bin/gl-branch
+	ln -s /usr/local/gitless/bin/gl-checkout /usr/local/bin/gl-checkout
+	ln -s /usr/local/gitless/bin/gl-rm /usr/local/bin/gl-rm
+	ln -s /usr/local/gitless/bin/gl-merge /usr/local/bin/gl-merge
+	ln -s /usr/local/gitless/bin/gl-resolve /usr/local/bin/gl-resolve
+	ln -s /usr/local/gitless/bin/gl-rebase /usr/local/bin/gl-rebase
+	ln -s /usr/local/gitless/bin/gl-remote /usr/local/bin/gl-remote
+	ln -s /usr/local/gitless/bin/gl-push /usr/local/bin/gl-push
+	ln -s /usr/local/gitless/bin/gl-init /usr/local/bin/gl-init
+	ln -s /usr/local/gitless/bin/gl-history /usr/local/bin/gl-history
 
 uninstall:
-	-sudo rm -rf /usr/local/gitless
-	-sudo rm /usr/local/bin/gl
-	-sudo rm /usr/local/bin/gl-track
-	-sudo rm /usr/local/bin/gl-untrack
-	-sudo rm /usr/local/bin/gl-status
-	-sudo rm /usr/local/bin/gl-diff
-	-sudo rm /usr/local/bin/gl-commit
-	-sudo rm /usr/local/bin/gl-branch
-	-sudo rm /usr/local/bin/gl-checkout
-	-sudo rm /usr/local/bin/gl-rm
-	-sudo rm /usr/local/bin/gl-merge
-	-sudo rm /usr/local/bin/gl-resolve
-	-sudo rm /usr/local/bin/gl-rebase
-	-sudo rm /usr/local/bin/gl-remote
-	-sudo rm /usr/local/bin/gl-push
-	-sudo rm /usr/local/bin/gl-init
-	-sudo rm /usr/local/bin/gl-history
+	-rm -rf /usr/local/gitless
+	-rm /usr/local/bin/gl
+	-rm /usr/local/bin/gl-track
+	-rm /usr/local/bin/gl-untrack
+	-rm /usr/local/bin/gl-status
+	-rm /usr/local/bin/gl-diff
+	-rm /usr/local/bin/gl-commit
+	-rm /usr/local/bin/gl-branch
+	-rm /usr/local/bin/gl-checkout
+	-rm /usr/local/bin/gl-rm
+	-rm /usr/local/bin/gl-merge
+	-rm /usr/local/bin/gl-resolve
+	-rm /usr/local/bin/gl-rebase
+	-rm /usr/local/bin/gl-remote
+	-rm /usr/local/bin/gl-push
+	-rm /usr/local/bin/gl-init
+	-rm /usr/local/bin/gl-history

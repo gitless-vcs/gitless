@@ -65,10 +65,6 @@ def main():
       print 'moving file %s to %s' % (src_path, new_path)
       os.rename(src_path, new_path)
 
-  shutil.copy('LICENSE.md', os.path.join(args.version, 'LICENSE.md'))
-
-  _create_postflight_file(args.version)
-
   print 'Done'
 
 
@@ -88,23 +84,12 @@ def _create_exec_file(cmd, dst, is_gl=False):
   f = open(path, 'a')
   f.write('#!/bin/bash\n')
   if is_gl:
-    f.write('python /usr/local/gitless/gl.pyc "$@"')
+    f.write('python /usr/local/gitless/bin/gl.pyc "$@"')
   else:
-    f.write('python /usr/local/gitless/gl_%s.pyc "$@"' % cmd)
+    f.write('python /usr/local/gitless/bin/gl_%s.pyc "$@"' % cmd)
   f.close()
   os.chmod(path, FILE_PERMISSIONS)
   print 'Done creating exec file for %s at %s' % (cmd, path)
-
-
-def _create_postflight_file(dst):
-  print 'Creating postflight file'
-  path = os.path.join(dst, 'postflight')
-  f = open(path, 'a')
-  f.write('#!/bin/bash\n')
-  f.write('echo \'/usr/local/gitless\' > /etc/paths.d/gitless\n')
-  f.close()
-  os.chmod(path, FILE_PERMISSIONS)
-  print 'Done creating postflight file'
 
 
 if __name__ == '__main__':
