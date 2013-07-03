@@ -14,6 +14,16 @@ import re
 import shutil
 import stat
 
+FILE_PERMISSIONS = (
+    stat.S_IRUSR |  # Owner reads.
+    stat.S_IWUSR |  # Owner writes.
+    stat.S_IXUSR |  # Owner executes.
+    stat.S_IRGRP |  # Group reads.
+    stat.S_IXGRP |  # Group writes.
+    stat.S_IROTH |  # Other reads.
+    stat.S_IXOTH    # Other executes.
+)
+
 
 def main():
   parser = argparse.ArgumentParser(
@@ -82,8 +92,7 @@ def _create_exec_file(cmd, dst, is_gl=False):
   else:
     f.write('python /usr/local/gitless/gl_%s.pyc "$@"' % cmd)
   f.close()
-  os.chmod(path, (
-    stat.S_IXUSR | stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR | stat.S_IRGRP))
+  os.chmod(path, FILE_PERMISSIONS)
   print 'Done creating exec file for %s at %s' % (cmd, path)
 
 
@@ -94,8 +103,7 @@ def _create_postflight_file(dst):
   f.write('#!/bin/bash\n')
   f.write('echo \'/usr/local/gitless\' > /etc/paths.d/gitless\n')
   f.close()
-  os.chmod(path, (
-    stat.S_IXUSR | stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR | stat.S_IRGRP))
+  os.chmod(path, FILE_PERMISSIONS)
   print 'Done creating postflight file'
 
 
