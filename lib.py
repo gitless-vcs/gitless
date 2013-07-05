@@ -11,7 +11,7 @@ from gitpylib import common
 from gitpylib import file
 from gitpylib import status
 from gitpylib import sync
-from gitpylib import init
+from gitpylib import repo 
 from gitpylib import log
 import sync_lib
 
@@ -383,17 +383,17 @@ def gl_dir():
   return common.git_dir()
 
 
-def init_from_repo(repo):
+def init_from_repo(remote_repo):
   if gl_dir():
     return NOTHING_TO_INIT
-  init.clone(repo)
+  repo.clone(remote_repo)
   return SUCCESS
 
 
 def init_dir():
   if gl_dir():
     return NOTHING_TO_INIT
-  init.init()
+  repo.init()
   return SUCCESS
 
 
