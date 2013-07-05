@@ -2,7 +2,7 @@
 # Copyright (c) 2013  Santiago Perez De Rosso.
 # Licensed under GNU GPL, version 2.
 
-"""Gitless's lib."""
+"""Gitless's main lib."""
 
 import os.path
 import subprocess
@@ -169,7 +169,6 @@ def repo_status():
       # The user broke the gl interface layer by using /usr/bin/rm directly.
       raise Exception('Got a DELETED_ASSUME_UNCHANGED status for %s' % fp)
     elif s is status.IN_CONFLICT:
-      # TODO: check what happens with deletion conflicts.
       tracked_mod_list.append((fp, True, True, True))
     elif s is status.IGNORED:
       # We don't return ignored files.
@@ -192,7 +191,7 @@ def repo_status():
 
 
 def rm(fp):
-  """Removes the given file
+  """Removes the given file.
  
   Args:
     fp: the file path of the file to remove.
@@ -230,6 +229,8 @@ def diff(fp):
       - SUCCESS: the operation finished sucessfully.
     and out is the output of the diff command.
   """
+  # TODO(sperezde): process the output of the diff command and return it in a
+  # friendlier way.
   if not os.path.exists(fp):
     return (FILE_NOT_FOUND, '')
 
@@ -321,33 +322,15 @@ def is_tracked_file(fp):
   return _is_tracked_status(status.of_file(fp))
 
 
-def _is_tracked_status(s):
-  """True if the given status corresponds to a gl tracked file."""
-  return (
-      s is status.TRACKED_UNMODIFIED or
-      s is status.TRACKED_MODIFIED or
-      s is status.STAGED or
-      s is status.IN_CONFLICT or
-      s is status.DELETED or
-      s is status.MODIFIED_MODIFIED or
-      s is status.ADDED_MODIFIED)
-
-
 def is_tracked_modified(fp):
+  """True if the given file is a tracked file with modifications."""
   s = status.of_file(fp)
   return _is_tracked_status(s) and not s is status.TRACKED_UNMODIFIED
 
 
 def is_deleted_file(fp):
+  """True if the given file is a deleted file."""
   return _is_deleted_status(status.of_file(fp))
-
-
-def _is_deleted_status(s):
-  return s is status.DELETED
-
-
-def _is_ignored_status(s):
-  return s is status.IGNORED
 
 
 # TODO(sperezde): does this still work if the file was moved?
@@ -420,3 +403,28 @@ def show_history():
 
 def show_history_verbose():
   log.log_p()
+
+
+# Private methods.
+
+
+def _is_tracked_status(s):
+  """True if the given status corresponds to a gl tracked file."""
+  return (
+      s is status.TRACKED_UNMODIFIED or
+      s is status.TRACKED_MODIFIED or
+      s is status.STAGED or
+      s is status.IN_CONFLICT or
+      s is status.DELETED or
+      s is status.MODIFIED_MODIFIED or
+      s is status.ADDED_MODIFIED)
+
+
+def _is_deleted_status(s):
+  """True if the given status corresponds to a gl deleted file."""
+  return s is status.DELETED
+
+
+def _is_ignored_status(s):
+  """True if the given status corresponds to a gl ignored file."""
+  return s is status.IGNORED

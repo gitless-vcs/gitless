@@ -56,7 +56,11 @@ def set_upstream(upstream_remote, upstream_branch):
 
   Args:
     upstream_remote: the upstream remote.
-    upstream_branch: upstream branch to set in the format remote/branch.
+    upstream_branch: the upstream branch.
+
+  Returns:
+    REMOTE_NOT_FOUND if the remote hasn't been defined yet or SUCCESS if the
+    operation finished successfully.
   """
   if not remote_lib.is_set(upstream_remote):
     return REMOTE_NOT_FOUND
@@ -127,7 +131,6 @@ def status_all():
     Tuples of the form (name, is_current, upstream, upstream_in_remote).
     upstream is in the format 'remote_name/remote_branch'.
   """
-
   rebase_in_progress = sync_lib.rebase_in_progress()
   if rebase_in_progress:
     current = sync_lib.rebase_info()[0]
@@ -154,24 +157,17 @@ def status_all():
   return ret
 
 
-def _stash_msg(name):
-  """Computes the stash msg to use for stashing changes in branch name."""
-  return '---gl-%s---' % name
-
-
-def _upstream_file(branch, upstream_remote, upstream_branch):
-  upstream_fn = 'GL_UPSTREAM_%s_%s_%s' % (
-      branch, upstream_remote, upstream_branch)
-  return os.path.join(lib.gl_dir(), upstream_fn)
-
-
 def has_unpushed_upstream(branch, upstream_remote, upstream_branch):
+  """True if branch has upstream_remote/upstream_branch set but unpushed."""
   return os.path.exists(
       _upstream_file(branch, upstream_remote, upstream_branch))
 
 
 def upstream(branch):
   """Gets the upstream branch of the given branch.
+
+  Args:
+    branch: the branch whose upstream will be returned.
 
   Returns:
     a pair (upstream_remote, upstream_branch) or None if the given branch has no
@@ -185,3 +181,17 @@ def upstream(branch):
     if result:
       return (result.group(1), result.group(2))
   return (None, None)
+
+
+# Private methods.
+
+
+def _stash_msg(name):
+  """Computes the stash msg to use for stashing changes in branch name."""
+  return '---gl-%s---' % name
+
+
+def _upstream_file(branch, upstream_remote, upstream_branch):
+  upstream_fn = 'GL_UPSTREAM_%s_%s_%s' % (
+      branch, upstream_remote, upstream_branch)
+  return os.path.join(lib.gl_dir(), upstream_fn)

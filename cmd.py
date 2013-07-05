@@ -17,6 +17,7 @@ NOT_IN_GL_REPO = 4
 
 
 def run(main, is_init=False):
+  """Wrapper for the given main function that performs additional checks."""
   if not is_init and not lib.gl_dir():
     pprint.err(
         'You are not in a Gitless repository. To make this directory a '

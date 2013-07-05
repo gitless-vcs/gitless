@@ -9,7 +9,7 @@
 # and so on in your shell. You only need to execute this script once.
 
 # This script is intended for Gitless developers to be able to rapidly try out
-# their changes.
+# their changes: symlinks point to the .py scripts.
 
 # You'll need to edit this array if you add/remove commands.
 cmds=(

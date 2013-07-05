@@ -8,7 +8,7 @@
 import sys
 
 
-# Stdout
+# Stdout.
 
 def blank(p=sys.stdout.write):
   return p('#\n')
@@ -30,7 +30,7 @@ def sep(p=sys.stdout.write):
   return p('############################################################\n')
 
 
-# Err
+# Err.
 
 def err(msg, p=sys.stderr.write):
   return p('# %s\n' % msg)
@@ -48,9 +48,20 @@ def err_item(i, opt_msg='', p=sys.stderr.write):
   return p('#     %s%s\n' % (i, opt_msg))
 
 
-# Misc
+# Misc.
 
 def conf_dialog(msg):
+  """Gets confirmation from the user.
+  
+  Prints a confirmation message to stdout with the given msg and waits for
+  user confirmation.
+
+  Args:
+    msg: the msg to include in the confirmation.
+
+  Returns:
+    True if the user confirmed she wanted to continue or False if otherwise.
+  """
   sys.stdout.write('# %s. Do you wish to continue? (y/N)' % msg)
   user_input = raw_input(' ')
   return user_input and user_input[0] == 'y'

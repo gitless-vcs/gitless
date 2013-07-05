@@ -23,7 +23,9 @@ def add(remote_name, remote_url):
     remote_url: the url of the remote
 
   Returns:
-    REMOTE_ALREADY_SET, REMOTE_UNREACHABLE or SUCCESS.
+    a pair (status, out) where status is one of REMOTE_ALREADY_SET,
+    REMOTE_UNREACHABLE or SUCCESS and out has additional information about the
+    remote if status=SUCCESS.
   """
   if is_set(remote_name):
     return (REMOTE_ALREADY_SET, None)
