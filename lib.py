@@ -4,10 +4,11 @@
 
 """Gitless's main lib."""
 
-import os.path
+import os
 import subprocess
 
 from gitpylib import common
+from gitpylib import config
 from gitpylib import file
 from gitpylib import status
 from gitpylib import sync
@@ -403,6 +404,19 @@ def show_history():
 
 def show_history_verbose():
   log.log_p()
+
+
+def editor():
+  """Returns the editor set up by the user (defaults to Vim)."""
+  ret = config.get('core.editor')
+  if ret:
+    return ret
+  # We check the $EDITOR variable.
+  ret = os.environ['EDITOR'] if 'EDITOR' in os.environ else None
+  if ret:
+    return ret
+  # We default to Vim.
+  return 'vim'
 
 
 # Private methods.

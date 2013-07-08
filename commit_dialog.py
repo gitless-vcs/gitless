@@ -42,7 +42,6 @@ def _show(files):
   Returns:
     A tuple (msg, files) with the commit msg and the files to commit.
   """
-  # TODO(sperezde): use git editor if present.
   # TODO(sperezde): detect if user exited with q!.
   cf = open(_commit_file(), 'w')
   cf.write('\n')
@@ -57,7 +56,7 @@ def _show(files):
     pprint.item(f, p=cf.write)
   pprint.sep(p=cf.write)
   cf.close()
-  _launch_vim()
+  _launch_editor()
   return _extract_info()
 
 
@@ -70,8 +69,6 @@ def _show_merge(files):
   Returns:
     A tuple (msg, files) with the commit msg and the files to commit.
   """
-  # TODO(sperezde): use git editor if present.
-  # TODO(sperezde): detect if user exited with q!.
   cf = open(_commit_file(), 'w')
   merge_msg = open(_merge_msg_file(), 'r').read()
   cf.write(merge_msg)
@@ -90,7 +87,7 @@ def _show_merge(files):
     pprint.item(f, p=cf.write)
   pprint.sep(p=cf.write)
   cf.close()
-  _launch_vim()
+  _launch_editor()
   return _extract_info()
 
 
@@ -103,8 +100,6 @@ def _show_rebase(files):
   Returns:
     A tuple (msg, files) with the commit msg and the files to commit.
   """
-  # TODO(sperezde): use git editor if present.
-  # TODO(sperezde): detect if user exited with q!.
   # TODO(sperezde): let the user enter a message.
   cf = open(_commit_file(), 'w')
   #cf.write('\n')
@@ -121,13 +116,14 @@ def _show_rebase(files):
     pprint.item(f, p=cf.write)
   pprint.sep(p=cf.write)
   cf.close()
-  _launch_vim()
+  _launch_editor()
   return _extract_info()
 
 
-def _launch_vim():
-  if subprocess.call('vim %s' % _commit_file(), shell=True) != 0:
-    raise Exception('Call to Vim failed')
+def _launch_editor():
+  editor = lib.editor()
+  if subprocess.call('%s %s' % (editor, _commit_file()), shell=True) != 0:
+    raise Exception('Call to editor %s failed' % editor)
 
 
 def _extract_info():
