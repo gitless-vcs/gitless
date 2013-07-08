@@ -5,7 +5,7 @@ Gitless's Release Notes
 -------------
 
 * Before defaulting to using vim we now check to see if the user specified a
-  value for Git's 'core.editor' config option or if the $EDITOR env variable is
+  value for Git's 'core.editor' config option or if the EDITOR env variable is
   set.
 * Added a 'Requirements' section to the installation instructions.
 * Changed shebang lines to /usr/bin/env python instead of harcoding the Python
@@ -15,4 +15,4 @@ Gitless's Release Notes
 3rd July 2013 - kendall.0.0
 ---------------------------
 
-First Gitless release.
+First Gitless's release.
