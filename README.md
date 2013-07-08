@@ -9,6 +9,15 @@ More info and documentation @ <http://people.csail.mit.edu/sperezde/gitless>.
 Installing
 ----------
 
+### Requirements
+
+* You need to have Python 2.7.0+ installed, and use this instead of any Python
+  3x binaries you might have installed. In other words, if you do 'python
+  --version' in your shell it must output something of the kind 'Python 2.7.x'.
+* You need to have a rather recent Git version, 1.7.12+ should be fine.
+
+### Instructions
+
 To build from source do 'make'. This will create a bin folder with compiled
 python files as well as bash wrappers for the commands. Using these instead of
 the .py scripts directly should be faster. Once you have the bin folder, you
