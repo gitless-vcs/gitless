@@ -52,12 +52,14 @@ def main():
   inc_files = frozenset(args.inc_files) if args.inc_files else []
 
   if not _valid_input(only_files, exc_files, inc_files):
+    pprint.err('Commit aborted')
     return cmd.ERRORS_FOUND
 
   commit_files = _compute_fs(only_files, exc_files, inc_files)
 
   if not commit_files:
     pprint.err('No files to commit')
+    pprint.err('Commit aborted')
     return cmd.ERRORS_FOUND
 
   msg = args.m
@@ -66,11 +68,14 @@ def main():
     msg, commit_files = commit_dialog.show(commit_files)
     if not msg.strip() and not sync_lib.rebase_in_progress():
       pprint.err('No commit message provided')
+      pprint.err('Commit aborted')
       return cmd.ERRORS_FOUND
     if not commit_files:
       pprint.err('No files to commit')
+      pprint.err('Commit aborted')
       return cmd.ERRORS_FOUND
     if not _valid_input(commit_files, [], []):
+      pprint.err('Commit aborted')
       return cmd.ERRORS_FOUND
 
   _auto_track(commit_files)
@@ -85,12 +90,14 @@ def main():
         'conflicts')
     for f in out:
       pprint.err_item(f)
+    pprint.err('Commit aborted')
     return cmd.ERRORS_FOUND
   elif ret is lib.RESOLVED_FILES_NOT_IN_COMMIT:
     pprint.err('You have resolved files that were not included in the commit:')
     pprint.err_exp('these must be part of the commit')
     for f in out:
       pprint.err_item(f)
+    pprint.err('Commit aborted')
     return cmd.ERRORS_FOUND
   else:
     raise Exception('Unexpected return code %s' % ret)
@@ -113,7 +120,7 @@ def _valid_input(only_files, exc_files, inc_files):
     True if the input is valid, False if otherwise.
   """
   if only_files and (exc_files or inc_files):
-    pprint.msg(
+    pprint.err(
         'You provided a list of filenames to be committed only but also '
         'provided a list of files to be excluded or included.')
     return False

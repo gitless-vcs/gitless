@@ -42,8 +42,7 @@ def main():
   if len(sys.argv) <= 1:
     # No action was provided.
     pprint.err('No action was provided')
-    pprint.err_exp(
-        'action must be one of the following: %s' % ', '.join(cmds.keys()))
+    pprint.err_exp('type gl <action>, e.g. gl status')
     return cmd.ERRORS_FOUND
 
   action = sys.argv[1]

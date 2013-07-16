@@ -43,7 +43,7 @@ def main():
     pprint.err('Nothing to init, this directory is already a Gitless\'s repo')
     return cmd.ERRORS_FOUND
   elif ret is lib.SUCCESS:
-    pprint.msg('Gitless\'s repository created successfully')
+    pprint.msg('Gitless\'s local repository created successfully')
     return cmd.SUCCESS
   else:
     raise Exception('Unexpected return code %s' % ret)

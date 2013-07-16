@@ -36,7 +36,7 @@ def main():
     ret, out = lib.diff(fp)
 
     if ret is lib.FILE_NOT_FOUND:
-      pprint.err('Can\'t diff an inexistent file: %s' % fp)
+      pprint.err('Can\'t diff an non-existent file: %s' % fp)
       errors_found = True
     elif ret is lib.FILE_IS_UNTRACKED:
       pprint.err(

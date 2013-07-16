@@ -99,7 +99,7 @@ def _delete(delete_b):
   for b in delete_b:
     exists, is_current, unused_tracks = branch_lib.status(b)
     if not exists:
-      pprint.err('Can\'t remove inexistent branch %s' % b)
+      pprint.err('Can\'t remove non-existent branch %s' % b)
       pprint.err_exp('to list existing branches do gl branch')
       errors_found = True
     elif exists and is_current:
