@@ -23,6 +23,7 @@ import sync_lib
 def main():
   parser = argparse.ArgumentParser(
       description="Show status of the repo")
+  args = parser.parse_args()
 
   pprint.msg('On branch %s' % branch_lib.current())
   pprint.blank()
