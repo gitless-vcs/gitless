@@ -34,12 +34,6 @@ RESOLVED_FILES_NOT_IN_COMMIT = 12
 def track_file(fp):
   """Start tracking changes to fp.
 
-  Makes fp a tracked file; fp can be a file or a directory. If
-  it is a directory, all the contents of the directory will be recursively
-  tracked. If it is an empty directory, the directory will also be tracked (can
-  be committed/pushed). Creating new files under tracked directories don't
-  automatically make these tracked files; they need to be explicitly tracked.
-
   Args:
       fp: The file path of the file to track.
 
