@@ -36,8 +36,13 @@ def create(name):
     # Also, they can't have a '_' so that it doesn't conflict with our way of
     # naming internal files.
     return INVALID_NAME
-  branch.create(name)
-  return SUCCESS
+  ret = branch.create(name)
+  if ret is branch.INVALID_NAME:
+    return INVALID_NAME
+  elif ret is branch.SUCCESS:
+    return SUCCESS
+  else:
+    raise Exception('Unrecognized ret code %s' % ret)
 
 
 def delete(name):

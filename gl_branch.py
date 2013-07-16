@@ -53,7 +53,7 @@ def main():
     if not exists:
       ret = branch_lib.create(args.branch)
       if ret is branch_lib.INVALID_NAME:
-        pprint.err('Invalid character \'/\' or \'_\' in branch name')
+        pprint.err('Invalid branch name')
         return cmd.ERRORS_FOUND
       elif ret is branch_lib.SUCCESS:
         pprint.msg('Created new branch %s' % args.branch)
