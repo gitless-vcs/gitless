@@ -1,11 +1,13 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2.7
 
 # Gitless - a version control system built on top of Git.
 # Copyright (c) 2013  Santiago Perez De Rosso.
 # Licensed under GNU GPL, version 2.
 
-"""Build Gitless package."""
+"""Build Gitless."""
 
+
+import check_pyversion
 
 import argparse
 import compileall
@@ -13,6 +15,7 @@ import os
 import re
 import shutil
 import stat
+
 
 FILE_PERMISSIONS = (
     stat.S_IRUSR |  # Owner reads.
@@ -27,8 +30,8 @@ FILE_PERMISSIONS = (
 
 def main():
   parser = argparse.ArgumentParser(
-      description="Build Gitless package")
-  parser.add_argument('version', help='name of the version to package')
+      description="Build Gitless app")
+  parser.add_argument('dst', help='where to put the compiled files')
 
   args = parser.parse_args()
 
@@ -38,24 +41,24 @@ def main():
 
   print 'Compiling all python files'
   # TODO(sperezde): compile with -OO.
-  compileall.compile_dir(cwd, ddir=args.version, force=True, rx=rx)
+  compileall.compile_dir(cwd, ddir=args.dst, force=True, rx=rx)
   print 'Done compiling'
 
-  print 'Creating dir %s' % args.version
-  os.mkdir(args.version)
+  print 'Creating dir %s' % args.dst
+  os.mkdir(args.dst)
   print 'Dir created'
 
   for f in os.listdir(cwd):
     if f.endswith('.pyc'):
-      new_path = os.path.join(args.version, f) 
+      new_path = os.path.join(args.dst, f) 
       print 'moving file %s to %s' % (f, new_path)
       os.rename(f, new_path)
-      _maybe_create_exec_file(f, args.version)
+      _maybe_create_exec_file(f, args.dst)
 
-  _create_exec_file('gl', args.version, is_gl=True)
+  _create_exec_file('gl', args.dst, is_gl=True)
 
   gitpylib = os.path.join(cwd, 'gitpylib')
-  gitpylib_dst = os.path.join(args.version, 'gitpylib')
+  gitpylib_dst = os.path.join(args.dst, 'gitpylib')
   os.mkdir(gitpylib_dst)
 
   for f in os.listdir(gitpylib):

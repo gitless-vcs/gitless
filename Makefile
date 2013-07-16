@@ -1,10 +1,10 @@
-build:
+build: clean
 	./build.py bin
 
 clean:
 	-rm -rf bin
 
-install:
+install: uninstall
 	mkdir /usr/local/gitless
 	cp -rf bin /usr/local/gitless
 	ln -s /usr/local/gitless/bin/gl /usr/local/bin/gl 

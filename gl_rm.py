@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2.7
 
 # Gitless - a version control system built on top of Git.
 # Copyright (c) 2013  Santiago Perez De Rosso.
@@ -8,6 +8,9 @@
 
 Implements the gl-rm command, part of the Gitless suite.
 """
+
+
+import check_pyversion
 
 import argparse
 

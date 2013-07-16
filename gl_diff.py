@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2.7
 
 # Gitless - a version control system built on top of Git.
 # Copyright (c) 2013  Santiago Perez De Rosso.
@@ -10,6 +10,9 @@ Implements the gl-diff command, part of the Gitless suite. The gl-diff command
 allows the user to show the difference between the current version of a file and
 its version in the repo.
 """
+
+
+import check_pyversion
 
 import argparse
 import os

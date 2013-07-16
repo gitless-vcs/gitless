@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2.7
 
 # Gitless - a version control system built on top of Git.
 # Copyright (c) 2013  Santiago Perez De Rosso.
@@ -10,6 +10,8 @@ Implements the gl-untrack command, part of the Gitless suite. The gl-untrack
 command allows the user to stop tracking changes to the files passed as
 parameters."""
 
+
+import check_pyversion
 
 import argparse
 
