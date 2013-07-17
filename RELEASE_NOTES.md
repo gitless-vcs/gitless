@@ -1,15 +1,22 @@
 Gitless's Release Notes
 =======================
 
-- kendall.0.1
--------------
 
+16th July 2013 - kendall.0.1
+----------------------------
+
+* Minor improvements in output of commands.
+* Improvements in Makefile and added Python version checks.
+* Made case-sensitiveness consistent with FS.
+* Fixed bug that made it impossible to gl-track files under directories without
+  cd'ing first to that dir.
+* Better support for evil branch names.
 * Before defaulting to using vim we now check to see if the user specified a
   value for Git's 'core.editor' config option or if the EDITOR env variable is
   set.
 * Added a 'Requirements' section to the installation instructions.
-* Changed shebang lines to /usr/bin/env python instead of harcoding the Python
-  binary at /usr/bin/python.
+* Changed shebang lines to /usr/bin/env python2.7 instead of harcoding the
+  Python binary at /usr/bin/python.
 
 
 3rd July 2013 - kendall.0.0

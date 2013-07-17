@@ -15,6 +15,8 @@ ERRORS_FOUND = 1
 INTERNAL_ERROR = 3
 NOT_IN_GL_REPO = 4
 
+GL_VERSION = 'kendall.0.1'
+
 
 def run(main, is_init=False):
   """Wrapper for the given main function that performs additional checks."""
@@ -41,5 +43,6 @@ def run(main, is_init=False):
         'Oops...something went wrong (recall that Gitless is in beta). If you '
         'want to give us a hand, report the bug at '
         'http://people.csail.mit.edu/sperezde/gitless/community.html and '
-        'include the following in the email:\n\n%s' % traceback.format_exc())
+        'include the following in the email:\n\n%s\n\n%s' %
+        (GL_VERSION, traceback.format_exc()))
     sys.exit(INTERNAL_ERROR)
