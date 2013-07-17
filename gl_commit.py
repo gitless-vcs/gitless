@@ -179,15 +179,16 @@ def _compute_fs(only_files, exc_files, inc_files):
   Returns:
     A list of filenames to be committed.
   """
-  # TODO(sperezde): this should be case-sensitive or not depending on the OS.
   if only_files:
     ret = only_files
   else:
     tracked_modified, unused_untracked = lib.repo_status()
     # TODO(sperezde): push the use of frozenset to the library.
     ret = frozenset(tm[0] for tm in tracked_modified)
-    ret = ret.difference(exc_files)
-    ret = ret.union(inc_files)
+    # TODO(sperezde): the following is a mega-hack, do it right.
+    from gitpylib import common
+    ret = ret.difference(common.real_case(exc_f) for exc_f in exc_files)
+    ret = ret.union(common.real_case(inc_f) for inc_f in inc_files)
 
   return ret
 

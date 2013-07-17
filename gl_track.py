@@ -32,7 +32,7 @@ def main():
   for fp in args.files:
     ret = lib.track_file(fp)
     if ret is lib.FILE_NOT_FOUND:
-      pprint.err('Can\'t track an non-existent file: %s' % fp)
+      pprint.err('Can\'t track a non-existent file: %s' % fp)
       errors_found = True
     elif ret is lib.FILE_ALREADY_TRACKED:
       pprint.err('File %s is already tracked' % fp)

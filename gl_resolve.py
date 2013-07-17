@@ -30,7 +30,7 @@ def main():
   for fp in args.files:
     ret = sync_lib.resolve(fp)
     if ret is sync_lib.FILE_NOT_FOUND:
-      pprint.err('Can\'t mark as resolved an non-existent file: %s' % fp)
+      pprint.err('Can\'t mark as resolved a non-existent file: %s' % fp)
       errors_found = True
     elif ret is sync_lib.FILE_NOT_IN_CONFLICT:
       pprint.err('File %s has no conflicts' % fp)

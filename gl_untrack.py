@@ -29,7 +29,7 @@ def main():
   for fp in args.files:
     ret = lib.untrack_file(fp)
     if ret is lib.FILE_NOT_FOUND:
-      pprint.err('Can\'t untrack an non-existent file: %s' % fp)
+      pprint.err('Can\'t untrack a non-existent file: %s' % fp)
     elif ret is lib.FILE_ALREADY_UNTRACKED:
       pprint.err('File %s is already untracked' % fp)
     elif ret is lib.FILE_IS_IGNORED:

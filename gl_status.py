@@ -27,9 +27,8 @@ def main():
       description="Show status of the repo")
   args = parser.parse_args()
 
-  pprint.msg('On branch %s' % branch_lib.current())
-  pprint.blank()
-  pprint.msg('On directory %s' % lib.gl_cwd())
+  pprint.msg(
+      'On branch %s, repo-directory %s' % (branch_lib.current(), lib.gl_cwd()))
 
   in_merge = sync_lib.merge_in_progress()
   in_rebase = sync_lib.rebase_in_progress()
