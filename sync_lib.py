@@ -34,6 +34,7 @@ REMOTE_NOT_FOUND = 14
 REMOTE_UNREACHABLE = 15
 REMOTE_BRANCH_NOT_FOUND = 16
 PUSH_FAIL = 17
+FILE_ALREADY_RESOLVED = 18
 
 
 def merge(src):
@@ -210,6 +211,9 @@ def resolve(fp):
 
   if s is not status.IN_CONFLICT:
     return FILE_NOT_IN_CONFLICT
+
+  if is_resolved_file(fp):
+    return FILE_ALREADY_RESOLVED
 
   # In Git, to mark a file as resolved we have to add it.
   file.stage(fp)

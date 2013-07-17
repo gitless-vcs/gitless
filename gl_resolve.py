@@ -35,6 +35,10 @@ def main():
     elif ret is sync_lib.FILE_NOT_IN_CONFLICT:
       pprint.err('File %s has no conflicts' % fp)
       errors_found = True
+    elif ret is sync_lib.FILE_ALREADY_RESOLVED:
+      pprint.err(
+          'Nothing to resolve. File %s was already marked as resolved' % fp)
+      errors_found = True
     elif ret is sync_lib.SUCCESS:
       pprint.msg('File %s has been marked as resolved' % fp)
     else:
