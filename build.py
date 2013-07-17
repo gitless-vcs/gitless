@@ -87,9 +87,9 @@ def _create_exec_file(cmd, dst, is_gl=False):
   f = open(path, 'a')
   f.write('#!/bin/bash\n')
   if is_gl:
-    f.write('python /usr/local/gitless/bin/gl.pyc "$@"')
+    f.write('python2.7 /usr/local/gitless/bin/gl.pyc "$@"')
   else:
-    f.write('python /usr/local/gitless/bin/gl_%s.pyc "$@"' % cmd)
+    f.write('python2.7 /usr/local/gitless/bin/gl_%s.pyc "$@"' % cmd)
   f.close()
   os.chmod(path, FILE_PERMISSIONS)
   print 'Done creating exec file for %s at %s' % (cmd, path)
