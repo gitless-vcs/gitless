@@ -21,7 +21,7 @@ import sync_lib
 
 def main():
   parser = argparse.ArgumentParser(
-      description='Mark a file with conflicts as resolved')
+      description='Mark one or more files with conflicts as resolved')
   parser.add_argument(
       'files', nargs='+', help='the file(s) in conflict to mark as resolved')
   args = parser.parse_args()
