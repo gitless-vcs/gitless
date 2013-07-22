@@ -79,10 +79,6 @@ def track_file(fp):
 def untrack_file(fp):
   """Stop tracking changes to fp.
 
-  Makes fp an untracked file; fp can be a file or a directory. If
-  it is a directory, all the contents of the directory will be recursively
-  untracked. If it is an empty directory, the directory will also be untracked.
-
   Args:
       fp: The file path of the file to untrack.
 
@@ -328,7 +324,6 @@ def is_deleted_file(fp):
   return _is_deleted_status(status.of_file(fp))
 
 
-# TODO(sperezde): does this still work if the file was moved?
 def checkout(fp, cp):
   """Checkouts file fp at cp.
 
