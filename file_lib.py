@@ -48,7 +48,7 @@ def track(fp):
     # TODO(sperezde): Implement this.
     # print 'Dir is empty!'
     return SUCCESS
- 
+
   # If we reached this point we know that the file to track is a untracked
   # file. This means that in the Git world, the file could be either:
   #   (i)  a new file for Git => add the file.
@@ -106,7 +106,8 @@ def untrack(fp):
   if s is git_status.STAGED:
     # Case (i).
     git_file.unstage(fp)
-  elif (s is git_status.TRACKED_UNMODIFIED) or (s is git_status.TRACKED_MODIFIED):
+  elif (s is git_status.TRACKED_UNMODIFIED or
+        s is git_status.TRACKED_MODIFIED):
     # Case (ii).
     git_file.assume_unchanged(fp)
   elif s is git_status.IN_CONFLICT:
@@ -203,7 +204,7 @@ def checkout(fp, cp):
 
 def rm(fp):
   """Removes the given file.
- 
+
   Args:
     fp: the file path of the file to remove.
 
@@ -222,7 +223,7 @@ def rm(fp):
 
   if s is git_status.STAGED:
     git_file.unstage(fp)
- 
+
   os.remove(fp)
   return SUCCESS
 

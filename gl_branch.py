@@ -133,7 +133,7 @@ def _do_set_upstream(upstream):
     pprint.err_exp('do gl remote show to list all available remotes')
     pprint.err_exp(
         'to add %s as a new remote do gl remote add %s remote_url' % (
-          upstream_remote, upstream_remote))
+            upstream_remote, upstream_remote))
     errors_found = True
   elif ret is branch_lib.SUCCESS:
     pprint.msg('Current branch %s set to track %s/%s' % (

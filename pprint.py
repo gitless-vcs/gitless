@@ -52,7 +52,7 @@ def err_item(i, opt_msg='', p=sys.stderr.write):
 
 def conf_dialog(msg):
   """Gets confirmation from the user.
-  
+
   Prints a confirmation message to stdout with the given msg and waits for
   user confirmation.
 

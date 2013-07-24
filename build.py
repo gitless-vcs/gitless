@@ -50,7 +50,7 @@ def main():
 
   for f in os.listdir(cwd):
     if f.endswith('.pyc'):
-      new_path = os.path.join(args.dst, f) 
+      new_path = os.path.join(args.dst, f)
       print 'moving file %s to %s' % (f, new_path)
       os.rename(f, new_path)
       _maybe_create_exec_file(f, args.dst)
@@ -63,7 +63,7 @@ def main():
 
   for f in os.listdir(gitpylib):
     if f.endswith('.pyc'):
-      new_path = os.path.join(gitpylib_dst, f) 
+      new_path = os.path.join(gitpylib_dst, f)
       src_path = os.path.join('gitpylib', f)
       print 'moving file %s to %s' % (src_path, new_path)
       os.rename(src_path, new_path)
