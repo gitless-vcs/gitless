@@ -5,7 +5,8 @@
 import sys
 import traceback
 
-import lib
+import repo_lib
+
 import pprint
 
 
@@ -20,7 +21,7 @@ GL_VERSION = 'kendall.0.1'
 
 def run(main, is_init=False):
   """Wrapper for the given main function that performs additional checks."""
-  if not is_init and not lib.gl_dir():
+  if not is_init and not repo_lib.gl_dir():
     pprint.err(
         'You are not in a Gitless repository. To make this directory a '
         'repository do gl init. For cloning existing repositories do gl init '

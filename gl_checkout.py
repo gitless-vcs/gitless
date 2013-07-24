@@ -15,8 +15,9 @@ import check_pyversion
 import argparse
 import os
 
+import file_lib
+
 import cmd
-import lib
 import pprint
 
 
@@ -48,11 +49,11 @@ def _checkout_file(fp, cp):
     True if the file was checkouted successfuly or False if some error was
     encountered.
   """
-  ret, out = lib.checkout(fp, cp)
-  if ret is lib.FILE_NOT_FOUND_AT_CP:
+  ret, out = file_lib.checkout(fp, cp)
+  if ret is file_lib.FILE_NOT_FOUND_AT_CP:
     pprint.err('There\'s no file %s at %s' % (fp, cp))
     return False
-  elif ret is lib.SUCCESS:
+  elif ret is file_lib.SUCCESS:
     # TODO(sperezde): show conf dialog here if the file exists.
     # dst = open(fp, 'w')
     # dst.write(out)

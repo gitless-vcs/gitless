@@ -5,7 +5,7 @@
 """Gitless's remote lib."""
 
 
-from gitpylib import remote
+from gitpylib import remote as git_remote
 
 
 SUCCESS = 1
@@ -29,34 +29,34 @@ def add(remote_name, remote_url):
   """
   if is_set(remote_name):
     return (REMOTE_ALREADY_SET, None)
-  remote.add(remote_name, remote_url)
+  git_remote.add(remote_name, remote_url)
   ret, out = info(remote_name)
   if ret is REMOTE_UNREACHABLE:
-    remote.rm(remote_name)
+    git_remote.rm(remote_name)
     return (REMOTE_UNREACHABLE, None)
   return (SUCCESS, out)
 
 
 def is_set(remote_name):
-  return remote_name in remote.list()
+  return remote_name in git_remote.list()
 
 
 def info(remote_name):
-  ret, info = remote.show(remote_name)
-  if ret is remote.REMOTE_NOT_FOUND:
+  ret, info = git_remote.show(remote_name)
+  if ret is git_remote.REMOTE_NOT_FOUND:
     return (REMOTE_NOT_FOUND, None)
-  elif ret is remote.REMOTE_UNREACHABLE:
+  elif ret is git_remote.REMOTE_UNREACHABLE:
     return (REMOTE_UNREACHABLE, None)
-  elif ret is remote.SUCCESS:
+  elif ret is git_remote.SUCCESS:
     return (SUCCESS, info)
 
 
 def list():
-  return remote.list()
+  return git_remote.list()
 
 
 def rm(remote_name):
   if not is_set(remote_name):
     return REMOTE_NOT_FOUND
-  remote.rm(remote_name)
+  git_remote.rm(remote_name)
   return SUCCESS

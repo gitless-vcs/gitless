@@ -14,10 +14,11 @@ import check_pyversion
 
 import argparse
 
-import cmd
 import branch_lib
-import pprint
 import sync_lib
+
+import cmd
+import pprint
 
 
 def main():

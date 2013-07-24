@@ -14,9 +14,10 @@ import check_pyversion
 
 import argparse
 
+import remote_lib
+
 import cmd
 import pprint
-import remote_lib
 
 
 def main():

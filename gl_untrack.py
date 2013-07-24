@@ -15,8 +15,9 @@ import check_pyversion
 
 import argparse
 
+import file_lib
+
 import cmd
-import lib
 import pprint
 
 
@@ -27,17 +28,17 @@ def main():
       'files', nargs='+', help='the file(s) to untrack')
   args = parser.parse_args()
   for fp in args.files:
-    ret = lib.untrack_file(fp)
-    if ret is lib.FILE_NOT_FOUND:
+    ret = file_lib.untrack(fp)
+    if ret is file_lib.FILE_NOT_FOUND:
       pprint.err('Can\'t untrack a non-existent file: %s' % fp)
-    elif ret is lib.FILE_ALREADY_UNTRACKED:
+    elif ret is file_lib.FILE_ALREADY_UNTRACKED:
       pprint.err('File %s is already untracked' % fp)
-    elif ret is lib.FILE_IS_IGNORED:
+    elif ret is file_lib.FILE_IS_IGNORED:
       pprint.err('File %s is ignored. Nothing to untrack' % fp)
       pprint.err_exp('edit the .gitignore file to stop ignoring file %s' % fp)
-    elif ret is lib.SUCCESS:
+    elif ret is file_lib.SUCCESS:
       pprint.msg('File %s is now an untracked file' % fp)
-    elif ret is lib.FILE_IN_CONFLICT:
+    elif ret is file_lib.FILE_IN_CONFLICT:
       pprint.err('Can\'t untrack a file in conflict')
     else:
       raise Exception('Unexpected return code')

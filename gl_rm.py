@@ -14,8 +14,9 @@ import check_pyversion
 
 import argparse
 
+import file_lib
+
 import cmd
-import lib
 import pprint
 
 
@@ -28,14 +29,14 @@ def main():
   errors_found = False
 
   for fp in args.files:
-    ret = lib.rm(fp)
-    if ret is lib.FILE_NOT_FOUND:
+    ret = file_lib.rm(fp)
+    if ret is file_lib.FILE_NOT_FOUND:
       pprint.err('Can\'t remove a non-existent file: %s' % fp)
       errors_found = True
-    elif ret is lib.FILE_IS_UNTRACKED:
+    elif ret is file_lib.FILE_IS_UNTRACKED:
       pprint.err('File %s is an untracked file' % fp)
       errors_found = True
-    elif ret is lib.SUCCESS:
+    elif ret is file_lib.SUCCESS:
       pprint.msg('File %s has been removed' % fp)
     else:
       raise Exception('Unexpected return code')

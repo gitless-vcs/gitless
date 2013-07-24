@@ -19,8 +19,9 @@ import os
 import subprocess
 import tempfile
 
+import file_lib
+
 import cmd
-import lib
 import pprint
 
 
@@ -33,18 +34,18 @@ def main():
   errors_found = False
 
   for fp in args.files:
-    ret, out = lib.diff(fp)
+    ret, out = file_lib.diff(fp)
 
-    if ret is lib.FILE_NOT_FOUND:
+    if ret is file_lib.FILE_NOT_FOUND:
       pprint.err('Can\'t diff a non-existent file: %s' % fp)
       errors_found = True
-    elif ret is lib.FILE_IS_UNTRACKED:
+    elif ret is file_lib.FILE_IS_UNTRACKED:
       pprint.err(
           'You tried to diff untracked file %s. It\'s probably a mistake. If '
           'you really care about changes in this file you should start '
           'tracking changes to it with gl track %s' % (fp, fp))
       errors_found = True
-    elif ret is lib.SUCCESS:
+    elif ret is file_lib.SUCCESS:
       tf = tempfile.NamedTemporaryFile(delete=False)
       pprint.msg(
           'Diff of file %s with its last committed version' % fp, p=tf.write)

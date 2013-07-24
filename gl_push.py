@@ -14,9 +14,10 @@ import check_pyversion
 
 import argparse
 
+import sync_lib
+
 import cmd
 import pprint
-import sync_lib
 
 
 def main():

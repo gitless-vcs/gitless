@@ -16,9 +16,10 @@ import argparse
 import sys
 
 import branch_lib
+import sync_lib
+
 import cmd
 import pprint
-import sync_lib
 
 
 def main():

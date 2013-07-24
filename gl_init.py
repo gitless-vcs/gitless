@@ -14,8 +14,9 @@ import check_pyversion
 
 import argparse
 
+import repo_lib
+
 import cmd
-import lib
 import pprint
 
 
@@ -30,19 +31,19 @@ def main():
   errors_found = False
 
   if args.repo:
-    ret = lib.init_from_repo(args.repo)
+    ret = repo_lib.init_from(args.repo)
   else:
-    ret = lib.init_dir()
+    ret = repo_lib.init_dir()
 
-  if ret is lib.REPO_UNREACHABLE:
-    pprint.err('Couldn\'t reach repository %s' % args.repo)
-    pprint.err_exp('make sure you are connected to the internet')
-    pprint.err_exp('make sure you have the necessary permissions')
-    return cmd.ERRORS_FOUND
-  elif ret is lib.NOTHING_TO_INIT:
+  #if ret is repo_lib.REPO_UNREACHABLE:
+  #  pprint.err('Couldn\'t reach repository %s' % args.repo)
+  #  pprint.err_exp('make sure you are connected to the internet')
+  #  pprint.err_exp('make sure you have the necessary permissions')
+  #  return cmd.ERRORS_FOUND
+  if ret is repo_lib.NOTHING_TO_INIT:
     pprint.err('Nothing to init, this directory is already a Gitless\'s repo')
     return cmd.ERRORS_FOUND
-  elif ret is lib.SUCCESS:
+  elif ret is repo_lib.SUCCESS:
     pprint.msg('Gitless\'s local repository created successfully')
     return cmd.SUCCESS
   else:

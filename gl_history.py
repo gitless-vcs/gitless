@@ -14,8 +14,9 @@ import check_pyversion
 
 import argparse
 
+import history_lib
+
 import cmd
-import lib
 
 
 def main():
@@ -26,10 +27,7 @@ def main():
       action='store_true')
   args = parser.parse_args()
 
-  if args.verbose:
-    lib.show_history_verbose()
-  else:
-    lib.show_history()
+  history_lib.show(verbose=args.verbose)
   return cmd.SUCCESS
 
 

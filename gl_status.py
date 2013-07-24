@@ -16,10 +16,11 @@ import argparse
 import os
 
 import branch_lib
-import cmd
-import lib
-import pprint
+import repo_lib
 import sync_lib
+
+import cmd
+import pprint
 
 
 def main():
@@ -28,7 +29,8 @@ def main():
   args = parser.parse_args()
 
   pprint.msg(
-      'On branch %s, repo-directory %s' % (branch_lib.current(), lib.gl_cwd()))
+      'On branch %s, repo-directory %s' % (
+          branch_lib.current(), repo_lib.cwd()))
 
   in_merge = sync_lib.merge_in_progress()
   in_rebase = sync_lib.rebase_in_progress()
@@ -48,7 +50,7 @@ def main():
       'if file f was committed before, use gl checkout HEAD <f> to discard '
       'local changes')
   pprint.blank()
-  tracked_mod_list, untracked_list = lib.repo_status()
+  tracked_mod_list, untracked_list = repo_lib.status()
   if not tracked_mod_list:
     pprint.item(' There are no tracked files with modifications to list')
   else:

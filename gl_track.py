@@ -16,8 +16,9 @@ import check_pyversion
 
 import argparse
 
+import file_lib
+
 import cmd
-import lib
 import pprint
 
 
@@ -30,17 +31,17 @@ def main():
   errors_found = False
 
   for fp in args.files:
-    ret = lib.track_file(fp)
-    if ret is lib.FILE_NOT_FOUND:
+    ret = file_lib.track(fp)
+    if ret is file_lib.FILE_NOT_FOUND:
       pprint.err('Can\'t track a non-existent file: %s' % fp)
       errors_found = True
-    elif ret is lib.FILE_ALREADY_TRACKED:
+    elif ret is file_lib.FILE_ALREADY_TRACKED:
       pprint.err('File %s is already tracked' % fp)
       errors_found = True
-    elif ret is lib.FILE_IS_IGNORED:
+    elif ret is file_lib.FILE_IS_IGNORED:
       pprint.err('File %s is ignored' % fp)
       pprint.err_exp('edit the .gitignore file to stop ignoring file %s' % fp)
-    elif ret is lib.SUCCESS:
+    elif ret is file_lib.SUCCESS:
       pprint.msg('File %s is now a tracked file' % fp)
     else:
       raise Exception('Unexpected return code')

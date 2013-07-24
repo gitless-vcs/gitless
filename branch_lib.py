@@ -8,11 +8,12 @@
 import os
 import re
 
-from gitpylib import branch
-from gitpylib import stash
+from gitpylib import branch as git_branch
+from gitpylib import stash as git_stash
+
 import sync_lib
 import remote_lib
-import lib
+import repo_lib
 
 
 SUCCESS = 1
@@ -36,10 +37,10 @@ def create(name):
     # Also, they can't have a '_' so that it doesn't conflict with our way of
     # naming internal files.
     return INVALID_NAME
-  ret = branch.create(name)
-  if ret is branch.INVALID_NAME:
+  ret = git_branch.create(name)
+  if ret is git_branch.INVALID_NAME:
     return INVALID_NAME
-  elif ret is branch.SUCCESS:
+  elif ret is git_branch.SUCCESS:
     return SUCCESS
   else:
     raise Exception('Unrecognized ret code %s' % ret)
@@ -51,9 +52,9 @@ def delete(name):
   Args:
     name: the name of the branch to delete.
   """
-  branch.force_delete(name)
+  git_branch.force_delete(name)
   # We also cleanup any stash left.
-  stash.drop(_stash_msg(name))
+  git_stash.drop(_stash_msg(name))
 
 
 def set_upstream(upstream_remote, upstream_branch):
@@ -73,11 +74,11 @@ def set_upstream(upstream_remote, upstream_branch):
   ub = '/'.join([upstream_remote, upstream_branch])
 
   current_b = current()
-  ret = branch.set_upstream(current_b, ub)
+  ret = git_branch.set_upstream(current_b, ub)
   uf = _upstream_file(current_b, upstream_remote, upstream_branch)
   if os.path.exists(uf):
     os.remove(uf)
-  if ret is branch.UNFETCHED_OBJECT:
+  if ret is git_branch.UNFETCHED_OBJECT:
     # We work around this, it could be the case that the user is trying to push
     # a new branch to the remote or it could be that the branch exists but it
     # hasn't been fetched yet.
@@ -101,9 +102,9 @@ def switch(name):
   Args:
     name: the name of the destination branch.
   """
-  stash.all(_stash_msg(current()))
-  branch.checkout(name)
-  stash.pop(_stash_msg(name))
+  git_stash.all(_stash_msg(current()))
+  git_branch.checkout(name)
+  git_stash.pop(_stash_msg(name))
 
 
 def status(name):
@@ -117,7 +118,7 @@ def status(name):
     values and tracks is a string representing the remote branch it tracks (in
     the format 'remote_name/remote_branch') or None if it is a local branch.
   """
-  return branch.status(name)
+  return git_branch.status(name)
 
 
 def current():
@@ -126,7 +127,7 @@ def current():
     # While in a rebase, Git actually moves to a "no-branch" status.
     # In Gitless, the user is in the branch being re-based.
     return sync_lib.rebase_info()[0]
-  return branch.current()
+  return git_branch.current()
 
 
 def status_all():
@@ -141,7 +142,7 @@ def status_all():
     current = sync_lib.rebase_info()[0]
 
   ret = []
-  for name, is_current, tracks in branch.status_all():
+  for name, is_current, tracks in git_branch.status_all():
     if name == '(no branch)':
       continue
 
@@ -181,7 +182,7 @@ def upstream(branch):
   exists, is_current, tracks = status(branch)
   if tracks:
     return tracks.split('/')
-  for f in os.listdir(lib.gl_dir()):
+  for f in os.listdir(repo_lib.gl_dir()):
     result = re.match('GL_UPSTREAM_%s_(\w+)_(\w+)' % branch, f)
     if result:
       return (result.group(1), result.group(2))
@@ -199,4 +200,4 @@ def _stash_msg(name):
 def _upstream_file(branch, upstream_remote, upstream_branch):
   upstream_fn = 'GL_UPSTREAM_%s_%s_%s' % (
       branch, upstream_remote, upstream_branch)
-  return os.path.join(lib.gl_dir(), upstream_fn)
+  return os.path.join(repo_lib.gl_dir(), upstream_fn)

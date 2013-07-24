@@ -15,11 +15,13 @@ import check_pyversion
 import argparse
 import os
 
+import file_lib
+import repo_lib
+import sync_lib
+
 import commit_dialog
 import cmd
-import lib
 import pprint
-import sync_lib
 
 
 def main():
@@ -77,11 +79,11 @@ def main():
       return cmd.ERRORS_FOUND
 
   _auto_track(commit_files)
-  ret, out = lib.commit(commit_files, msg)
-  if ret is lib.SUCCESS:
+  ret, out = sync_lib.commit(commit_files, msg)
+  if ret is sync_lib.SUCCESS:
     if out:
       pprint.msg(out)
-  elif ret is lib.UNRESOLVED_CONFLICTS:
+  elif ret is sync_lib.UNRESOLVED_CONFLICTS:
     pprint.err('Commit aborted')
     pprint.err('You have unresolved conflicts:')
     pprint.err_exp(
@@ -90,7 +92,7 @@ def main():
     for f in out:
       pprint.err_item(f)
     return cmd.ERRORS_FOUND
-  elif ret is lib.RESOLVED_FILES_NOT_IN_COMMIT:
+  elif ret is sync_lib.RESOLVED_FILES_NOT_IN_COMMIT:
     pprint.err('Commit aborted')
     pprint.err('You have resolved files that were not included in the commit:')
     pprint.err_exp('these must be part of the commit')
@@ -127,25 +129,25 @@ def _valid_input(only_files, exc_files, inc_files):
   ret = True
   err = []
   for fp in only_files:
-    if not os.path.exists(fp) and not lib.is_deleted_file(fp):
+    if not os.path.exists(fp) and not file_lib.is_deleted_file(fp):
       err.append('File %s doesn\'t exist' % fp)
       ret = False
-    elif lib.is_tracked_file(fp) and not lib.is_tracked_modified(fp):
+    elif file_lib.is_tracked_file(fp) and not file_lib.is_tracked_modified(fp):
       err.append(
           'File %s is a tracked file but has no modifications' % fp)
       ret = False
 
   for fp in exc_files:
     # We check that the files to be excluded are existing tracked files.
-    if not os.path.exists(fp) and not lib.is_deleted_file(fp):
+    if not os.path.exists(fp) and not file_lib.is_deleted_file(fp):
       err.append('File %s doesn\'t exist' % fp)
       ret = False
-    elif not lib.is_tracked_file(fp):
+    elif not file_lib.is_tracked_file(fp):
       err.append(
           'File %s, listed to be excluded from commit, is not a tracked file' %
           fp)
       ret = False
-    elif not lib.is_tracked_modified(fp):
+    elif not file_lib.is_tracked_modified(fp):
       err.append(
           'File %s, listed to be excluded from commit, is a tracked file but '
           'has no modifications' % fp)
@@ -156,10 +158,10 @@ def _valid_input(only_files, exc_files, inc_files):
 
   for fp in inc_files:
     # We check that the files to be included are existing untracked files.
-    if not os.path.exists(fp) and not lib.is_deleted_file(fp):
+    if not os.path.exists(fp) and not file_lib.is_deleted_file(fp):
       err.append('File %s doesn\'t exist' % fp)
       ret = False
-    elif lib.is_tracked_file(fp):
+    elif file_lib.is_tracked_file(fp):
       err.append(
           'File %s, listed to be included in the commit, is not a untracked '
           'file' % fp)
@@ -188,7 +190,7 @@ def _compute_fs(only_files, exc_files, inc_files):
   if only_files:
     ret = only_files
   else:
-    tracked_modified, unused_untracked = lib.repo_status()
+    tracked_modified, unused_untracked = repo_lib.status()
     # TODO(sperezde): push the use of frozenset to the library.
     ret = frozenset(tm[0] for tm in tracked_modified)
     # TODO(sperezde): the following is a mega-hack, do it right.
@@ -202,8 +204,8 @@ def _compute_fs(only_files, exc_files, inc_files):
 def _auto_track(files):
   """Tracks those untracked files in the list."""
   for f in files:
-    if not lib.is_tracked_file(f):
-      lib.track_file(f)
+    if not file_lib.is_tracked_file(f):
+      file_lib.track(f)
 
 
 if __name__ == '__main__':

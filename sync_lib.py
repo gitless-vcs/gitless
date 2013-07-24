@@ -8,13 +8,14 @@
 import os
 import re
 
-from gitpylib import file
-from gitpylib import status
-from gitpylib import sync
-from gitpylib import remote
+from gitpylib import file as git_file
+from gitpylib import status as git_status
+from gitpylib import sync as git_sync
+from gitpylib import remote as git_remote
+
 import branch_lib
 import remote_lib
-import lib
+import repo_lib
 
 
 SUCCESS = 1
@@ -35,6 +36,8 @@ REMOTE_UNREACHABLE = 15
 REMOTE_BRANCH_NOT_FOUND = 16
 PUSH_FAIL = 17
 FILE_ALREADY_RESOLVED = 18
+UNRESOLVED_CONFLICTS = 19
+RESOLVED_FILES_NOT_IN_COMMIT = 20
 
 
 def merge(src):
@@ -52,29 +55,29 @@ def merge(src):
 
   if is_remote_b:
     remote, remote_b = _parse_from_remote_branch(src)
-    ret, out = sync.pull_merge(remote, remote_b)
+    ret, out = git_sync.pull_merge(remote, remote_b)
   else:
-    ret, out = sync.merge(src)
+    ret, out = git_sync.merge(src)
 
-  if ret is sync.SUCCESS:
+  if ret is git_sync.SUCCESS:
     return (SUCCESS, out)
-  elif ret is sync.CONFLICT:
+  elif ret is git_sync.CONFLICT:
     return (CONFLICT, out)
-  elif ret is sync.LOCAL_CHANGES_WOULD_BE_LOST:
+  elif ret is git_sync.LOCAL_CHANGES_WOULD_BE_LOST:
     return (LOCAL_CHANGES_WOULD_BE_LOST, out)
-  elif ret is sync.NOTHING_TO_MERGE:
+  elif ret is git_sync.NOTHING_TO_MERGE:
     return (NOTHING_TO_MERGE, out)
   raise Exception("Unexpected ret code %s" % ret)
 
 
 def merge_in_progress():
-  return sync.merge_in_progress()
+  return git_sync.merge_in_progress()
 
 
 def abort_merge():
   if not merge_in_progress():
     return MERGE_NOT_IN_PROGRESS
-  sync.abort_merge()
+  git_sync.abort_merge()
   internal_resolved_cleanup()
   return SUCCESS
 
@@ -90,24 +93,24 @@ def rebase(new_base):
   current = branch_lib.current()
   if is_remote_b:
     remote, remote_b = _parse_from_remote_branch(new_base)
-    ret, out = sync.pull_rebase(remote, remote_b)
+    ret, out = git_sync.pull_rebase(remote, remote_b)
   else:
-    ret, out = sync.rebase(new_base)
-  if ret is sync.SUCCESS:
+    ret, out = git_sync.rebase(new_base)
+  if ret is git_sync.SUCCESS:
     return (SUCCESS, out)
-  elif ret is sync.LOCAL_CHANGES_WOULD_BE_LOST:
+  elif ret is git_sync.LOCAL_CHANGES_WOULD_BE_LOST:
     return (LOCAL_CHANGES_WOULD_BE_LOST, out)
-  elif ret is sync.CONFLICT:
+  elif ret is git_sync.CONFLICT:
     # We write a file to note the current branch being rebased and the new base.
     _write_rebase_file(current, new_base)
     return (CONFLICT, out)
-  elif ret is sync.NOTHING_TO_REBASE:
+  elif ret is git_sync.NOTHING_TO_REBASE:
     return (NOTHING_TO_REBASE, out)
   raise Exception("Unexpected ret code %s" % ret)
 
 
 def rebase_in_progress():
-  return os.path.exists(os.path.join(lib.gl_dir(), 'GL_REBASE'))
+  return os.path.exists(os.path.join(repo_lib.gl_dir(), 'GL_REBASE'))
 
 
 def rebase_info():
@@ -121,7 +124,7 @@ def rebase_info():
 def abort_rebase():
   if not rebase_in_progress():
     return REBASE_NOT_IN_PROGRESS
-  sync.abort_rebase()
+  git_sync.abort_rebase()
   conclude_rebase()
   return SUCCESS
 
@@ -129,11 +132,11 @@ def abort_rebase():
 def skip_rebase_commit():
   if not rebase_in_progress():
     return REBASE_NOT_IN_PROGRESS
-  s = sync.skip_rebase_commit()
-  if s[0] is sync.SUCCESS:
+  s = git_sync.skip_rebase_commit()
+  if s[0] is git_sync.SUCCESS:
     conclude_rebase()
     return (SUCCESS, s[1])
-  elif s[0] is sync.CONFLICT:
+  elif s[0] is git_sync.CONFLICT:
     return (SUCCESS, s[1])
   else:
     raise Exception('Unrecognized ret code %s' % s[0])
@@ -152,7 +155,7 @@ def _write_rebase_file(current, new_base):
 
 
 def _rebase_file():
-  return os.path.join(lib.gl_dir(), 'GL_REBASE')
+  return os.path.join(repo_lib.gl_dir(), 'GL_REBASE')
 
 
 def _valid_branch(b):
@@ -170,9 +173,9 @@ def _valid_remote_branch(b):
     return (False, REMOTE_NOT_FOUND)
 
   # We know the remote exists, let's see if the branch exists.
-  exists, err = remote.head_exist(remote_n, remote_b)
+  exists, err = git_remote.head_exist(remote_n, remote_b)
   if not exists:
-    if err is remote.REMOTE_UNREACHABLE:
+    if err is git_remote.REMOTE_UNREACHABLE:
       ret_err = REMOTE_UNREACHABLE
     else:
       ret_err = REMOTE_BRANCH_NOT_FOUND
@@ -205,18 +208,18 @@ def resolve(fp):
     - FILE_NOT_IN_CONFLICT
     - SUCCESS
   """
-  s = status.of_file(fp)
-  if not os.path.exists(fp) and not (s is status.IN_CONFLICT):
+  s = git_status.of_file(fp)
+  if not os.path.exists(fp) and not (s is git_status.IN_CONFLICT):
     return FILE_NOT_FOUND
 
-  if s is not status.IN_CONFLICT:
+  if s is not git_status.IN_CONFLICT:
     return FILE_NOT_IN_CONFLICT
 
   if is_resolved_file(fp):
     return FILE_ALREADY_RESOLVED
 
   # In Git, to mark a file as resolved we have to add it.
-  file.stage(fp)
+  git_file.stage(fp)
   # We add a file in the Gitless directory to be able to tell when a file has
   # been marked as resolved.
   # TODO(sperezde): might be easier to just find a way to tell if the file is
@@ -226,16 +229,16 @@ def resolve(fp):
 
 
 def internal_resolved_cleanup():
-  for f in os.listdir(lib.gl_dir()):
+  for f in os.listdir(repo_lib.gl_dir()):
     if f.startswith('GL_RESOLVED'):
-      os.remove(os.path.join(lib.gl_dir(), f))
+      os.remove(os.path.join(repo_lib.gl_dir(), f))
       #print 'removed %s' % f
 
 
 def resolved_files():
   ret = []
   if merge_in_progress() or rebase_in_progress():
-    for f in os.listdir(lib.gl_dir()):
+    for f in os.listdir(repo_lib.gl_dir()):
       match = re.match('GL_RESOLVED_\w+_(\w+)', f)
       if match:
         ret.append(match.group(1))
@@ -251,14 +254,14 @@ def push():
   remote, remote_b = branch_lib.upstream(current_b)
   if remote is None:
     return (UPSTREAM_NOT_SET, None)
-  ret, out = sync.push(current_b, remote, remote_b)
-  if ret is sync.SUCCESS:
+  ret, out = git_sync.push(current_b, remote, remote_b)
+  if ret is git_sync.SUCCESS:
     if branch_lib.has_unpushed_upstream(current_b, remote, remote_b):
       branch_lib.set_upstream(remote, remote_b)
     return (SUCCESS, out)
-  elif ret is sync.NOTHING_TO_PUSH:
+  elif ret is git_sync.NOTHING_TO_PUSH:
     return (NOTHING_TO_PUSH, None)
-  elif ret is sync.PUSH_FAIL:
+  elif ret is git_sync.PUSH_FAIL:
     return (PUSH_FAIL, None)
   else:
     raise Exception('Unrecognized ret code %s' % ret)
@@ -266,4 +269,68 @@ def push():
 
 def _resolved_file(fp):
   return os.path.join(
-      lib.gl_dir(), 'GL_RESOLVED_%s_%s' % (branch_lib.current(), fp))
+      repo_lib.gl_dir(), 'GL_RESOLVED_%s_%s' % (branch_lib.current(), fp))
+
+
+def commit(files, msg):
+  """Record changes in the local repository.
+
+  Args:
+    files: the files to commit.
+    msg: the commit message.
+
+  Returns:
+    a pair (status, out) where status can be:
+    - UNRESOLVED_CONFLICTS -> out is the list of unresolved files.
+    - SUCCESS -> out is the output of the commit command.
+  """
+  in_rebase = rebase_in_progress()
+  in_merge = merge_in_progress()
+  if in_rebase or in_merge:
+    # If we are doing a merge then we can't do a partial commit (Git won't let
+    # us do it). We can do commit -i which will stage all the files but we need
+    # to watch out for not commiting new Gitless's tracked files that are not in
+    # the list.
+    # To do this, we temporarily unstage these files and then re-stage them
+    # after the commit.
+    # TODO(sperezde): actually implement what the comment above says ;)
+    # TODO(sperezde): also need to do something with deletions?
+    unresolved = []
+    for fp, exists_in_lr, exists_in_wd, in_conflict in repo_lib.status()[0]:
+      if in_conflict:
+        unresolved.append(fp)
+
+    if unresolved:
+      return (UNRESOLVED_CONFLICTS, unresolved)
+    # We know that there are no pending conflicts to be resolved.
+    # Let's check that all resolved files are in the commit.
+    resolved_not_in_ci = []
+    for resolved_f in resolved_files():
+      if resolved_f not in files:
+        resolved_not_in_ci.append(resolved_f)
+    if resolved_not_in_ci:
+      return (RESOLVED_FILES_NOT_IN_COMMIT, resolved_not_in_ci)
+
+    # print 'commiting files %s' % files
+    out = None
+    if in_rebase:
+      # TODO(sperezde): save the message to use it later.
+      for f in files:
+        git_file.stage(f)
+      internal_resolved_cleanup()
+      s = git_sync.rebase_continue()
+      if s[0] is SUCCESS:
+        conclude_rebase()
+        return (SUCCESS, s[1])
+      elif s[0] is CONFLICT:
+        return (SUCCESS, s[1])
+      else:
+        raise Exception('Unrecognized ret code %s' % s[0])
+
+    # It's a merge.
+    out = git_sync.commit_include(files, msg)
+    internal_resolved_cleanup()
+    return (SUCCESS, out)
+
+  # It's a regular commit.
+  return (SUCCESS, git_sync.commit(files, msg))

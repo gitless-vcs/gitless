@@ -8,9 +8,10 @@
 import os
 import subprocess
 
-import lib
-import pprint
+import repo_lib
 import sync_lib
+
+import pprint
 
 
 _COMMIT_FILE = '.GL_COMMIT_EDIT_MSG'
@@ -121,7 +122,7 @@ def _show_rebase(files):
 
 
 def _launch_editor():
-  editor = lib.editor()
+  editor = repo_lib.editor()
   if subprocess.call('%s %s' % (editor, _commit_file()), shell=True) != 0:
     raise Exception('Call to editor %s failed' % editor)
 
@@ -157,8 +158,8 @@ def _extract_info():
 
 
 def _commit_file():
-  return os.path.join(lib.gl_dir(), _COMMIT_FILE)
+  return os.path.join(repo_lib.gl_dir(), _COMMIT_FILE)
 
 
 def _merge_msg_file():
-  return os.path.join(lib.gl_dir(), _MERGE_MSG_FILE)
+  return os.path.join(repo_lib.gl_dir(), _MERGE_MSG_FILE)
