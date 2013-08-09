@@ -9,6 +9,10 @@
 Implements the gl-rm command, part of the Gitless suite.
 """
 
+# TODO(sperezde): This command is not required in Gitless, is just a stopgap
+# until the other commands are fixed to deal with files that have been removed
+# via Unix's rm command.
+
 
 import check_pyversion
 
