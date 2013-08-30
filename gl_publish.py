@@ -14,7 +14,7 @@ import pprint
 def parser(subparsers):
   """Adds the publish parser to the given subparsers object."""
   push_parser = subparsers.add_parser(
-      'push', help='publish commits upstream')
+      'publish', help='publish commits upstream')
   push_parser.set_defaults(func=main)
 
 
