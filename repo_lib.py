@@ -9,6 +9,7 @@ import os
 
 from gitpylib import common as git_common
 from gitpylib import config as git_config
+from gitpylib import file as git_file
 from gitpylib import status as git_status
 from gitpylib import repo as git_repo
 
@@ -42,7 +43,7 @@ def status():
       A pair (tracked_mod_list, untracked_list) where
       - tracked_mod_list: contains a tuple (fp, exists_in_lr, exists_in_wd,
         in_conflict)
-      - untracked_list: contains a pair (fp, exists_in_lr).
+      - untracked_list: contains a pair (fp, exists_in_lr, exists_in_wd).
   """
   # TODO(sperezde): Will probably need to implement this smarter in the future.
   # TODO(sperezde): using frozenset should improve performance.
@@ -58,15 +59,13 @@ def status():
     elif s is git_status.STAGED:
       tracked_mod_list.append((fp, False, True, False))
     elif s is git_status.ASSUME_UNCHANGED:
-      untracked_list.append((fp, True))
+      untracked_list.append((fp, True, True))
     elif s is git_status.DELETED:
       tracked_mod_list.append((fp, True, False, False))
     elif s is git_status.DELETED_STAGED:
-      # The user broke the gl interface layer by using /usr/bin/rm directly.
-      raise Exception('Got a DELETED_STAGED status for %s' % fp)
+      git_file.unstage(fp)
     elif s is git_status.DELETED_ASSUME_UNCHANGED:
-      # The user broke the gl interface layer by using /usr/bin/rm directly.
-      raise Exception('Got a DELETED_ASSUME_UNCHANGED status for %s' % fp)
+      untracked_list.append((fp, True, False))
     elif s is git_status.IN_CONFLICT:
       tracked_mod_list.append((fp, True, True, True))
     elif s is git_status.IGNORED or s is git_status.IGNORED_STAGED:
@@ -81,7 +80,7 @@ def status():
       # happen if the user gl tracks a file and then modifies it.
       tracked_mod_list.append((fp, False, True, False))
     else:
-      untracked_list.append((fp, False))
+      untracked_list.append((fp, False, True))
 
   return (tracked_mod_list, untracked_list)
 

@@ -70,8 +70,14 @@ def main(args):
   if not untracked_list:
     pprint.item('There are no untracked files to list')
   else:
-    for fp, exists_in_lr in untracked_list:
-      pprint.item(fp, opt_msg=' (exists in local repo)' if exists_in_lr else '')
+    for fp, exists_in_lr, exists_in_wd in untracked_list:
+      s = ''
+      if exists_in_lr:
+        if exists_in_wd:
+          s = ' (exists in local repo)'
+        else:
+          s = ' (exists in local repo but not in working directory)'
+      pprint.item(fp, opt_msg=s)
 
 
 def _print_merge_exp():

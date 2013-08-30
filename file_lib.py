@@ -33,21 +33,13 @@ def track(fp):
       - FILE_IS_IGNORED: the given file is an ignored file;
       - SUCCESS: the operation finished sucessfully.
   """
-  if not os.path.exists(fp):
-    return FILE_NOT_FOUND
-
   s = git_status.of_file(fp)
-  if _is_tracked_status(s):
+  if s is git_status.FILE_NOT_FOUND:
+    return FILE_NOT_FOUND
+  elif _is_tracked_status(s):
     return FILE_ALREADY_TRACKED
-  if _is_ignored_status(s):
+  elif _is_ignored_status(s):
     return FILE_IS_IGNORED
-
-  if os.path.isdir(fp) and not os.listdir(fp):
-    # fp is a directory and is empty; we need to do some magic for Git to
-    # track it.
-    # TODO(sperezde): Implement this.
-    # print 'Dir is empty!'
-    return SUCCESS
 
   # If we reached this point we know that the file to track is a untracked
   # file. This means that in the Git world, the file could be either:
@@ -57,7 +49,8 @@ def track(fp):
   if s is git_status.UNTRACKED:
     # Case (i).
     git_file.stage(fp)
-  elif s is git_status.ASSUME_UNCHANGED:
+  elif (s is git_status.ASSUME_UNCHANGED or
+        s is git_status.DELETED_ASSUME_UNCHANGED):
     # Case (ii).
     git_file.not_assume_unchanged(fp)
   else:
@@ -79,22 +72,13 @@ def untrack(fp):
       - FILE_IN_CONFLICT: the file is in conflict;
       - FILE_IS_IGNORED: the file is ignored.
   """
-  if not os.path.exists(fp):
-    return FILE_NOT_FOUND
-
   s = git_status.of_file(fp)
-  if _is_ignored_status(s):
+  if s is git_status.FILE_NOT_FOUND:
+    return FILE_NOT_FOUND
+  elif _is_ignored_status(s):
     return FILE_IS_IGNORED
-
-  if not _is_tracked_status(s):
+  elif not _is_tracked_status(s):
     return FILE_ALREADY_UNTRACKED
-
-  if os.path.isdir(fp) and not os.listdir(fp):
-    # fp is a directory and is empty; we need to do some magic for Git to
-    # untrack it.
-    # TODO(sperezde): Implement this.
-    # print 'Dir is empty!'
-    return SUCCESS
 
   # If we reached this point we know that the file to untrack is a tracked
   # file. This means that in the Git world, the file could be either:
@@ -102,12 +86,12 @@ def untrack(fp):
   #        uncomitted file) => reset changes;
   #   (ii) the file is a previously committed file => mark it as assumed
   #        unchanged.
-  s = git_status.of_file(fp)
   if s is git_status.STAGED:
     # Case (i).
     git_file.unstage(fp)
   elif (s is git_status.TRACKED_UNMODIFIED or
-        s is git_status.TRACKED_MODIFIED):
+        s is git_status.TRACKED_MODIFIED or
+        s is git_status.DELETED):
     # Case (ii).
     git_file.assume_unchanged(fp)
   elif s is git_status.IN_CONFLICT:
@@ -200,32 +184,6 @@ def checkout(fp, cp):
     git_file.stage(fp)
 
   return (SUCCESS, out)
-
-
-def rm(fp):
-  """Removes the given file.
-
-  Args:
-    fp: the file path of the file to remove.
-
-  Returns:
-    - FILE_NOT_FOUND: the given file was not found;
-    - FILE_IS_UNTRACKED: the given file is an untracked file;
-    - SUCCESS: the operation finished sucessfully.
-  """
-  if not os.path.exists(fp):
-    return FILE_NOT_FOUND
-
-  if not is_tracked_file(fp):
-    return FILE_IS_UNTRACKED
-
-  s = git_status.of_file(fp)
-
-  if s is git_status.STAGED:
-    git_file.unstage(fp)
-
-  os.remove(fp)
-  return SUCCESS
 
 
 # Private methods.
