@@ -38,7 +38,7 @@ your shell. You only need to execute this script once.
 
 ### General structure of the code
 
-Code is architectured as follows: there are three distinct 'layers'. Starting
+There are three distinct 'layers'; starting
 from the bottom and going up:
 
 * *gitpylib*. This is a Python library for Git. Has methods for the most 
