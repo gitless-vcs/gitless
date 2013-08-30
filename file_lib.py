@@ -117,23 +117,26 @@ def diff(fp):
   """
   # TODO(sperezde): process the output of the diff command and return it in a
   # friendlier way.
-  if not os.path.exists(fp):
-    return (FILE_NOT_FOUND, '')
 
   s = git_status.of_file(fp)
-  if not _is_tracked_status(s):
+  if s is git_status.FILE_NOT_FOUND:
+    return (FILE_NOT_FOUND, '')
+  elif not _is_tracked_status(s):
     return (FILE_IS_UNTRACKED, '')
 
   out = ''
   if s is git_status.STAGED:
-    diff_out = git_file.staged_diff(fp)[1]
+    diff_out = git_file.staged_diff(fp)
     out = "\n".join(diff_out.splitlines()[5:])
   elif s is git_status.ADDED_MODIFIED or s is git_status.MODIFIED_MODIFIED:
     git_file.stage(fp)
-    diff_out = git_file.staged_diff(fp)[1]
+    diff_out = git_file.staged_diff(fp)
+    out = "\n".join(diff_out.splitlines()[5:])
+  elif s is git_status.DELETED:
+    diff_out = git_file.diff(fp)
     out = "\n".join(diff_out.splitlines()[5:])
   else:
-    diff_out = git_file.diff(fp)[1]
+    diff_out = git_file.diff(fp)
     out = "\n".join(diff_out.splitlines()[4:])
 
   return (SUCCESS, out)
