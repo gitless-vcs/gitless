@@ -10,6 +10,7 @@ import subprocess
 import tempfile
 
 import file_lib
+import repo_lib
 
 import cmd
 import pprint
@@ -20,7 +21,7 @@ def parser(subparsers):
   diff_parser = subparsers.add_parser(
       'diff', help='show changes in files')
   diff_parser.add_argument(
-      'files', nargs='+', help='the files to diff')
+      'files', nargs='*', help='the files to diff')
   diff_parser.set_defaults(func=main)
 
 
@@ -28,7 +29,18 @@ def main(args):
   cmd.check_gl_dir()
   errors_found = False
 
-  for fp in args.files:
+  if not args.files:
+    tracked_mod_list = repo_lib.status()[0]
+    if not tracked_mod_list:
+      pprint.msg(
+          'Nothing to diff (there are no tracked files with modifications).')
+      return cmd.SUCCESS
+
+    files = [fp for fp, r, s, t in tracked_mod_list]
+  else:
+    files = args.files
+
+  for fp in files:
     ret, out = file_lib.diff(fp)
 
     if ret is file_lib.FILE_NOT_FOUND:
