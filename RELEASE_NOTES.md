@@ -1,6 +1,12 @@
 Gitless's Release Notes
 =======================
 
+ - kendall.0.2
+---------------
+
+* Now gl is the only command (in retrospect, having a "suite of commands" was
+  over-engineering, code is much simpler now).
+
 
 16th July 2013 - kendall.0.1
 ----------------------------
