@@ -4,6 +4,13 @@ Gitless's Release Notes
  - kendall.0.2
 ---------------
 
+* New interface for checkout (now the commit point is passed with the -cp flag;
+  defaults to HEAD).
+* General improvements in the gl diff command:
+    * Fixed bug that made it impossible to diff a deleted file.
+    * Now if no arguments are given all tracked files with modifications are
+      diffed.
+* Removed the gl rm command.
 * Now gl is the only command (in retrospect, having a "suite of commands" was
   over-engineering, code is much simpler now).
 
