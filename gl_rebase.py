@@ -137,7 +137,3 @@ def main(args):
     return cmd.SUCCESS
   else:
     raise Exception('Unexpected ret code %s' % ret)
-
-
-if __name__ == '__main__':
-  cmd.run(main)

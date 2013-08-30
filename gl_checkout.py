@@ -60,7 +60,3 @@ def _checkout_file(fp, cp):
     return True
   else:
     raise Exception('Unrecognized ret code %s' % ret)
-
-
-if __name__ == '__main__':
-  cmd.run(main)
