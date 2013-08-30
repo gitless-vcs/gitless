@@ -1,18 +1,9 @@
-#!/usr/bin/env python2.7
-
 # Gitless - a version control system built on top of Git.
 # Copyright (c) 2013  Santiago Perez De Rosso.
 # Licensed under GNU GPL, version 2.
 
-"""gl-resolve - Mark a file with conflicts as resolved.
+"""gl resolve - Mark a file with conflicts as resolved."""
 
-Implements the gl-resolve command, part of the Gitless suite.
-"""
-
-
-import check_pyversion
-
-import argparse
 
 import sync_lib
 
@@ -20,12 +11,16 @@ import cmd
 import pprint
 
 
-def main():
-  parser = argparse.ArgumentParser(
-      description='Mark one or more files with conflicts as resolved')
-  parser.add_argument(
+def parser(subparsers):
+  """Adds the resolve parser to the given subparsers object."""
+  resolve_parser = subparsers.add_parser(
+      'resolve', help='mark files with conflicts as resolved')
+  resolve_parser.add_argument(
       'files', nargs='+', help='the file(s) in conflict to mark as resolved')
-  args = parser.parse_args()
+
+
+def main(args):
+  cmd.check_gl_dir()
   errors_found = False
 
   for fp in args.files:
@@ -46,7 +41,3 @@ def main():
       raise Exception('Unrecognized ret code %s' % ret)
 
   return cmd.ERRORS_FOUND if errors_found else cmd.SUCCESS
-
-
-if __name__ == '__main__':
-  cmd.run(main)

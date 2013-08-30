@@ -1,18 +1,10 @@
-#!/usr/bin/env python2.7
-
 # Gitless - a version control system built on top of Git.
 # Copyright (c) 2013  Santiago Perez De Rosso.
 # Licensed under GNU GPL, version 2.
 
-"""gl-status - Show the status of files in the repo.
+"""gl status - Show the status of files in the repo."""
 
-Implements the gl-status command, part of the Gitless suite. The gl-status
-command allows the user to retrieve the status of the files in the repo.
-"""
 
-import check_pyversion
-
-import argparse
 import os
 
 import branch_lib
@@ -23,11 +15,14 @@ import cmd
 import pprint
 
 
-def main():
-  parser = argparse.ArgumentParser(
-      description="Show status of the repo")
-  args = parser.parse_args()
+def parser(subparsers):
+  """Adds the status parser to the given subparsers object."""
+  status_parser = subparsers.add_parser(
+      'status', help='show status of the repo')
+  status_parser.set_defaults(func=main)
 
+
+def main(args):
   pprint.msg(
       'On branch %s, repo-directory %s' % (
           branch_lib.current(), repo_lib.cwd()))
@@ -97,7 +92,3 @@ def _print_rebase_exp():
   pprint.exp('use gl resolve <f> to mark file f as resolved')
   pprint.exp('once you solved all conflicts do gl commit to keep rebasing')
   pprint.blank()
-
-
-if __name__ == '__main__':
-  cmd.run(main)

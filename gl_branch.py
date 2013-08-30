@@ -1,18 +1,9 @@
-#!/usr/bin/env python2.7
-
 # Gitless - a version control system built on top of Git.
 # Copyright (c) 2013  Santiago Perez De Rosso.
 # Licensed under GNU GPL, version 2.
 
-"""gl-branch - Create, edit, delete or switch branches.
+"""gl branch - Create, edit, delete or switch branches."""
 
-Implements the gl-branch command, part of the Gitless suite.
-"""
-
-
-import check_pyversion
-
-import argparse
 
 import branch_lib
 import sync_lib
@@ -21,18 +12,23 @@ import cmd
 import pprint
 
 
-def main():
-  parser = argparse.ArgumentParser(
-      description="Create, edit, delete or switch branches.")
-  parser.add_argument(
+def parser(subparsers):
+  """Adds the branch parser to the given subparsers object."""
+  branch_parser = subparsers.add_parser(
+      'branch', help='create, edit, delete or switch branches')
+  branch_parser.add_argument(
       'branch', nargs='?',
-      help='Switch to branch (will be created if it doesn\'t exist yet)')
-  parser.add_argument(
+      help='switch to branch (will be created if it doesn\'t exist yet)')
+  branch_parser.add_argument(
       '-d', '--delete', nargs='+', help='delete branch(es)', dest='delete_b')
-  parser.add_argument(
+  branch_parser.add_argument(
       '-su', '--set-upstream', help='set the upstream branch',
       dest='upstream_b')
-  args = parser.parse_args()
+  branch_parser.set_defaults(func=main)
+
+
+def main(args):
+  cmd.check_gl_dir()
 
   if args.branch:
     exists, is_current, unused_tracks = branch_lib.status(args.branch)
@@ -140,7 +136,3 @@ def _do_set_upstream(upstream):
         branch_lib.current(), upstream_remote, upstream_branch))
 
   return errors_found
-
-
-if __name__ == '__main__':
-  cmd.run(main)

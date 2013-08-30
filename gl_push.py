@@ -1,18 +1,9 @@
-#!/usr/bin/env python2.7
-
 # Gitless - a version control system built on top of Git.
 # Copyright (c) 2013  Santiago Perez De Rosso.
 # Licensed under GNU GPL, version 2.
 
-"""gl-push - Push changes upstream.
+"""gl push - Push changes upstream."""
 
-Implements the gl-push command, part of the Gitless suite.
-"""
-
-
-import check_pyversion
-
-import argparse
 
 import sync_lib
 
@@ -20,7 +11,15 @@ import cmd
 import pprint
 
 
-def main():
+def parser(subparsers):
+  """Adds the push parser to the given subparsers object."""
+  push_parser = subparsers.add_parser(
+      'push', help='push changes upstream')
+  push_parser.set_defaults(func=main)
+
+
+def main(args):
+  cmd.check_gl_dir()
   ret, out = sync_lib.push()
   errors_found = False
 
@@ -44,7 +43,3 @@ def main():
     raise Exception('Unrecognized ret code %s' % ret)
 
   return cmd.ERRORS_FOUND if errors_found else cmd.SUCCESS
-
-
-if __name__ == '__main__':
-  cmd.run(main)

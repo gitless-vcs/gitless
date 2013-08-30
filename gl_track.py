@@ -1,20 +1,9 @@
-#!/usr/bin/env python2.7
-
 # Gitless - a version control system built on top of Git.
 # Copyright (c) 2013  Santiago Perez De Rosso.
 # Licensed under GNU GPL, version 2.
 
-"""gl-track - Start tracking changes to files.
+"""gl track - Start tracking changes to files."""
 
-Implements the gl-track command, part of the Gitless suite. The gl-track
-command allows the user to start tracking changes to the files passed as
-parameters.
-"""
-
-
-import check_pyversion
-
-import argparse
 
 import file_lib
 
@@ -22,12 +11,17 @@ import cmd
 import pprint
 
 
-def main():
-  parser = argparse.ArgumentParser(
-      description='Start tracking changes to files')
-  parser.add_argument(
+def parser(subparsers):
+  """Adds the track parser to the given subparsers object."""
+  track_parser = subparsers.add_parser(
+      'track', help='start tracking changes to files')
+  track_parser.add_argument(
       'files', nargs='+', help='the file(s) to track')
-  args = parser.parse_args()
+  track_parser.set_defaults(func=main)
+
+
+def main(args):
+  cmd.check_gl_dir()
   errors_found = False
 
   for fp in args.files:
@@ -47,7 +41,3 @@ def main():
       raise Exception('Unexpected return code')
 
   return cmd.ERRORS_FOUND if errors_found else cmd.SUCCESS
-
-
-if __name__ == '__main__':
-  cmd.run(main)

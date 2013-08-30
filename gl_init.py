@@ -1,18 +1,9 @@
-#!/usr/bin/env python2.7
-
 # Gitless - a version control system built on top of Git.
 # Copyright (c) 2013  Santiago Perez De Rosso.
 # Licensed under GNU GPL, version 2.
 
-"""gl-init - Create an empty repo or create one from an existing.
+"""gl init - Create an empty repo or make a clone."""
 
-Implements the gl-init command, part of the Gitless suite.
-"""
-
-
-import check_pyversion
-
-import argparse
 
 import repo_lib
 
@@ -20,14 +11,19 @@ import cmd
 import pprint
 
 
-def main():
-  parser = argparse.ArgumentParser(
-      description=(
-          'Create an empty Gitless\'s repository or create one from an '
+def parser(subparsers):
+  """Adds the init parser to the given subparsers object."""
+  init_parser = subparsers.add_parser(
+      'init',
+      help=(
+          'create an empty Gitless\'s repository or create one from an '
           'existing remote repository.'))
-  parser.add_argument(
+  init_parser.add_argument(
       'repo', nargs='?', help='an optional repo path to create the repo from')
-  args = parser.parse_args()
+  init_parser.set_defaults(func=main)
+
+
+def main(args):
   errors_found = False
 
   if args.repo:
@@ -48,7 +44,3 @@ def main():
     return cmd.SUCCESS
   else:
     raise Exception('Unexpected return code %s' % ret)
-
-
-if __name__ == '__main__':
-  cmd.run(main, is_init=True)

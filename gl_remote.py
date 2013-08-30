@@ -1,18 +1,9 @@
-#!/usr/bin/env python2.7
-
 # Gitless - a version control system built on top of Git.
 # Copyright (c) 2013  Santiago Perez De Rosso.
 # Licensed under GNU GPL, version 2.
 
-"""gl-remote - Set the remote for the repo, get info about it.
+"""gl remote - Set the remote for the repo, get info about it."""
 
-Implements the gl-remote command, part of the Gitless suite.
-"""
-
-
-import check_pyversion
-
-import argparse
 
 import remote_lib
 
@@ -20,30 +11,29 @@ import cmd
 import pprint
 
 
-def main():
-  parser = argparse.ArgumentParser(
-      description='Add/rm remotes, get info about them')
-  subparsers = parser.add_subparsers(
-      title='actions', description='the possible actions to perform')
+def parser(subparsers):
+  """Adds the remote parser to the given subparsers object."""
+  remote_parser = subparsers.add_parser(
+      'remote', help='add/rm remotes, get info about them')
 
-  add_parser = subparsers.add_parser('add')
+  remote_subparsers = remote_parser.add_subparsers()
+
+  add_parser = remote_subparsers.add_parser('add', help='add remote')
   add_parser.add_argument('remote_name', help='the name of the remote')
   add_parser.add_argument('remote_url', help='the url of the remote')
   add_parser.set_defaults(func=_do_add)
 
-  rm_parser = subparsers.add_parser('rm')
+  rm_parser = remote_subparsers.add_parser('rm', help='remove remote')
   rm_parser.add_argument('remote_name', help='the name of the remote to remove')
   rm_parser.set_defaults(func=_do_rm)
 
-  show_parser = subparsers.add_parser('show')
+  show_parser = remote_subparsers.add_parser(
+      'show', help='show info about remote')
   show_parser.add_argument(
       'remote_name', nargs='?',
       help='display information about the remote name given. If none is given, '
       'lists all remotes')
   show_parser.set_defaults(func=_do_show)
-
-  args = parser.parse_args()
-  return args.func(args)
 
 
 def _do_add(args):
@@ -129,7 +119,3 @@ def _do_rm(args):
     raise Exception('Unrecognized ret code %s' % ret)
 
   return errors_found
-
-
-if __name__ == '__main__':
-  cmd.run(main)

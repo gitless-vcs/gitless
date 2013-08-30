@@ -53,9 +53,8 @@ def main():
       new_path = os.path.join(args.dst, f)
       print 'moving file %s to %s' % (f, new_path)
       os.rename(f, new_path)
-      _maybe_create_exec_file(f, args.dst)
 
-  _create_exec_file('gl', args.dst, is_gl=True)
+  _create_exec_file(args.dst)
 
   gitpylib = os.path.join(cwd, 'gitpylib')
   gitpylib_dst = os.path.join(args.dst, 'gitpylib')
@@ -71,28 +70,15 @@ def main():
   print 'Done'
 
 
-def _maybe_create_exec_file(f, dst):
-  match = re.match('gl_(\w+).pyc', f)
-  if match:
-    cmd = match.group(1)
-    _create_exec_file(cmd, dst)
-
-
-def _create_exec_file(cmd, dst, is_gl=False):
-  if is_gl:
-    path = os.path.join(dst, cmd)
-  else:
-    path = os.path.join(dst, 'gl-' + cmd)
-  print 'Creating exec file for %s at %s' % (cmd, path)
+def _create_exec_file(dst):
+  path = os.path.join(dst, 'gl')
+  print 'Creating exec file at %s' %  path
   f = open(path, 'a')
   f.write('#!/bin/bash\n')
-  if is_gl:
-    f.write('python2.7 /usr/local/gitless/bin/gl.pyc "$@"')
-  else:
-    f.write('python2.7 /usr/local/gitless/bin/gl_%s.pyc "$@"' % cmd)
+  f.write('python2.7 /usr/local/gitless/bin/gl.pyc "$@"')
   f.close()
   os.chmod(path, FILE_PERMISSIONS)
-  print 'Done creating exec file for %s at %s' % (cmd, path)
+  print 'Done creating exec file at %s' % path
 
 
 if __name__ == '__main__':

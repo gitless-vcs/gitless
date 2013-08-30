@@ -32,32 +32,19 @@ import pprint
 
 
 def main():
-  cmds = {
-      'track': gl_track, 'untrack': gl_untrack, 'status': gl_status,
-      'diff': gl_diff, 'commit': gl_commit, 'branch': gl_branch,
-      'checkout': gl_checkout, 'rm': gl_rm, 'merge': gl_merge,
-      'resolve': gl_resolve, 'rebase': gl_rebase, 'remote': gl_remote,
-      'push': gl_push, 'init': gl_init, 'history': gl_history}
+  parser = argparse.ArgumentParser()
+  subparsers = parser.add_subparsers()
 
-  if len(sys.argv) <= 1:
-    # No action was provided.
-    pprint.err('No action was provided')
-    pprint.err_exp('type gl <action>, e.g. gl status')
-    return cmd.ERRORS_FOUND
+  sub_cmds = {
+      gl_track, gl_untrack, gl_status, gl_diff, gl_commit, gl_branch,
+      gl_checkout, gl_rm, gl_merge, gl_resolve, gl_rebase, gl_remote, gl_push,
+      gl_init, gl_history}
+  for sub_cmd in sub_cmds:
+    sub_cmd.parser(subparsers)
 
-  action = sys.argv[1]
-  if action not in cmds:
-    pprint.err('Unrecognized action %s' % action)
-    pprint.err_exp(
-        'action must be one of the following: %s' % ', '.join(cmds.keys()))
-    return cmd.ERRORS_FOUND
-
-  sys.argv.pop(1)
-  sys.argv[0] = '/usr/bin/gl-%s' % action
-
-  return cmd.run(cmds[action].main, is_init=(action == 'init'))
-
+  args = parser.parse_args()
+  return args.func(args)
+  
 
 if __name__ == '__main__':
-  # Potentially init.
-  cmd.run(main, is_init=True)
+  cmd.run(main)

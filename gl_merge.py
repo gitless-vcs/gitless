@@ -1,18 +1,9 @@
-#!/usr/bin/env python2.7
-
 # Gitless - a version control system built on top of Git.
 # Copyright (c) 2013  Santiago Perez De Rosso.
 # Licensed under GNU GPL, version 2.
 
-"""gl-merge - Merge the divergent changes of one branch onto another.
+"""gl merge - Merge the divergent changes of one branch onto another."""
 
-Implements the gl-merge command, part of the Gitless suite.
-"""
-
-
-import check_pyversion
-
-import argparse
 import sys
 
 import branch_lib
@@ -22,14 +13,20 @@ import cmd
 import pprint
 
 
-def main():
-  parser = argparse.ArgumentParser(
-      description='Merge the divergent changes of one branch onto another')
-  parser.add_argument(
+def parser(subparsers):
+  """Adds the merge parser to the given subparsers object."""
+  merge_parser = subparsers.add_parser(
+      'merge', help='merge the divergent changes of one branch onto another')
+  group = merge_parser.add_mutually_exclusive_group()
+  group.add_argument(
       'src', nargs='?', help='the source branch to read changes from')
-  parser.add_argument(
+  group.add_argument(
       '-a', '--abort', help='abort the merge in progress', action='store_true')
-  args = parser.parse_args()
+  merge_parser.set_defaults(func=main)
+ 
+
+def main(args):
+  cmd.check_gl_dir()
 
   if args.abort:
     if sync_lib.abort_merge() is sync_lib.MERGE_NOT_IN_PROGRESS:
@@ -46,14 +43,15 @@ def main():
     current = branch_lib.current()
     ur, ub = branch_lib.upstream(current)
     if ur is None:
-      parser.error(
+      pprint.err(
           'No src branch specified and the current branch has no upstream '
           'branch set')
+      return cmd.ERRORS_FOUND
 
     if branch_lib.has_unpushed_upstream(current, ur, ub):
-        pprint.err(
-            'Current branch has an upstream set but it hasn\'t been pushed yet')
-        return cmd.ERRORS_FOUND
+      pprint.err(
+          'Current branch has an upstream set but it hasn\'t been pushed yet')
+      return cmd.ERRORS_FOUND
 
     # If we reached this point, it is safe to use the upstream branch to get
     # changes from.
@@ -117,7 +115,3 @@ def main():
     pprint.msg('Merged succeeded')
 
   return cmd.SUCCESS
-
-
-if __name__ == '__main__':
-  cmd.run(main)

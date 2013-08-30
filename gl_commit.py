@@ -1,18 +1,10 @@
-#!/usr/bin/env python2.7
-
 # Gitless - a version control system built on top of Git.
 # Copyright (c) 2013  Santiago Perez De Rosso.
 # Licensed under GNU GPL, version 2.
 
-"""gl-commit - Record changes in the local repository.
-
-Implements the gl-commit command, part of the Gitless suite.
-"""
+"""gl commit - Record changes in the local repository."""
 
 
-import check_pyversion
-
-import argparse
 import os
 
 import file_lib
@@ -24,29 +16,31 @@ import cmd
 import pprint
 
 
-def main():
-  parser = argparse.ArgumentParser(
-      description="Record changes in the local repository")
-  parser.add_argument(
+def parser(subparsers):
+  """Adds the commit parser to the given subparsers object."""
+  commit_parser = subparsers.add_parser(
+      'commit', help='record changes in the local repository')
+  commit_parser.add_argument(
       'only_files', nargs='*',
       help='only the files listed as arguments will be committed (files could '
            'be tracked or untracked files)')
-  parser.add_argument(
+  commit_parser.add_argument(
       '-exc', '--exclude', nargs='+',
       help=('files listed as arguments will be excluded from the commit (files '
             'must be tracked files)'),
       dest='exc_files')
-  parser.add_argument(
+  commit_parser.add_argument(
       '-inc', '--include', nargs='+',
       help=('files listed as arguments will be included to the commit (files '
             'must be untracked files)'),
       dest='inc_files')
-  parser.add_argument(
-      '-m', '--message',
-      help='Commit message',
-      dest='m')
-  args = parser.parse_args()
+  commit_parser.add_argument(
+      '-m', '--message', help='Commit message', dest='m')
+  commit_parser.set_defaults(func=main)
 
+
+def main(args):
+  cmd.check_gl_dir()
   # TODO(sperezde): re-think this worflow a bit.
 
   only_files = frozenset(args.only_files)
@@ -206,7 +200,3 @@ def _auto_track(files):
   for f in files:
     if not file_lib.is_tracked_file(f):
       file_lib.track(f)
-
-
-if __name__ == '__main__':
-  cmd.run(main)

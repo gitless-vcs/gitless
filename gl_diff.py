@@ -1,20 +1,10 @@
-#!/usr/bin/env python2.7
-
 # Gitless - a version control system built on top of Git.
 # Copyright (c) 2013  Santiago Perez De Rosso.
 # Licensed under GNU GPL, version 2.
 
-"""gl-diff - Show changes in files.
-
-Implements the gl-diff command, part of the Gitless suite. The gl-diff command
-allows the user to show the difference between the current version of a file and
-its version in the repo.
-"""
+"""gl diff - Show changes in files."""
 
 
-import check_pyversion
-
-import argparse
 import os
 import subprocess
 import tempfile
@@ -25,12 +15,17 @@ import cmd
 import pprint
 
 
-def main():
-  parser = argparse.ArgumentParser(
-      description='Show changes in files')
-  parser.add_argument(
+def parser(subparsers):
+  """Adds the diff parser to the given subparsers object."""
+  diff_parser = subparsers.add_parser(
+      'diff', help='show changes in files')
+  diff_parser.add_argument(
       'files', nargs='+', help='the files to diff')
-  args = parser.parse_args()
+  diff_parser.set_defaults(func=main)
+
+
+def main(args):
+  cmd.check_gl_dir()
   errors_found = False
 
   for fp in args.files:
@@ -65,7 +60,3 @@ def main():
       raise Exception('Unrecognized ret code %s' % ret)
 
   return cmd.ERRORS_FOUND if errors_found else cmd.SUCCESS
-
-
-if __name__ == '__main__':
-  cmd.run(main)

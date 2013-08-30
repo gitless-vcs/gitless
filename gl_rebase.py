@@ -1,18 +1,10 @@
-#!/usr/bin/env python2.7
-
 # Gitless - a version control system built on top of Git.
 # Copyright (c) 2013  Santiago Perez De Rosso.
 # Licensed under GNU GPL, version 2.
 
-"""gl-rebase - Rebase one branch onto another.
-
-Implements the gl-rebase command, part of the Gitless suite.
-"""
+"""gl rebase - Rebase one branch onto another."""
 
 
-import check_pyversion
-
-import argparse
 import sys
 
 import branch_lib
@@ -22,23 +14,28 @@ import cmd
 import pprint
 
 
-def main():
-  parser = argparse.ArgumentParser(
-      description=(
-        'Converge divergent changes of two branches by rebasing one onto '
+def parser(subparsers):
+  """Adds the rebase parser to the given subparsers object."""
+  rebase_parser = subparsers.add_parser(
+     'rebase',
+     help=(
+        'converge divergent changes of two branches by rebasing one onto '
         'another'))
-  parser.add_argument('src', nargs='?', help=(
+  group = rebase_parser.add_mutually_exclusive_group()
+  group.add_argument('src', nargs='?', help=(
     'the source branch to use as a base for rebasing'))
-  parser.add_argument(
+  group.add_argument(
       '-a', '--abort', help='abort the rebase in progress', action='store_true')
-  parser.add_argument(
+  group.add_argument(
       '-s', '--skip',
       help='skip the current commit and continue with the next one',
       action='store_true')
-  args = parser.parse_args()
 
-  if args.abort and args.skip:
-    parser.error('Only one of --abort and --skip is possible')
+  rebase_parser.set_defaults(func=main)
+
+
+def main(args):
+  cmd.check_gl_dir()
 
   if args.abort:
     if sync_lib.abort_rebase() is sync_lib.REBASE_NOT_IN_PROGRESS:
@@ -66,14 +63,15 @@ def main():
     current = branch_lib.current()
     ur, ub = branch_lib.upstream(current)
     if ur is None:
-      parser.error(
+      pprint.err(
           'No src branch specified and the current branch has no upstream '
           'branch set')
+      return cmd.ERRORS_FOUND
 
     if branch_lib.has_unpushed_upstream(current, ur, ub):
-        pprint.err(
-            'Current branch has an upstream set but it hasn\'t been pushed yet')
-        return cmd.ERRORS_FOUND
+      pprint.err(
+          'Current branch has an upstream set but it hasn\'t been pushed yet')
+      return cmd.ERRORS_FOUND
 
     # If we reached this point, it is safe to use the upstream branch to get
     # changes from.

@@ -4,19 +4,11 @@
 # Copyright (c) 2013  Santiago Perez De Rosso.
 # Licensed under GNU GPL, version 2.
 
-"""gl-rm - Remove Gitless's files.
-
-Implements the gl-rm command, part of the Gitless suite.
-"""
+"""gl-rm - Remove Gitless's files."""
 
 # TODO(sperezde): This command is not required in Gitless, is just a stopgap
 # until the other commands are fixed to deal with files that have been removed
 # via Unix's rm command.
-
-
-import check_pyversion
-
-import argparse
 
 import file_lib
 
@@ -24,12 +16,17 @@ import cmd
 import pprint
 
 
-def main():
-  parser = argparse.ArgumentParser(
-      description='Remove tracked files')
-  parser.add_argument(
+def parser(subparsers):
+  """Adds the rm  parser to the given subparsers object."""
+  rm_parser = subparsers.add_parser(
+      'rm', help='remove tracked files')
+  rm_parser.add_argument(
       'files', nargs='+', help='the file(s) to remove')
-  args = parser.parse_args()
+  rm_parser.set_defaults(func=main)
+
+
+def main(args):
+  cmd.check_gl_dir()
   errors_found = False
 
   for fp in args.files:
@@ -46,7 +43,3 @@ def main():
       raise Exception('Unexpected return code')
 
   return cmd.ERRORS_FOUND if errors_found else cmd.SUCCESS
-
-
-if __name__ == '__main__':
-  cmd.run(main)

@@ -1,18 +1,10 @@
-#!/usr/bin/env python2.7
-
 # Gitless - a version control system built on top of Git.
 # Copyright (c) 2013  Santiago Perez De Rosso.
 # Licensed under GNU GPL, version 2.
 
-"""gl-checkout - Checkout commited versions of files.
-
-Implements the gl-checkout command, part of the Gitless suite.
-"""
+"""gl checkout - Checkout committed versions of files."""
 
 
-import check_pyversion
-
-import argparse
 import os
 
 import file_lib
@@ -21,15 +13,20 @@ import cmd
 import pprint
 
 
-def main():
-  parser = argparse.ArgumentParser(
-      description='Checkout files.')
-  parser.add_argument(
+def parser(subparsers):
+  """Adds the checkout parser to the given subparsers object."""
+  checkout_parser = subparsers.add_parser(
+      'checkout', help='checkout committed versions of files')
+  checkout_parser.add_argument(
       'commit_point', help='the commit point to checkout the files at')
-  parser.add_argument(
-      'files', nargs='+',
-      help='the file(s) to checkout')
-  args = parser.parse_args()
+  checkout_parser.add_argument(
+      'files', nargs='+', help='the file(s) to checkout')
+  checkout_parser.set_defaults(func=main)
+
+
+def main(args):
+  cmd.check_gl_dir()
+
   cp = args.commit_point
   errors_found = False
 
