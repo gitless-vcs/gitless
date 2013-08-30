@@ -24,7 +24,7 @@ import gl_merge
 import gl_rebase
 import gl_remote
 import gl_resolve
-import gl_push
+import gl_publish
 import gl_init
 import gl_history
 import pprint
@@ -36,7 +36,7 @@ def main():
 
   sub_cmds = {
       gl_track, gl_untrack, gl_status, gl_diff, gl_commit, gl_branch,
-      gl_checkout, gl_merge, gl_resolve, gl_rebase, gl_remote, gl_push,
+      gl_checkout, gl_merge, gl_resolve, gl_rebase, gl_remote, gl_publish,
       gl_init, gl_history}
   for sub_cmd in sub_cmds:
     sub_cmd.parser(subparsers)

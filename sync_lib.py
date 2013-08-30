@@ -249,7 +249,7 @@ def is_resolved_file(fp):
   return fp in resolved_files()
 
 
-def push():
+def publish():
   current_b = branch_lib.current()
   remote, remote_b = branch_lib.upstream(current_b)
   if remote is None:

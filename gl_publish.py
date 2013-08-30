@@ -2,7 +2,7 @@
 # Copyright (c) 2013  Santiago Perez De Rosso.
 # Licensed under GNU GPL, version 2.
 
-"""gl push - Push changes upstream."""
+"""gl publish - Publish commits upstream."""
 
 
 import sync_lib
@@ -12,15 +12,15 @@ import pprint
 
 
 def parser(subparsers):
-  """Adds the push parser to the given subparsers object."""
+  """Adds the publish parser to the given subparsers object."""
   push_parser = subparsers.add_parser(
-      'push', help='push changes upstream')
+      'push', help='publish commits upstream')
   push_parser.set_defaults(func=main)
 
 
 def main(args):
   cmd.check_gl_dir()
-  ret, out = sync_lib.push()
+  ret, out = sync_lib.publish()
   errors_found = False
 
   if ret is sync_lib.SUCCESS:
@@ -32,11 +32,11 @@ def main(args):
         'remote/remote_branch')
     errors_found = True
   elif ret is sync_lib.NOTHING_TO_PUSH:
-    pprint.err('Nothing to push')
+    pprint.err('No commits to publish')
     errors_found = True
   elif ret is sync_lib.PUSH_FAIL:
     pprint.err(
-        'Push failed, there are conflicting changes you need to converge')
+        'Publish failed, there are conflicting changes you need to converge')
     pprint.err_exp('use gl rebase or gl merge to converge the upstream changes')
     errors_found = True
   else:

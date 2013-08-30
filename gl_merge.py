@@ -50,7 +50,8 @@ def main(args):
 
     if branch_lib.has_unpushed_upstream(current, ur, ub):
       pprint.err(
-          'Current branch has an upstream set but it hasn\'t been pushed yet')
+          'Current branch has an upstream set but it hasn\'t been published '
+          'yet')
       return cmd.ERRORS_FOUND
 
     # If we reached this point, it is safe to use the upstream branch to get
