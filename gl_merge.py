@@ -23,7 +23,7 @@ def parser(subparsers):
   group.add_argument(
       '-a', '--abort', help='abort the merge in progress', action='store_true')
   merge_parser.set_defaults(func=main)
- 
+
 
 def main(args):
   cmd.check_gl_dir()

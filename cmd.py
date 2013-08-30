@@ -25,7 +25,7 @@ class NotInGlDirError(Exception):
 
 def check_gl_dir():
   if not repo_lib.gl_dir():
-    raise NotInGlDirError() 
+    raise NotInGlDirError()
 
 
 def run(main):

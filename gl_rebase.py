@@ -17,13 +17,13 @@ import pprint
 def parser(subparsers):
   """Adds the rebase parser to the given subparsers object."""
   rebase_parser = subparsers.add_parser(
-     'rebase',
-     help=(
-        'converge divergent changes of two branches by rebasing one onto '
-        'another'))
+      'rebase',
+      help=(
+          'converge divergent changes of two branches by rebasing one onto '
+          'another'))
   group = rebase_parser.add_mutually_exclusive_group()
-  group.add_argument('src', nargs='?', help=(
-    'the source branch to use as a base for rebasing'))
+  group.add_argument(
+      'src', nargs='?', help='the source branch to use as a base for rebasing')
   group.add_argument(
       '-a', '--abort', help='abort the rebase in progress', action='store_true')
   group.add_argument(

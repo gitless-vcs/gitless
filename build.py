@@ -72,7 +72,7 @@ def main():
 
 def _create_exec_file(dst):
   path = os.path.join(dst, 'gl')
-  print 'Creating exec file at %s' %  path
+  print 'Creating exec file at %s' % path
   f = open(path, 'a')
   f.write('#!/bin/bash\n')
   f.write('python2.7 /usr/local/gitless/bin/gl.pyc "$@"')
