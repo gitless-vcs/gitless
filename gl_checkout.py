@@ -18,7 +18,9 @@ def parser(subparsers):
   checkout_parser = subparsers.add_parser(
       'checkout', help='checkout committed versions of files')
   checkout_parser.add_argument(
-      'commit_point', help='the commit point to checkout the files at')
+      '-cp', '--commit_point', help=(
+          'the commit point to checkout the files at. Defaults to HEAD.'),
+      dest='cp', default='HEAD')
   checkout_parser.add_argument(
       'files', nargs='+', help='the file(s) to checkout')
   checkout_parser.set_defaults(func=main)
@@ -27,11 +29,10 @@ def parser(subparsers):
 def main(args):
   cmd.check_gl_dir()
 
-  cp = args.commit_point
   errors_found = False
 
   for fp in args.files:
-    if not _checkout_file(fp, cp):
+    if not _checkout_file(fp, args.cp):
       errors_found = True
 
   return cmd.ERRORS_FOUND if errors_found else cmd.SUCCESS
