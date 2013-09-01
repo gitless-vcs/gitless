@@ -64,4 +64,4 @@ def conf_dialog(msg):
   """
   sys.stdout.write('# %s. Do you wish to continue? (y/N)' % msg)
   user_input = raw_input(' ')
-  return user_input and user_input[0] == 'y'
+  return user_input and user_input[0].lower() == 'y'
