@@ -63,17 +63,18 @@ def main(args):
     branch_lib.switch(args.branch)
     pprint.msg('Switched to branch %s' % args.branch)
   elif args.delete_b:
-    if not _delete(args.delete_b):
+    if not _do_delete(args.delete_b):
       return cmd.ERRORS_FOUND
   elif args.upstream_b:
-    return _do_set_upstream(args.upstream_b)
+    if not _do_set_upstream(args.upstream_b):
+      return cmd.ERRORS_FOUND
   else:
-    _list()
+    _do_list()
 
   return cmd.SUCCESS
 
 
-def _list():
+def _do_list():
   pprint.msg('Existing branches:')
   pprint.exp('use gl branch <b> to create or switch to branch b')
   pprint.exp('use gl branch -d <b> to delete branch b')
@@ -90,7 +91,7 @@ def _list():
     pprint.item('%s %s %s' % (current_str, name, upstream_str))
 
 
-def _delete(delete_b):
+def _do_delete(delete_b):
   errors_found = False
 
   for b in delete_b:
@@ -135,4 +136,4 @@ def _do_set_upstream(upstream):
     pprint.msg('Current branch %s set to track %s/%s' % (
         branch_lib.current(), upstream_remote, upstream_branch))
 
-  return errors_found
+  return not errors_found
