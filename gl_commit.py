@@ -123,20 +123,20 @@ def _valid_input(only_files, exc_files, inc_files):
   ret = True
   err = []
   for fp in only_files:
-    if not os.path.exists(fp) and not file_lib.is_deleted_file(fp):
+    if not os.path.exists(fp) and not file_lib.is_deleted(fp):
       err.append('File %s doesn\'t exist' % fp)
       ret = False
-    elif file_lib.is_tracked_file(fp) and not file_lib.is_tracked_modified(fp):
+    elif file_lib.is_tracked(fp) and not file_lib.is_tracked_modified(fp):
       err.append(
           'File %s is a tracked file but has no modifications' % fp)
       ret = False
 
   for fp in exc_files:
     # We check that the files to be excluded are existing tracked files.
-    if not os.path.exists(fp) and not file_lib.is_deleted_file(fp):
+    if not os.path.exists(fp) and not file_lib.is_deleted(fp):
       err.append('File %s doesn\'t exist' % fp)
       ret = False
-    elif not file_lib.is_tracked_file(fp):
+    elif not file_lib.is_tracked(fp):
       err.append(
           'File %s, listed to be excluded from commit, is not a tracked file' %
           fp)
@@ -152,10 +152,10 @@ def _valid_input(only_files, exc_files, inc_files):
 
   for fp in inc_files:
     # We check that the files to be included are existing untracked files.
-    if not os.path.exists(fp) and not file_lib.is_deleted_file(fp):
+    if not os.path.exists(fp) and not file_lib.is_deleted(fp):
       err.append('File %s doesn\'t exist' % fp)
       ret = False
-    elif file_lib.is_tracked_file(fp):
+    elif file_lib.is_tracked(fp):
       err.append(
           'File %s, listed to be included in the commit, is not a untracked '
           'file' % fp)
@@ -198,5 +198,5 @@ def _compute_fs(only_files, exc_files, inc_files):
 def _auto_track(files):
   """Tracks those untracked files in the list."""
   for f in files:
-    if not file_lib.is_tracked_file(f):
+    if not file_lib.is_tracked(f):
       file_lib.track(f)

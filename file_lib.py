@@ -144,7 +144,7 @@ def diff(fp):
   return (SUCCESS, out)
 
 
-def is_tracked_file(fp):
+def is_tracked(fp):
   """True if the given file is a tracked file."""
   return _is_tracked_status(git_status.of_file(fp))
 
@@ -155,7 +155,7 @@ def is_tracked_modified(fp):
   return _is_tracked_status(s) and not s is git_status.TRACKED_UNMODIFIED
 
 
-def is_deleted_file(fp):
+def is_deleted(fp):
   """True if the given file is a deleted file."""
   return _is_deleted_status(git_status.of_file(fp))
 
