@@ -39,23 +39,27 @@ def main(args):
 
 
 def _checkout_file(fp, cp):
-  """Checkout file fp to commit point cp.
+  """Checkout file fp at commit point cp.
 
   Will output to screen if some error is encountered.
 
   Returns:
-    True if the file was checkouted successfuly or False if some error was
+    True if the file was checkouted successfully or False if some error was
     encountered.
   """
+  conf_msg = (
+      'You have uncomitted changes in %s that could be overwritten by the '
+      'checkout' % fp)
+  if file_lib.is_tracked_modified(fp) and not pprint.conf_dialog(conf_msg):
+    pprint.err('Checkout aborted')
+    return False
+
   ret, out = file_lib.checkout(fp, cp)
   if ret is file_lib.FILE_NOT_FOUND_AT_CP:
+    pprint.err('Checkout aborted')
     pprint.err('There\'s no file %s at %s' % (fp, cp))
     return False
   elif ret is file_lib.SUCCESS:
-    # TODO(sperezde): show conf dialog here if the file exists.
-    # dst = open(fp, 'w')
-    # dst.write(out)
-    # dst.close()
     pprint.msg('File %s checked out sucessfully to its state at %s' % (fp, cp))
     return True
   else:
