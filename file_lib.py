@@ -10,6 +10,8 @@ import os
 from gitpylib import file as git_file
 from gitpylib import status as git_status
 
+import repo_lib
+
 
 SUCCESS = 1
 FILE_NOT_FOUND = 2
@@ -169,7 +171,10 @@ def checkout(fp, cp):
     a pair (status, out) where status is one of FILE_NOT_FOUND_AT_CP or SUCCESS
     and out is the content of fp at cp.
   """
-  ret, out = git_file.show(fp, cp)
+  # "show" expects the full path with respect to the repo root.
+  rel_fp = os.path.join(repo_lib.cwd(), fp)[1:]
+  ret, out = git_file.show(rel_fp, cp)
+
   if ret is git_file.FILE_NOT_FOUND_AT_CP:
     return (FILE_NOT_FOUND_AT_CP, None)
 
