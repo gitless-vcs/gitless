@@ -50,7 +50,7 @@ def run(main):
   except:
     pprint.err(
         'Oops...something went wrong (recall that Gitless is in beta). If you '
-        'want to give us a hand, report the bug at '
+        'want to help, report the bug at '
         'http://people.csail.mit.edu/sperezde/gitless/community.html and '
         'include the following in the email:\n\n%s\n\n%s' %
         (GL_VERSION, traceback.format_exc()))
