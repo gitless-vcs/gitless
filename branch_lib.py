@@ -7,9 +7,13 @@
 
 import os
 import re
+import shutil
 
 from gitpylib import branch as git_branch
+from gitpylib import common as git_common
+from gitpylib import file as git_file
 from gitpylib import stash as git_stash
+from gitpylib import status as git_status
 
 import sync_lib
 import remote_lib
@@ -102,9 +106,15 @@ def switch(name):
   Args:
     name: the name of the destination branch.
   """
-  git_stash.all(_stash_msg(current()))
+  current_b = current()
+  # Stash doesn't save assumed unchanged files, so we save which files are
+  # marked as assumed unchanged and unmark them. And when switching back we
+  # look at this info and re-mark them.
+  _unmark_au_files(current_b)
+  git_stash.all(_stash_msg(current_b))
   git_branch.checkout(name)
   git_stash.pop(_stash_msg(name))
+  _remark_au_files(name)
 
 
 def status(name):
@@ -201,3 +211,45 @@ def _upstream_file(branch, upstream_remote, upstream_branch):
   upstream_fn = 'GL_UPSTREAM_%s_%s_%s' % (
       branch, upstream_remote, upstream_branch)
   return os.path.join(repo_lib.gl_dir(), upstream_fn)
+
+
+def _unmark_au_files(branch):
+  """Saves the path of files marked as assumed unchanged and unmarks them.
+
+  To re-mark all files again use _remark_au_files(branch).
+
+  Args:
+    branch: the info will be stored under this branch name.
+  """
+  assumed_unchanged_fps = git_status.au_files()
+  if not assumed_unchanged_fps:
+    return
+
+  gl_dir = repo_lib.gl_dir()
+  f = open(os.path.join(gl_dir, 'GL_AU_%s' % branch), 'w')
+
+  repo_dir = git_common.repo_dir()
+  for fp in assumed_unchanged_fps:
+    f.write(fp + '\n')
+    git_file.not_assume_unchanged(os.path.join(repo_dir, fp))
+
+
+def _remark_au_files(branch):
+  """Re-marks files as assumed unchanged.
+
+  Args:
+    branch: the branch name under which the info is stored.
+  """
+  gl_dir = repo_lib.gl_dir()
+  au_info_fp = os.path.join(gl_dir, 'GL_AU_%s' % branch)
+  if not os.path.exists(au_info_fp):
+    return
+
+  f = open(au_info_fp, 'r')
+
+  repo_dir = git_common.repo_dir()
+  for fp in f:
+    fp = fp.strip()
+    git_file.assume_unchanged(os.path.join(repo_dir, fp))
+
+  os.remove(au_info_fp)
