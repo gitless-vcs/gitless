@@ -3,30 +3,20 @@ Gitless
 
 A version control system built on top of Git.
 
-More info and documentation @ <http://people.csail.mit.edu/sperezde/gitless>.
+More info, downloads and documentation @
+<http://people.csail.mit.edu/sperezde/gitless>.
 
 
-Installing
-----------
+Coding
+------
 
 ### Requirements
 
 * You need to have Python 2.7.0+ installed.
 * You need to have a rather recent Git version, 1.7.12+ should be fine.
+* You need to have gitpylib installed (see
+  <http://github.com/spderosso/gitpylib>)
 
-### Instructions
-
-To build from source do 'make'. This will create a bin folder with compiled
-python files as well as a bash wrapper for the 'gl' command. Using this instead
-of the .py script directly should be faster. Once you have the bin folder, you
-can add this folder to your PATH variable or you can do 'sudo make install' and
-this will install Gitless in /usr/local/gitless and create a symlink in
-/usr/local/bin (make uninstall undoes this operation, make clean removes the
-bin directory).
-
-
-Coding
-------
 
 ### Setting up the environment
 
@@ -34,6 +24,8 @@ You can you can do 'make debug-install' to set up the environment for rapidly
 trying out your changes. This will create a symlink to the 'gl' python script in
 /usr/local/bin. You can then execute the 'gl' command by just typing 'gl' in
 your shell. You only need to execute this script once.
+
+You'll need to have the gitpylib installed.
 
 
 ### General structure of the code
