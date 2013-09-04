@@ -6,8 +6,8 @@
 
 import sys
 
-import branch_lib
-import sync_lib
+from gitless.core import branch as branch_lib
+from gitless.core import sync as sync_lib
 
 import cmd
 import pprint

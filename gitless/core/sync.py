@@ -13,9 +13,9 @@ from gitpylib import status as git_status
 from gitpylib import sync as git_sync
 from gitpylib import remote as git_remote
 
-import branch_lib
-import remote_lib
-import repo_lib
+import branch as branch_lib
+import remote as remote_lib
+import repo as repo_lib
 
 
 SUCCESS = 1

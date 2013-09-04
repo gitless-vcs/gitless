@@ -8,8 +8,8 @@
 import os
 import subprocess
 
-import repo_lib
-import sync_lib
+from gitless.core import repo as repo_lib
+from gitless.core import sync as sync_lib
 
 import pprint
 

@@ -5,7 +5,7 @@
 """gl remote - Set the remote for the repo, get info about it."""
 
 
-import remote_lib
+from gitless.core import remote as remote_lib
 
 import cmd
 import pprint

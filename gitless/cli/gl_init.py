@@ -5,7 +5,7 @@
 """gl init - Create an empty repo or make a clone."""
 
 
-import repo_lib
+from gitless.core import repo as repo_lib
 
 import cmd
 import pprint

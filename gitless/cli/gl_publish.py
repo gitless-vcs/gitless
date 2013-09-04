@@ -5,7 +5,7 @@
 """gl publish - Publish commits upstream."""
 
 
-import sync_lib
+from gitless.core import sync as sync_lib
 
 import cmd
 import pprint

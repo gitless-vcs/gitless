@@ -1,11 +1,16 @@
 Gitless's Release Notes
 =======================
 
- - kendall.0.2
----------------
+4th Sept 2013 - kendall.0.2
+---------------------------
 
-* New interface for checkout (now the commit point is passed with the -cp flag;
-  defaults to HEAD).
+* Support for files with spaces.
+* General improvements in the gl checkout command:
+    * Now the commit point is passed with the -cp flag (defaults to HEAD).
+    * Fixed bug that made it impossible to checkout a file without specifying
+      its full repo path.
+    * Ask for confirmation by the user if there are uncommitted changes that
+      could be overwritten by checkout.
 * General improvements in the gl diff command:
     * Fixed bug that made it impossible to diff a deleted file.
     * Now if no arguments are given all tracked files with modifications are
@@ -13,6 +18,7 @@ Gitless's Release Notes
 * Removed the gl rm command.
 * Now gl is the only command (in retrospect, having a "suite of commands" was
   over-engineering, code is much simpler now).
+* Massive re-org of project.
 
 
 16th July 2013 - kendall.0.1

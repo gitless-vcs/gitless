@@ -10,7 +10,7 @@ import os
 from gitpylib import file as git_file
 from gitpylib import status as git_status
 
-import repo_lib
+import repo as repo_lib
 
 
 SUCCESS = 1

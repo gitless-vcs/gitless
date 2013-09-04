@@ -5,7 +5,7 @@
 """gl resolve - Mark a file with conflicts as resolved."""
 
 
-import sync_lib
+from gitless.core import sync as sync_lib
 
 import cmd
 import pprint

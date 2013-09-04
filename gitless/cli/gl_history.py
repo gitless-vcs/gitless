@@ -5,7 +5,7 @@
 """gl history - Show commit history."""
 
 
-import history_lib
+from gitless.core import history as history_lib
 
 import cmd
 

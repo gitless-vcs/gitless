@@ -5,7 +5,7 @@
 import sys
 import traceback
 
-import repo_lib
+from gitless.core import repo as repo_lib
 
 import pprint
 

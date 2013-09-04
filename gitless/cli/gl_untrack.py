@@ -5,7 +5,7 @@
 """gl untrack - Stop tracking changes to files."""
 
 
-import file_lib
+from gitless.core import file as file_lib
 
 import cmd
 import pprint

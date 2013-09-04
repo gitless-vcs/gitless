@@ -15,9 +15,9 @@ from gitpylib import file as git_file
 from gitpylib import stash as git_stash
 from gitpylib import status as git_status
 
-import sync_lib
-import remote_lib
-import repo_lib
+import sync as sync_lib
+import remote as remote_lib
+import repo as repo_lib
 
 
 SUCCESS = 1
