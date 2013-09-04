@@ -5,7 +5,7 @@ from setuptools import setup
 
 setup(
     name='gitless',
-    version='0.2',
+    version='0.2.1',
     description='A version control system built on top of Git',
     long_description=open('README.md').read(),
     author='Santiago Perez De Rosso',

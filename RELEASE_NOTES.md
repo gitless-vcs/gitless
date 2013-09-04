@@ -1,6 +1,12 @@
 Gitless's Release Notes
 =======================
 
+4th Sept 2013 - kendall.0.2.1
+-----------------------------
+
+* Bug fixes.
+
+
 4th Sept 2013 - kendall.0.2
 ---------------------------
 
