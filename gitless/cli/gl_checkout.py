@@ -9,7 +9,6 @@ import os
 
 from gitless.core import file as file_lib
 
-import cmd
 import pprint
 
 
@@ -27,15 +26,13 @@ def parser(subparsers):
 
 
 def main(args):
-  cmd.check_gl_dir()
-
-  errors_found = False
+  success = True
 
   for fp in args.files:
     if not _checkout_file(fp, args.cp):
-      errors_found = True
+      success = False
 
-  return cmd.ERRORS_FOUND if errors_found else cmd.SUCCESS
+  return success
 
 
 def _checkout_file(fp, cp):

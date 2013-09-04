@@ -7,7 +7,6 @@
 
 from gitless.core import remote as remote_lib
 
-import cmd
 import pprint
 
 
@@ -40,7 +39,7 @@ def _do_add(args):
   rn = args.remote_name
   ru = args.remote_url
   ret, info = remote_lib.add(rn, ru)
-  errors_found = False
+  success = True
 
   if ret is remote_lib.REMOTE_ALREADY_SET:
     pprint.err('There\'s already a remote set with that name')
@@ -49,7 +48,7 @@ def _do_add(args):
     pprint.err_exp(
         'if you want to change the url for remote %s do gl rm %s, and then gl '
         'add %s new_url' % (rn, rn, rn))
-    errors_found = True
+    success = False
   elif ret is remote_lib.SUCCESS:
     pprint.msg('Remote added successfully')
     pprint.exp(
@@ -63,25 +62,26 @@ def _do_add(args):
   else:
     raise Exception('Unrecognized ret code %s' % ret)
 
-  return errors_found
+  return success
 
 
 def _do_show(args):
   rn = args.remote_name
-  errors_found = False
+
+  success = True
 
   if rn:
     ret, info = remote_lib.info(rn)
     if ret is remote_lib.REMOTE_NOT_FOUND:
       pprint.err('Remote %s not found' % rn)
       pprint.err_exp('to list all existing remotes do gl remote show')
-      errors_found = True
+      success = False
     elif ret is remote_lib.REMOTE_UNREACHABLE:
       pprint.err('Couldn\'t reach remote %s' % rn)
       pprint.err_exp('make sure that you are still connected to the internet')
       pprint.err_exp(
           'make sure that you still have permissions to access the remote')
-      errors_found = True
+      success = False
     elif ret is remote_lib.SUCCESS:
       pprint.msg(info)
     else:
@@ -101,21 +101,21 @@ def _do_show(args):
       for rn in remote_lib.list():
         pprint.item(rn)
 
-  return errors_found
+  return success
 
 
 def _do_rm(args):
   rn = args.remote_name
   ret = remote_lib.rm(rn)
-  errors_found = False
+  success = True
 
   if ret is remote_lib.REMOTE_NOT_FOUND:
     pprint.err('Remote %s not found' % rn)
     pprint.err_exp('to list all existing remotes do gl remote show')
-    errors_found = True
+    success = False
   elif ret is remote_lib.SUCCESS:
     pprint.msg('Remote %s removed' % rn)
   else:
     raise Exception('Unrecognized ret code %s' % ret)
 
-  return errors_found
+  return success

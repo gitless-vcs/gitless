@@ -7,7 +7,6 @@
 
 from gitless.core import file as file_lib
 
-import cmd
 import pprint
 
 
@@ -21,27 +20,26 @@ def parser(subparsers):
 
 
 def main(args):
-  cmd.check_gl_dir()
-  errors_found = False
+  success = True
 
   for fp in args.files:
     ret = file_lib.untrack(fp)
     if ret is file_lib.FILE_NOT_FOUND:
       pprint.err('Can\'t untrack a non-existent file: %s' % fp)
-      errors_found = True
+      success = False
     elif ret is file_lib.FILE_ALREADY_UNTRACKED:
       pprint.err('File %s is already untracked' % fp)
-      errors_found = True
+      success = False
     elif ret is file_lib.FILE_IS_IGNORED:
       pprint.err('File %s is ignored. Nothing to untrack' % fp)
       pprint.err_exp('edit the .gitignore file to stop ignoring file %s' % fp)
-      errors_found = True
+      success = False
     elif ret is file_lib.SUCCESS:
       pprint.msg('File %s is now an untracked file' % fp)
     elif ret is file_lib.FILE_IN_CONFLICT:
       pprint.err('Can\'t untrack a file in conflict')
-      errors_found = True
+      success = False
     else:
       raise Exception('Unexpected return code')
 
-  return cmd.ERRORS_FOUND if errors_found else cmd.SUCCESS
+  return success

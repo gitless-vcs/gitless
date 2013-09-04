@@ -8,7 +8,6 @@
 from gitless.core import branch as branch_lib
 from gitless.core import sync as sync_lib
 
-import cmd
 import pprint
 
 
@@ -28,33 +27,31 @@ def parser(subparsers):
 
 
 def main(args):
-  cmd.check_gl_dir()
-
   if args.branch:
     exists, is_current, unused_tracks = branch_lib.status(args.branch)
     if exists and is_current:
       pprint.err(
           'You are already in branch %s. No need to switch.' % args.branch)
       pprint.err_exp('to list existing branches do gl branch')
-      return cmd.ERRORS_FOUND
+      return False
 
     if sync_lib.rebase_in_progress():
       pprint.err(
           'You can\'t switch branches when a rebase is in progress (yet '
           '-- this will be implemented in the future)')
-      return cmd.ERRORS_FOUND
+      return False
 
     if sync_lib.merge_in_progress():
       pprint.err(
           'You can\'t switch branches when merge is in progress (yet '
           '-- this will be implemented in the future)')
-      return cmd.ERRORS_FOUND
+      return False
 
     if not exists:
       ret = branch_lib.create(args.branch)
       if ret is branch_lib.INVALID_NAME:
         pprint.err('Invalid branch name')
-        return cmd.ERRORS_FOUND
+        return False
       elif ret is branch_lib.SUCCESS:
         pprint.msg('Created new branch %s' % args.branch)
       else:
@@ -63,15 +60,13 @@ def main(args):
     branch_lib.switch(args.branch)
     pprint.msg('Switched to branch %s' % args.branch)
   elif args.delete_b:
-    if not _do_delete(args.delete_b):
-      return cmd.ERRORS_FOUND
+    return _do_delete(args.delete_b)
   elif args.upstream_b:
-    if not _do_set_upstream(args.upstream_b):
-      return cmd.ERRORS_FOUND
+    return _do_set_upstream(args.upstream_b)
   else:
     _do_list()
 
-  return cmd.SUCCESS
+  return True
 
 
 def _do_list():

@@ -11,7 +11,6 @@ from gitless.core import branch as branch_lib
 from gitless.core import repo as repo_lib
 from gitless.core import sync as sync_lib
 
-import cmd
 import pprint
 
 
@@ -78,6 +77,8 @@ def main(args):
         else:
           s = ' (exists in local repo but not in working directory)'
       pprint.item(fp, opt_msg=s)
+
+  return True
 
 
 def _print_merge_exp():

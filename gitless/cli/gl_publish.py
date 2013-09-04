@@ -7,7 +7,6 @@
 
 from gitless.core import sync as sync_lib
 
-import cmd
 import pprint
 
 
@@ -19,9 +18,8 @@ def parser(subparsers):
 
 
 def main(args):
-  cmd.check_gl_dir()
   ret, out = sync_lib.publish()
-  errors_found = False
+  success = True
 
   if ret is sync_lib.SUCCESS:
     print out
@@ -30,16 +28,16 @@ def main(args):
     pprint.err_exp(
         'to set an upstream branch do gl branch --set-upstream '
         'remote/remote_branch')
-    errors_found = True
+    success = False
   elif ret is sync_lib.NOTHING_TO_PUSH:
     pprint.err('No commits to publish')
-    errors_found = True
+    success = False
   elif ret is sync_lib.PUSH_FAIL:
     pprint.err(
         'Publish failed, there are conflicting changes you need to converge')
     pprint.err_exp('use gl rebase or gl merge to converge the upstream changes')
-    errors_found = True
+    success = False
   else:
     raise Exception('Unrecognized ret code %s' % ret)
 
-  return cmd.ERRORS_FOUND if errors_found else cmd.SUCCESS
+  return success

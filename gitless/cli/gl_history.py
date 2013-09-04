@@ -7,8 +7,6 @@
 
 from gitless.core import history as history_lib
 
-import cmd
-
 
 def parser(subparsers):
   """Adds the history parser to the given subparsers object."""
@@ -21,6 +19,5 @@ def parser(subparsers):
 
 
 def main(args):
-  cmd.check_gl_dir()
   history_lib.show(verbose=args.verbose)
-  return cmd.SUCCESS
+  return True

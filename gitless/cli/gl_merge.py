@@ -9,7 +9,6 @@ import sys
 from gitless.core import branch as branch_lib
 from gitless.core import sync as sync_lib
 
-import cmd
 import pprint
 
 
@@ -26,17 +25,15 @@ def parser(subparsers):
 
 
 def main(args):
-  cmd.check_gl_dir()
-
   if args.abort:
     if sync_lib.abort_merge() is sync_lib.MERGE_NOT_IN_PROGRESS:
       pprint.err('No merge in progress, nothing to abort')
       pprint.err_exp(
           'To merge divergent changes of branch b onto the current branch do gl'
           ' merge <b>')
-      return cmd.ERRORS_FOUND
+      return False
     pprint.msg('Merge aborted successfully')
-    return cmd.SUCCESS
+    return True
 
   if not args.src:
     # We use the upstream branch, if any.
@@ -46,13 +43,13 @@ def main(args):
       pprint.err(
           'No src branch specified and the current branch has no upstream '
           'branch set')
-      return cmd.ERRORS_FOUND
+      return False
 
     if branch_lib.has_unpushed_upstream(current, ur, ub):
       pprint.err(
           'Current branch has an upstream set but it hasn\'t been published '
           'yet')
-      return cmd.ERRORS_FOUND
+      return False
 
     # If we reached this point, it is safe to use the upstream branch to get
     # changes from.
@@ -65,31 +62,31 @@ def main(args):
   if ret is sync_lib.SRC_NOT_FOUND:
     pprint.err('Branch %s not found' % args.src)
     pprint.err_exp('do gl branch to list all existing branches')
-    return cmd.ERRORS_FOUND
+    return False
   elif ret is sync_lib.SRC_IS_CURRENT_BRANCH:
     pprint.err('Branch %s is the current branch' % args.src)
     pprint.err_exp(
         'to merge branch %s onto another branch b, do gl branch b, and gl merge'
         ' %s from there' % (args.src, args.src))
-    return cmd.ERRORS_FOUND
+    return False
   elif ret is sync_lib.REMOTE_NOT_FOUND:
     pprint.err('The remote of %s doesn\'t exist' % args.src)
     pprint.err_exp('to list available remotes do gl remote show')
     pprint.err_exp(
         'to add a new remote use gl remote add remote_name remote_url')
-    return cmd.ERRORS_FOUND
+    return False
   elif ret is sync_lib.REMOTE_UNREACHABLE:
     pprint.err('Can\'t reach the remote')
     pprint.err_exp('make sure that you are still connected to the internet')
     pprint.err_exp('make sure you still have permissions to access the remote')
-    return cmd.ERRORS_FOUND
+    return False
   elif ret is sync_lib.REMOTE_BRANCH_NOT_FOUND:
     pprint.err('The branch doesn\'t exist in the remote')
-    return cmd.ERRORS_FOUND
+    return False
   elif ret is sync_lib.NOTHING_TO_MERGE:
     pprint.err(
         'No divergent changes to merge from %s' % args.src)
-    return cmd.ERRORS_FOUND
+    return False
   elif ret is sync_lib.LOCAL_CHANGES_WOULD_BE_LOST:
     pprint.err(
         'Merge was aborted because your local changes to the following files '
@@ -100,7 +97,7 @@ def main(args):
     for fp in out:
       pprint.err_item(fp)
 
-    return cmd.ERRORS_FOUND
+    return False
   elif ret is sync_lib.CONFLICT:
     pprint.err(
         'Merge was aborted becase there are conflicts you need to resolve')
@@ -111,8 +108,8 @@ def main(args):
     pprint.err_exp('use gl resolve <f> to mark file f as resolved')
     pprint.err_exp(
         'once you solved all conflicts do gl commit to complete the merge')
-    return cmd.ERRORS_FOUND
+    return False
   elif ret is sync_lib.SUCCESS:
     pprint.msg('Merged succeeded')
 
-  return cmd.SUCCESS
+  return True

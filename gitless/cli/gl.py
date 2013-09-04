@@ -1,5 +1,3 @@
-#!/usr/bin/env python2.7
-
 # Gitless - a version control system built on top of Git.
 # Copyright (c) 2013  Santiago Perez De Rosso.
 # Licensed under GNU GPL, version 2.
@@ -7,12 +5,11 @@
 """gl - Main Gitless's command. Dispatcher to the other cmds."""
 
 
-import check_pyversion
-
 import argparse
-import sys
+import traceback
 
-import cmd
+from gitless.core import repo as repo_lib
+
 import gl_track
 import gl_untrack
 import gl_status
@@ -30,9 +27,18 @@ import gl_history
 import pprint
 
 
+SUCCESS = 0
+ERRORS_FOUND = 1
+# 2 is used by argparse to indicate cmd syntax errors.
+INTERNAL_ERROR = 3
+NOT_IN_GL_REPO = 4
+
+GL_VERSION = 'kendall.0.2'
+
+
 def main():
   parser = argparse.ArgumentParser()
-  subparsers = parser.add_subparsers()
+  subparsers = parser.add_subparsers(dest='subcmd_name')
 
   sub_cmds = {
       gl_track, gl_untrack, gl_status, gl_diff, gl_commit, gl_branch,
@@ -42,8 +48,25 @@ def main():
     sub_cmd.parser(subparsers)
 
   args = parser.parse_args()
-  return args.func(args)
+  if args.subcmd_name != 'init' and not repo_lib.gl_dir():
+    pprint.err(
+        'You are not in a Gitless repository. To make this directory a '
+        'repository do gl init. For cloning existing repositories do gl init '
+        'repo.')
+    return NOT_IN_GL_REPO
 
-
-if __name__ == '__main__':
-  cmd.run(main)
+  try:
+    return SUCCESS if args.func(args) else ERRORS_FOUND
+  except KeyboardInterrupt:
+    # The user pressed Crl-c.
+    print '\n'
+    pprint.msg('Keyboard interrupt detected, operation aborted')
+    return SUCCESS
+  except:
+    pprint.err(
+        'Oops...something went wrong (recall that Gitless is in beta). If you '
+        'want to help, report the bug at '
+        'http://people.csail.mit.edu/sperezde/gitless/community.html and '
+        'include the following in the email:\n\n%s\n\n%s' %
+        (GL_VERSION, traceback.format_exc()))
+    return INTERNAL_ERROR

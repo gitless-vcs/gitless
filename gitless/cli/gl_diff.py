@@ -12,7 +12,6 @@ import tempfile
 from gitless.core import file as file_lib
 from gitless.core import repo as repo_lib
 
-import cmd
 import pprint
 
 
@@ -26,32 +25,30 @@ def parser(subparsers):
 
 
 def main(args):
-  cmd.check_gl_dir()
-  errors_found = False
-
   if not args.files:
     tracked_mod_list = repo_lib.status()[0]
     if not tracked_mod_list:
       pprint.msg(
           'Nothing to diff (there are no tracked files with modifications).')
-      return cmd.SUCCESS
+      return True
 
     files = [fp for fp, r, s, t in tracked_mod_list]
   else:
     files = args.files
 
+  success = True
   for fp in files:
     ret, out = file_lib.diff(fp)
 
     if ret is file_lib.FILE_NOT_FOUND:
       pprint.err('Can\'t diff a non-existent file: %s' % fp)
-      errors_found = True
+      success = False
     elif ret is file_lib.FILE_IS_UNTRACKED:
       pprint.err(
           'You tried to diff untracked file %s. It\'s probably a mistake. If '
           'you really care about changes in this file you should start '
           'tracking changes to it with gl track %s' % (fp, fp))
-      errors_found = True
+      success = False
     elif ret is file_lib.SUCCESS:
       tf = tempfile.NamedTemporaryFile(delete=False)
       pprint.msg(
@@ -71,4 +68,4 @@ def main(args):
     else:
       raise Exception('Unrecognized ret code %s' % ret)
 
-  return cmd.ERRORS_FOUND if errors_found else cmd.SUCCESS
+  return success

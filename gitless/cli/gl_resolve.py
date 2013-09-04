@@ -7,7 +7,6 @@
 
 from gitless.core import sync as sync_lib
 
-import cmd
 import pprint
 
 
@@ -20,24 +19,23 @@ def parser(subparsers):
 
 
 def main(args):
-  cmd.check_gl_dir()
-  errors_found = False
+  success = True
 
   for fp in args.files:
     ret = sync_lib.resolve(fp)
     if ret is sync_lib.FILE_NOT_FOUND:
       pprint.err('Can\'t mark as resolved a non-existent file: %s' % fp)
-      errors_found = True
+      success = False
     elif ret is sync_lib.FILE_NOT_IN_CONFLICT:
       pprint.err('File %s has no conflicts' % fp)
-      errors_found = True
+      success = False
     elif ret is sync_lib.FILE_ALREADY_RESOLVED:
       pprint.err(
           'Nothing to resolve. File %s was already marked as resolved' % fp)
-      errors_found = True
+      success = False
     elif ret is sync_lib.SUCCESS:
       pprint.msg('File %s has been marked as resolved' % fp)
     else:
       raise Exception('Unrecognized ret code %s' % ret)
 
-  return cmd.ERRORS_FOUND if errors_found else cmd.SUCCESS
+  return success

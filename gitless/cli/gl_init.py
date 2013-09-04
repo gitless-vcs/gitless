@@ -7,7 +7,6 @@
 
 from gitless.core import repo as repo_lib
 
-import cmd
 import pprint
 
 
@@ -24,8 +23,6 @@ def parser(subparsers):
 
 
 def main(args):
-  errors_found = False
-
   if args.repo:
     ret = repo_lib.init_from(args.repo)
   else:
@@ -38,9 +35,9 @@ def main(args):
   #  return cmd.ERRORS_FOUND
   if ret is repo_lib.NOTHING_TO_INIT:
     pprint.err('Nothing to init, this directory is already a Gitless\'s repo')
-    return cmd.ERRORS_FOUND
+    return False
   elif ret is repo_lib.SUCCESS:
     pprint.msg('Gitless\'s local repository created successfully')
-    return cmd.SUCCESS
+    return True
   else:
     raise Exception('Unexpected return code %s' % ret)

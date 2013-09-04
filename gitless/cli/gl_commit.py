@@ -12,7 +12,6 @@ from gitless.core import repo as repo_lib
 from gitless.core import sync as sync_lib
 
 import commit_dialog
-import cmd
 import pprint
 
 
@@ -40,7 +39,6 @@ def parser(subparsers):
 
 
 def main(args):
-  cmd.check_gl_dir()
   # TODO(sperezde): re-think this worflow a bit.
 
   only_files = frozenset(args.only_files)
@@ -48,14 +46,14 @@ def main(args):
   inc_files = frozenset(args.inc_files) if args.inc_files else []
 
   if not _valid_input(only_files, exc_files, inc_files):
-    return cmd.ERRORS_FOUND
+    return False
 
   commit_files = _compute_fs(only_files, exc_files, inc_files)
 
   if not commit_files:
     pprint.err('Commit aborted')
     pprint.err('No files to commit')
-    return cmd.ERRORS_FOUND
+    return False
 
   msg = args.m
   if not msg:
@@ -64,13 +62,13 @@ def main(args):
     if not msg.strip() and not sync_lib.rebase_in_progress():
       pprint.err('Commit aborted')
       pprint.err('No commit message provided')
-      return cmd.ERRORS_FOUND
+      return False
     if not commit_files:
       pprint.err('Commit aborted')
       pprint.err('No files to commit')
-      return cmd.ERRORS_FOUND
+      return False
     if not _valid_input(commit_files, [], []):
-      return cmd.ERRORS_FOUND
+      return False
 
   _auto_track(commit_files)
   ret, out = sync_lib.commit(commit_files, msg)
@@ -85,18 +83,18 @@ def main(args):
         'conflicts')
     for f in out:
       pprint.err_item(f)
-    return cmd.ERRORS_FOUND
+    return False
   elif ret is sync_lib.RESOLVED_FILES_NOT_IN_COMMIT:
     pprint.err('Commit aborted')
     pprint.err('You have resolved files that were not included in the commit:')
     pprint.err_exp('these must be part of the commit')
     for f in out:
       pprint.err_item(f)
-    return cmd.ERRORS_FOUND
+    return False
   else:
     raise Exception('Unexpected return code %s' % ret)
 
-  return cmd.SUCCESS
+  return True
 
 
 def _valid_input(only_files, exc_files, inc_files):
