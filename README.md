@@ -25,8 +25,6 @@ trying out your changes. This will create a symlink to the 'gl' python script in
 /usr/local/bin. You can then execute the 'gl' command by just typing 'gl' in
 your shell. You only need to execute this script once.
 
-You'll need to have the gitpylib installed.
-
 
 ### General structure of the code
 
