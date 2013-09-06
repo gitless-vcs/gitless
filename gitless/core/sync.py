@@ -159,10 +159,10 @@ def _rebase_file():
 
 
 def _valid_branch(b):
-  exists, is_current, unused_tracks = branch_lib.status(b)
-  if not exists:
+  b_st = branch_lib.status(b)
+  if not b_st.exists:
     return (False, SRC_NOT_FOUND)
-  if exists and is_current:
+  if b_st.exists and b_st.is_current:
     return (False, SRC_IS_CURRENT_BRANCH)
   return (True, None)
 
@@ -251,13 +251,14 @@ def is_resolved_file(fp):
 
 def publish():
   current_b = branch_lib.current()
-  remote, remote_b = branch_lib.upstream(current_b)
-  if remote is None:
+  b_st = branch_lib.status(current_b)
+  if b_st.upstream is None:
     return (UPSTREAM_NOT_SET, None)
-  ret, out = git_sync.push(current_b, remote, remote_b)
+  ret, out = git_sync.push(current_b, *b_st.upstream.split('/'))
   if ret is git_sync.SUCCESS:
-    if branch_lib.has_unpushed_upstream(current_b, remote, remote_b):
-      branch_lib.set_upstream(remote, remote_b)
+    if not b_st.upstream_exists:
+      # After the push the upstream exists. So we set it.
+      branch_lib.set_upstream(b_st.upstream)
     return (SUCCESS, out)
   elif ret is git_sync.NOTHING_TO_PUSH:
     return (NOTHING_TO_PUSH, None)

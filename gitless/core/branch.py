@@ -5,6 +5,7 @@
 """Gitless's branching lib."""
 
 
+import collections
 import os
 import re
 import shutil
@@ -61,24 +62,22 @@ def delete(name):
   git_stash.drop(_stash_msg(name))
 
 
-def set_upstream(upstream_remote, upstream_branch):
+def set_upstream(upstream):
   """Sets the upstream branch of the current branch.
 
   Args:
-    upstream_remote: the upstream remote.
-    upstream_branch: the upstream branch.
+    upstreame: the upstream branch in the form remote/branch.
 
   Returns:
     REMOTE_NOT_FOUND if the remote hasn't been defined yet or SUCCESS if the
     operation finished successfully.
   """
+  upstream_remote, upstream_branch = upstream.split('/')
   if not remote_lib.is_set(upstream_remote):
     return REMOTE_NOT_FOUND
 
-  ub = '/'.join([upstream_remote, upstream_branch])
-
   current_b = current()
-  ret = git_branch.set_upstream(current_b, ub)
+  ret = git_branch.set_upstream(current_b, upstream)
   uf = _upstream_file(current_b, upstream_remote, upstream_branch)
   if os.path.exists(uf):
     os.remove(uf)
@@ -124,11 +123,21 @@ def status(name):
     name: the name of the branch to status.
 
   Returns:
-    A tuple (exists, is_current, tracks) where exists and is_current are boolean
-    values and tracks is a string representing the remote branch it tracks (in
-    the format 'remote_name/remote_branch') or None if it is a local branch.
+    a named tuple (exists, is_current, upstream, upstream_exists) where exists,
+    is_current and upstream_exists are boolean values and upstream is a string
+    representing its upstream branch (in the form 'remote_name/remote_branch')
+    or None if it has no upstream set.
   """
-  return git_branch.status(name)
+  BranchStatus = collections.namedtuple(
+      'BranchStatus', ['exists', 'is_current', 'upstream', 'upstream_exists'])
+  exists, is_current, upstream = git_branch.status(name)
+  upstream_exists = True
+  if not upstream:
+    # We have to check if the branch has an unpushed upstream.
+    upstream = _unpushed_upstream(name)
+    upstream_exists = False
+  
+  return BranchStatus(exists, is_current, upstream, upstream_exists)
 
 
 def current():
@@ -144,59 +153,33 @@ def status_all():
   """Get the status of all existing branches.
 
   Returns:
-    Tuples of the form (name, is_current, upstream, upstream_in_remote).
+    named tuples of the form (name, is_current, upstream, upstream_exists).
     upstream is in the format 'remote_name/remote_branch'.
   """
+  BranchStatus = collections.namedtuple(
+      'b_status', ['name', 'is_current', 'upstream', 'upstream_exists'])
+
   rebase_in_progress = sync_lib.rebase_in_progress()
   if rebase_in_progress:
     current = sync_lib.rebase_info()[0]
 
   ret = []
-  for name, is_current, tracks in git_branch.status_all():
+  for name, is_current, upstream in git_branch.status_all():
     if name == '(no branch)':
       continue
 
-    new_current = is_current
-    new_tracks = tracks
-    upstream_in_remote = True
     if rebase_in_progress and name == current:
-        new_current = True
-    if not tracks:
-      # We check if the branch has an unpushed upstream
-      ur, ub = upstream(name)
-      if ur:
-        new_tracks = '/'.join([ur, ub])
-        upstream_in_remote = False
+      is_current = is_current
 
-    ret.append((name, new_current, new_tracks, upstream_in_remote))
+    upstream_exists = True
+    if not upstream:
+      # We check if the branch has an unpushed upstream
+      upstream = _unpushed_upstream(name)
+      upstream_exists = False
+
+    ret.append(BranchStatus(name, is_current, upstream, upstream_exists))
 
   return ret
-
-
-def has_unpushed_upstream(branch, upstream_remote, upstream_branch):
-  """True if branch has upstream_remote/upstream_branch set but unpushed."""
-  return os.path.exists(
-      _upstream_file(branch, upstream_remote, upstream_branch))
-
-
-def upstream(branch):
-  """Gets the upstream branch of the given branch.
-
-  Args:
-    branch: the branch whose upstream will be returned.
-
-  Returns:
-    a pair (upstream_remote, upstream_branch) or None if the given branch has no
-    upstream set.
-  """
-  exists, is_current, tracks = status(branch)
-  if tracks:
-    return tracks.split('/')
-  for f in os.listdir(repo_lib.gl_dir()):
-    result = re.match('GL_UPSTREAM_%s_(\w+)_(\w+)' % branch, f)
-    if result:
-      return (result.group(1), result.group(2))
-  return (None, None)
 
 
 # Private methods.
@@ -205,6 +188,15 @@ def upstream(branch):
 def _stash_msg(name):
   """Computes the stash msg to use for stashing changes in branch name."""
   return '---gl-%s---' % name
+
+
+def _unpushed_upstream(name):
+  """Returns the unpushed upstream or None."""
+  for f in os.listdir(repo_lib.gl_dir()):
+    result = re.match('GL_UPSTREAM_%s_(\w+)_(\w+)' % name, f)
+    if result:
+      return '/'.join([result.group(1), result.group(2)])
+  return None
 
 
 def _upstream_file(branch, upstream_remote, upstream_branch):
