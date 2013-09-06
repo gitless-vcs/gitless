@@ -47,7 +47,8 @@ def _checkout_file(fp, cp):
   conf_msg = (
       'You have uncomitted changes in %s that could be overwritten by the '
       'checkout' % fp)
-  if file_lib.is_tracked_modified(fp) and not pprint.conf_dialog(conf_msg):
+  f = file_lib.status(fp)
+  if f.type == TRACKED and f.modified and not pprint.conf_dialog(conf_msg):
     pprint.err('Checkout aborted')
     return False
 

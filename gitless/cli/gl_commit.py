@@ -81,14 +81,14 @@ def main(args):
         'use gl resolve <f> to mark file f as resolved once you fixed the '
         'conflicts')
     for f in out:
-      pprint.err_item(f)
+      pprint.err_item(f.fp)
     return False
   elif ret is sync_lib.RESOLVED_FILES_NOT_IN_COMMIT:
     pprint.err('Commit aborted')
     pprint.err('You have resolved files that were not included in the commit:')
     pprint.err_exp('these must be part of the commit')
     for f in out:
-      pprint.err_item(f)
+      pprint.err_item(f.fp)
     return False
   else:
     raise Exception('Unexpected return code %s' % ret)
@@ -119,40 +119,43 @@ def _valid_input(only_files, exc_files, inc_files):
 
   ret = True
   err = []
-  for fp in only_files:
-    if not os.path.exists(fp) and not file_lib.is_deleted(fp):
+  only_files = [file_lib.status(fp) for fp in only_files]
+  for f in only_files:
+    if f == file_lib.FILE_NOT_FOUND:
       err.append('File %s doesn\'t exist' % fp)
       ret = False
-    elif file_lib.is_tracked(fp) and not file_lib.is_tracked_modified(fp):
+    elif f.type == file_lib.TRACKED and not f.modified:
       err.append(
           'File %s is a tracked file but has no modifications' % fp)
       ret = False
 
-  for fp in exc_files:
+  exc_files = [file_lib.status(fp) for fp in exc_files]
+  for f in exc_files:
     # We check that the files to be excluded are existing tracked files.
-    if not os.path.exists(fp) and not file_lib.is_deleted(fp):
+    if f == file_lib.FILE_NOT_FOUND:
       err.append('File %s doesn\'t exist' % fp)
       ret = False
-    elif not file_lib.is_tracked(fp):
+    elif f.type != file_lib.TRACKED:
       err.append(
           'File %s, listed to be excluded from commit, is not a tracked file' %
           fp)
       ret = False
-    elif not file_lib.is_tracked_modified(fp):
+    elif f.type == file_lib.TRACKED and not f.modified:
       err.append(
           'File %s, listed to be excluded from commit, is a tracked file but '
           'has no modifications' % fp)
       ret = False
-    elif file_lib.is_resolved_file(fp):
+    elif f.resolved:
       err.append('You can\'t exclude a file that has been resolved')
       ret = False
 
-  for fp in inc_files:
+  inc_files = [file_lib.status(fp) for fp in inc_files]
+  for f in inc_files:
     # We check that the files to be included are existing untracked files.
-    if not os.path.exists(fp) and not file_lib.is_deleted(fp):
+    if f == file_lib.FILE_NOT_FOUND:
       err.append('File %s doesn\'t exist' % fp)
       ret = False
-    elif file_lib.is_tracked(fp):
+    elif f.type != file_lib.UNTRACKED:
       err.append(
           'File %s, listed to be included in the commit, is not a untracked '
           'file' % fp)
@@ -195,6 +198,7 @@ def _compute_fs(only_files, exc_files, inc_files):
 
 def _auto_track(files):
   """Tracks those untracked files in the list."""
+  files = [file_lib.status(fp) for fp in files]
   for f in files:
-    if not file_lib.is_tracked(f):
+    if f.type == file_lib.UNTRACKED:
       file_lib.track(f)

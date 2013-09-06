@@ -233,15 +233,19 @@ def commit(files, msg):
     # after the commit.
     # TODO(sperezde): actually implement what the comment above says ;)
     # TODO(sperezde): also need to do something with deletions?
-    unresolved = [f.fp for f in file_lib.status_all() if f.in_conflict]
+    unresolved = []
+    resolved = []
+    for f in file_lib.status_all():
+      if f.in_conflict:
+        unresolved.append(f)
+      elif f.resolved:
+        resolved.append(f)
+
     if unresolved:
       return (UNRESOLVED_CONFLICTS, unresolved)
     # We know that there are no pending conflicts to be resolved.
     # Let's check that all resolved files are in the commit.
-    resolved_not_in_ci = []
-    for resolved_f in file_lib.resolved_files():
-      if resolved_f not in files:
-        resolved_not_in_ci.append(resolved_f)
+    resolved_not_in_ci = [f for f in resolved if f.fp not in files]
     if resolved_not_in_ci:
       return (RESOLVED_FILES_NOT_IN_COMMIT, resolved_not_in_ci)
 
