@@ -14,6 +14,7 @@ from gitpylib import sync as git_sync
 from gitpylib import remote as git_remote
 
 import branch as branch_lib
+import file as file_lib
 import remote as remote_lib
 import repo as repo_lib
 
@@ -297,7 +298,7 @@ def commit(files, msg):
     # TODO(sperezde): actually implement what the comment above says ;)
     # TODO(sperezde): also need to do something with deletions?
     unresolved = []
-    for fp, exists_in_lr, exists_in_wd, in_conflict in repo_lib.status()[0]:
+    for fp, exists_in_lr, exists_in_wd, in_conflict in file_lib.status_all()[0]:
       if in_conflict:
         unresolved.append(fp)
 

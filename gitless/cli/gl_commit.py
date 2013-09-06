@@ -8,7 +8,6 @@
 import os
 
 from gitless.core import file as file_lib
-from gitless.core import repo as repo_lib
 from gitless.core import sync as sync_lib
 
 import commit_dialog
@@ -182,7 +181,7 @@ def _compute_fs(only_files, exc_files, inc_files):
   if only_files:
     ret = only_files
   else:
-    tracked_modified, unused_untracked = repo_lib.status()
+    tracked_modified, unused_untracked = file_lib.status_all()
     # TODO(sperezde): push the use of frozenset to the library.
     ret = frozenset(tm[0] for tm in tracked_modified)
     # TODO(sperezde): the following is a mega-hack, do it right.

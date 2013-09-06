@@ -194,6 +194,53 @@ def checkout(fp, cp):
   return (SUCCESS, out)
 
 
+def status_all():
+  """Gets the status of all files.
+
+  Returns:
+      A pair (tracked_mod_list, untracked_list) where
+      - tracked_mod_list: contains a tuple (fp, exists_in_lr, exists_in_wd,
+        in_conflict)
+      - untracked_list: contains a pair (fp, exists_in_lr, exists_in_wd).
+  """
+  tracked_mod_list = []
+  untracked_list = []
+  for (s, fp) in git_status.of_repo():
+    if s is git_status.TRACKED_UNMODIFIED:
+      # We don't return tracked unmodified files.
+      continue
+
+    if s is git_status.TRACKED_MODIFIED:
+      tracked_mod_list.append((fp, True, True, False))
+    elif s is git_status.STAGED:
+      tracked_mod_list.append((fp, False, True, False))
+    elif s is git_status.ASSUME_UNCHANGED:
+      untracked_list.append((fp, True, True))
+    elif s is git_status.DELETED:
+      tracked_mod_list.append((fp, True, False, False))
+    elif s is git_status.DELETED_STAGED:
+      git_file.unstage(fp)
+    elif s is git_status.DELETED_ASSUME_UNCHANGED:
+      untracked_list.append((fp, True, False))
+    elif s is git_status.IN_CONFLICT:
+      tracked_mod_list.append((fp, True, True, True))
+    elif s is git_status.IGNORED or s is git_status.IGNORED_STAGED:
+      # We don't return ignored files.
+      pass
+    elif s is git_status.MODIFIED_MODIFIED:
+      # The file was marked as resolved and then modified. To Gitless, this is
+      # just a regular tracked file.
+      tracked_mod_list.append((fp, True, True, False))
+    elif s is git_status.ADDED_MODIFIED:
+      # The file is a new file that was added and then modified. This can only
+      # happen if the user gl tracks a file and then modifies it.
+      tracked_mod_list.append((fp, False, True, False))
+    else:
+      untracked_list.append((fp, False, True))
+
+  return (tracked_mod_list, untracked_list)
+
+
 # Private methods.
 
 

@@ -10,7 +10,6 @@ import subprocess
 import tempfile
 
 from gitless.core import file as file_lib
-from gitless.core import repo as repo_lib
 
 import pprint
 
@@ -26,7 +25,7 @@ def parser(subparsers):
 
 def main(args):
   if not args.files:
-    tracked_mod_list = repo_lib.status()[0]
+    tracked_mod_list = file_lib.status_all()[0]
     if not tracked_mod_list:
       pprint.msg(
           'Nothing to diff (there are no tracked files with modifications).')

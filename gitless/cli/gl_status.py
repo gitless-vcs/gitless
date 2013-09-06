@@ -8,6 +8,7 @@
 import os
 
 from gitless.core import branch as branch_lib
+from gitless.core import file as file_lib
 from gitless.core import repo as repo_lib
 from gitless.core import sync as sync_lib
 
@@ -35,7 +36,7 @@ def main(args):
     pprint.blank()
     _print_conflict_exp('rebase')
 
-  tracked_mod_list, untracked_list = repo_lib.status()
+  tracked_mod_list, untracked_list = file_lib.status_all()
   pprint.blank()
   _print_tracked_mod_files(tracked_mod_list)
   pprint.blank()
