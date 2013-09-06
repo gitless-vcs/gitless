@@ -36,7 +36,13 @@ def main(args):
     pprint.blank()
     _print_conflict_exp('rebase')
 
-  tracked_mod_list, untracked_list = file_lib.status_all()
+  tracked_mod_list = []
+  untracked_list = []
+  for f in file_lib.status_all():
+    if f.type == file_lib.TRACKED and f.modified:
+      tracked_mod_list.append(f)
+    elif f.type == file_lib.UNTRACKED:
+      untracked_list.append(f)
   pprint.blank()
   _print_tracked_mod_files(tracked_mod_list)
   pprint.blank()
@@ -57,18 +63,18 @@ def _print_tracked_mod_files(tracked_mod_list):
   if not tracked_mod_list:
     pprint.item('There are no tracked files with modifications to list')
   else:
-    for fp, exists_in_lr, exists_in_wd, in_conflict in tracked_mod_list:
+    for f in tracked_mod_list:
       str = ''
       # TODO(sperezde): sometimes files don't appear here if they were resolved.
-      if not exists_in_lr:
+      if not f.exists_in_lr:
         str = ' (new file)'
-      elif not exists_in_wd:
+      elif not f.exists_in_wd:
         str = ' (deleted)'
-      elif in_conflict:
+      elif f.in_conflict:
         str = ' (with conflicts)'
-      elif file_lib.was_resolved(fp):
+      elif f.resolved:
         str = ' (conflicts resolved)'
-      pprint.item(fp, opt_msg=str)
+      pprint.item(f.fp, opt_msg=str)
 
 
 def _print_untracked_files(untracked_list):
@@ -79,14 +85,14 @@ def _print_untracked_files(untracked_list):
   if not untracked_list:
     pprint.item('There are no untracked files to list')
   else:
-    for fp, exists_in_lr, exists_in_wd in untracked_list:
+    for f in untracked_list:
       s = ''
-      if exists_in_lr:
-        if exists_in_wd:
+      if f.exists_in_lr:
+        if f.exists_in_wd:
           s = ' (exists in local repo)'
         else:
           s = ' (exists in local repo but not in working directory)'
-      pprint.item(fp, opt_msg=s)
+      pprint.item(f.fp, opt_msg=s)
 
 
 def _print_conflict_exp(t):

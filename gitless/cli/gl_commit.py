@@ -181,9 +181,10 @@ def _compute_fs(only_files, exc_files, inc_files):
   if only_files:
     ret = only_files
   else:
-    tracked_modified, unused_untracked = file_lib.status_all()
-    # TODO(sperezde): push the use of frozenset to the library.
-    ret = frozenset(tm[0] for tm in tracked_modified)
+    # Tracked modified files.
+    ret = frozenset(
+        f.fp for f in file_lib.status_all() if f.type == file_lib.TRACKED and
+        f.modified)
     # TODO(sperezde): the following is a mega-hack, do it right.
     from gitpylib import common
     ret = ret.difference(common.real_case(exc_f) for exc_f in exc_files)

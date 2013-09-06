@@ -25,13 +25,14 @@ def parser(subparsers):
 
 def main(args):
   if not args.files:
-    tracked_mod_list = file_lib.status_all()[0]
-    if not tracked_mod_list:
+    # Tracked modified files.
+    files = [
+        f.fp for f in file_lib.status_all() if f.type == file_lib.TRACKED
+        and f.modified]
+    if not files:
       pprint.msg(
           'Nothing to diff (there are no tracked files with modifications).')
       return True
-
-    files = [fp for fp, r, s, t in tracked_mod_list]
   else:
     files = args.files
 

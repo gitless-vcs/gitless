@@ -233,11 +233,7 @@ def commit(files, msg):
     # after the commit.
     # TODO(sperezde): actually implement what the comment above says ;)
     # TODO(sperezde): also need to do something with deletions?
-    unresolved = []
-    for fp, exists_in_lr, exists_in_wd, in_conflict in file_lib.status_all()[0]:
-      if in_conflict:
-        unresolved.append(fp)
-
+    unresolved = [f.fp for f in file_lib.status_all() if f.in_conflict]
     if unresolved:
       return (UNRESOLVED_CONFLICTS, unresolved)
     # We know that there are no pending conflicts to be resolved.
