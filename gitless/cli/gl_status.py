@@ -23,19 +23,28 @@ def parser(subparsers):
 
 def main(args):
   pprint.msg(
-      'On branch %s, repo-directory %s' % (
+      'On branch {}, repo-directory {}'.format(
           branch_lib.current(), repo_lib.cwd()))
 
   in_merge = sync_lib.merge_in_progress()
   in_rebase = sync_lib.rebase_in_progress()
   if in_merge:
     pprint.blank()
-    _print_merge_exp()
+    _print_conflict_exp('merge')
   elif in_rebase:
     pprint.blank()
-    _print_rebase_exp()
+    _print_conflict_exp('rebase')
 
+  tracked_mod_list, untracked_list = repo_lib.status()
   pprint.blank()
+  _print_tracked_mod_files(tracked_mod_list)
+  pprint.blank()
+  pprint.blank()
+  _print_untracked_files(untracked_list)
+  return True
+
+
+def _print_tracked_mod_files(tracked_mod_list):
   pprint.msg('Tracked files with modifications:')
   pprint.exp('these will be automatically considered for commit')
   pprint.exp(
@@ -44,9 +53,8 @@ def main(args):
       'if file f was committed before, use gl checkout <f> to discard '
       'local changes')
   pprint.blank()
-  tracked_mod_list, untracked_list = repo_lib.status()
   if not tracked_mod_list:
-    pprint.item(' There are no tracked files with modifications to list')
+    pprint.item('There are no tracked files with modifications to list')
   else:
     for fp, exists_in_lr, exists_in_wd, in_conflict in tracked_mod_list:
       str = ''
@@ -57,11 +65,12 @@ def main(args):
         str = ' (deleted)'
       elif in_conflict:
         str = ' (with conflicts)'
-      elif (in_merge or in_rebase) and sync_lib.was_resolved(fp):
+      elif sync_lib.was_resolved(fp):
         str = ' (conflicts resolved)'
       pprint.item(fp, opt_msg=str)
-  pprint.blank()
-  pprint.blank()
+
+
+def _print_untracked_files(untracked_list):
   pprint.msg('Untracked files:')
   pprint.exp('these won\'t be considered for commit')
   pprint.exp('use gl track <f> if you want to track changes to file f')
@@ -78,24 +87,13 @@ def main(args):
           s = ' (exists in local repo but not in working directory)'
       pprint.item(fp, opt_msg=s)
 
-  return True
 
-
-def _print_merge_exp():
+def _print_conflict_exp(t):
   pprint.msg(
-      'You are in the middle of a merge; all conflicts must be resolved before '
-      'commiting')
-  pprint.exp('use gl merge --abort to go back to the state before the merge')
+      'You are in the middle of a {0}; all conflicts must be resolved before '
+      'commiting'.format(t))
+  pprint.exp(
+      'use gl {0} --abort to go back to the state before the {0}'.format(t))
   pprint.exp('use gl resolve <f> to mark file f as resolved')
-  pprint.exp('once you solved all conflicts do gl commit to complete the merge')
-  pprint.blank()
-
-
-def _print_rebase_exp():
-  pprint.msg(
-      'You are in the middle of a rebase; all conflicts must be resolved before'
-      ' commiting')
-  pprint.exp('use gl rebase --abort to go back to the state before the rebase')
-  pprint.exp('use gl resolve <f> to mark file f as resolved')
-  pprint.exp('once you solved all conflicts do gl commit to keep rebasing')
+  pprint.exp('once you solved all conflicts do gl commit to continue')
   pprint.blank()
