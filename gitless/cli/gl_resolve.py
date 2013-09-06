@@ -16,6 +16,7 @@ def parser(subparsers):
       'resolve', help='mark files with conflicts as resolved')
   resolve_parser.add_argument(
       'files', nargs='+', help='the file(s) in conflict to mark as resolved')
+  resolve_parser.set_defaults(func=main)
 
 
 def main(args):
