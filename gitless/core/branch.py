@@ -116,6 +116,15 @@ def switch(name):
   _remark_au_files(name)
 
 
+def current():
+  """Get the name of the current branch."""
+  if sync_lib.rebase_in_progress():
+    # While in a rebase, Git actually moves to a "no-branch" status.
+    # In Gitless, the user is in the branch being re-based.
+    return sync_lib.rebase_info()[0]
+  return git_branch.current()
+
+
 def status(name):
   """Get the status of the branch with the given name.
 
@@ -138,15 +147,6 @@ def status(name):
     upstream_exists = False
   
   return BranchStatus(exists, is_current, upstream, upstream_exists)
-
-
-def current():
-  """Get the name of the current branch."""
-  if sync_lib.rebase_in_progress():
-    # While in a rebase, Git actually moves to a "no-branch" status.
-    # In Gitless, the user is in the branch being re-based.
-    return sync_lib.rebase_info()[0]
-  return git_branch.current()
 
 
 def status_all():
