@@ -143,7 +143,7 @@ def _valid_input(only_files, exc_files, inc_files):
           'File %s, listed to be excluded from commit, is a tracked file but '
           'has no modifications' % fp)
       ret = False
-    elif sync_lib.is_resolved_file(fp):
+    elif file_lib.is_resolved_file(fp):
       err.append('You can\'t exclude a file that has been resolved')
       ret = False
 

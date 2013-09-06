@@ -25,7 +25,6 @@ SRC_NOT_FOUND = 3
 SRC_IS_CURRENT_BRANCH = 4
 NOTHING_TO_MERGE = 5
 FILE_NOT_FOUND = 6
-FILE_NOT_IN_CONFLICT = 7
 MERGE_NOT_IN_PROGRESS = 8
 CONFLICT = 9
 REBASE_NOT_IN_PROGRESS = 10
@@ -36,7 +35,6 @@ REMOTE_NOT_FOUND = 14
 REMOTE_UNREACHABLE = 15
 REMOTE_BRANCH_NOT_FOUND = 16
 PUSH_FAIL = 17
-FILE_ALREADY_RESOLVED = 18
 UNRESOLVED_CONFLICTS = 19
 RESOLVED_FILES_NOT_IN_COMMIT = 20
 
@@ -79,7 +77,7 @@ def abort_merge():
   if not merge_in_progress():
     return MERGE_NOT_IN_PROGRESS
   git_sync.abort_merge()
-  internal_resolved_cleanup()
+  file_lib.internal_resolved_cleanup()
   return SUCCESS
 
 
@@ -144,7 +142,7 @@ def skip_rebase_commit():
 
 
 def conclude_rebase():
-  internal_resolved_cleanup()
+  file_lib.internal_resolved_cleanup()
   os.remove(_rebase_file())
 
 
@@ -193,63 +191,6 @@ def _parse_from_remote_branch(b):
   return b.split('/')
 
 
-def was_resolved(fp):
-  """Returns True if the given file had conflicts and was marked as resolved."""
-  return os.path.exists(_resolved_file(fp))
-
-
-def resolve(fp):
-  """Marks the given file in conflict as resolved.
-
-  Args:
-    fp: the file to mark as resolved.
-
-  Returns:
-    - FILE_NOT_FOUND
-    - FILE_NOT_IN_CONFLICT
-    - SUCCESS
-  """
-  s = git_status.of_file(fp)
-  if not os.path.exists(fp) and not (s is git_status.IN_CONFLICT):
-    return FILE_NOT_FOUND
-
-  if s is not git_status.IN_CONFLICT:
-    return FILE_NOT_IN_CONFLICT
-
-  if is_resolved_file(fp):
-    return FILE_ALREADY_RESOLVED
-
-  # In Git, to mark a file as resolved we have to add it.
-  git_file.stage(fp)
-  # We add a file in the Gitless directory to be able to tell when a file has
-  # been marked as resolved.
-  # TODO(sperezde): might be easier to just find a way to tell if the file is
-  # in the index.
-  open(_resolved_file(fp), 'w').close()
-  return SUCCESS
-
-
-def internal_resolved_cleanup():
-  for f in os.listdir(repo_lib.gl_dir()):
-    if f.startswith('GL_RESOLVED'):
-      os.remove(os.path.join(repo_lib.gl_dir(), f))
-      #print 'removed %s' % f
-
-
-def resolved_files():
-  ret = []
-  if merge_in_progress() or rebase_in_progress():
-    for f in os.listdir(repo_lib.gl_dir()):
-      match = re.match('GL_RESOLVED_\w+_(\w+)', f)
-      if match:
-        ret.append(match.group(1))
-  return ret
-
-
-def is_resolved_file(fp):
-  return fp in resolved_files()
-
-
 def publish():
   current_b = branch_lib.current()
   b_st = branch_lib.status(current_b)
@@ -267,11 +208,6 @@ def publish():
     return (PUSH_FAIL, None)
   else:
     raise Exception('Unrecognized ret code %s' % ret)
-
-
-def _resolved_file(fp):
-  return os.path.join(
-      repo_lib.gl_dir(), 'GL_RESOLVED_%s_%s' % (branch_lib.current(), fp))
 
 
 def commit(files, msg):
@@ -307,7 +243,7 @@ def commit(files, msg):
     # We know that there are no pending conflicts to be resolved.
     # Let's check that all resolved files are in the commit.
     resolved_not_in_ci = []
-    for resolved_f in resolved_files():
+    for resolved_f in file_lib.resolved_files():
       if resolved_f not in files:
         resolved_not_in_ci.append(resolved_f)
     if resolved_not_in_ci:
@@ -319,7 +255,7 @@ def commit(files, msg):
       # TODO(sperezde): save the message to use it later.
       for f in files:
         git_file.stage(f)
-      internal_resolved_cleanup()
+      file_lib.internal_resolved_cleanup()
       s = git_sync.rebase_continue()
       if s[0] is SUCCESS:
         conclude_rebase()
@@ -331,7 +267,7 @@ def commit(files, msg):
 
     # It's a merge.
     out = git_sync.commit_include(files, msg)
-    internal_resolved_cleanup()
+    file_lib.internal_resolved_cleanup()
     return (SUCCESS, out)
 
   # It's a regular commit.

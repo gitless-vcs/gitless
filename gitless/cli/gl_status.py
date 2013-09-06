@@ -66,7 +66,7 @@ def _print_tracked_mod_files(tracked_mod_list):
         str = ' (deleted)'
       elif in_conflict:
         str = ' (with conflicts)'
-      elif sync_lib.was_resolved(fp):
+      elif file_lib.was_resolved(fp):
         str = ' (conflicts resolved)'
       pprint.item(fp, opt_msg=str)
 

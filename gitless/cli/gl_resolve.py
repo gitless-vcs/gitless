@@ -5,7 +5,7 @@
 """gl resolve - Mark a file with conflicts as resolved."""
 
 
-from gitless.core import sync as sync_lib
+from gitless.core import file as file_lib
 
 import pprint
 
@@ -23,18 +23,18 @@ def main(args):
   success = True
 
   for fp in args.files:
-    ret = sync_lib.resolve(fp)
-    if ret is sync_lib.FILE_NOT_FOUND:
+    ret = file_lib.resolve(fp)
+    if ret is file_lib.FILE_NOT_FOUND:
       pprint.err('Can\'t mark as resolved a non-existent file: %s' % fp)
       success = False
-    elif ret is sync_lib.FILE_NOT_IN_CONFLICT:
+    elif ret is file_lib.FILE_NOT_IN_CONFLICT:
       pprint.err('File %s has no conflicts' % fp)
       success = False
-    elif ret is sync_lib.FILE_ALREADY_RESOLVED:
+    elif ret is file_lib.FILE_ALREADY_RESOLVED:
       pprint.err(
           'Nothing to resolve. File %s was already marked as resolved' % fp)
       success = False
-    elif ret is sync_lib.SUCCESS:
+    elif ret is file_lib.SUCCESS:
       pprint.msg('File %s has been marked as resolved' % fp)
     else:
       raise Exception('Unrecognized ret code %s' % ret)

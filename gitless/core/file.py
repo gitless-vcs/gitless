@@ -6,11 +6,13 @@
 
 
 import os
+import re
 
 from gitpylib import file as git_file
 from gitpylib import status as git_status
 
 import repo as repo_lib
+import branch as branch_lib
 
 
 SUCCESS = 1
@@ -21,6 +23,8 @@ FILE_IS_UNTRACKED = 5
 FILE_NOT_FOUND_AT_CP = 6
 FILE_IN_CONFLICT = 7
 FILE_IS_IGNORED = 8
+FILE_NOT_IN_CONFLICT = 9
+FILE_ALREADY_RESOLVED = 10
 
 
 def track(fp):
@@ -241,6 +245,62 @@ def status_all():
   return (tracked_mod_list, untracked_list)
 
 
+def was_resolved(fp):
+  """Returns True if the given file had conflicts and was marked as resolved."""
+  return os.path.exists(_resolved_file(fp))
+
+
+def resolve(fp):
+  """Marks the given file in conflict as resolved.
+
+  Args:
+    fp: the file to mark as resolved.
+
+  Returns:
+    - FILE_NOT_FOUND
+    - FILE_NOT_IN_CONFLICT
+    - SUCCESS
+  """
+  s = git_status.of_file(fp)
+  if not os.path.exists(fp) and not (s is git_status.IN_CONFLICT):
+    return FILE_NOT_FOUND
+
+  if s is not git_status.IN_CONFLICT:
+    return FILE_NOT_IN_CONFLICT
+
+  if is_resolved_file(fp):
+    return FILE_ALREADY_RESOLVED
+
+  # In Git, to mark a file as resolved we have to add it.
+  git_file.stage(fp)
+  # We add a file in the Gitless directory to be able to tell when a file has
+  # been marked as resolved.
+  # TODO(sperezde): might be easier to just find a way to tell if the file is
+  # in the index.
+  open(_resolved_file(fp), 'w').close()
+  return SUCCESS
+
+
+def internal_resolved_cleanup():
+  for f in os.listdir(repo_lib.gl_dir()):
+    if f.startswith('GL_RESOLVED'):
+      os.remove(os.path.join(repo_lib.gl_dir(), f))
+      #print 'removed %s' % f
+
+
+def resolved_files():
+  ret = []
+  for f in os.listdir(repo_lib.gl_dir()):
+    match = re.match('GL_RESOLVED_\w+_(\w+)', f)
+    if match:
+      ret.append(match.group(1))
+  return ret
+
+
+def is_resolved_file(fp):
+  return fp in resolved_files()
+
+
 # Private methods.
 
 
@@ -264,3 +324,8 @@ def _is_deleted_status(s):
 def _is_ignored_status(s):
   """True if the given status corresponds to a gl ignored file."""
   return s is git_status.IGNORED
+
+
+def _resolved_file(fp):
+  return os.path.join(
+      repo_lib.gl_dir(), 'GL_RESOLVED_%s_%s' % (branch_lib.current(), fp))
