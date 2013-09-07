@@ -21,6 +21,7 @@ import remote as remote_lib
 import repo as repo_lib
 
 
+# Ret codes of methods.
 SUCCESS = 1
 REMOTE_NOT_FOUND = 2
 INVALID_NAME = 3
@@ -33,8 +34,7 @@ def create(name):
     name: the name of the branch to create.
 
   Returns:
-    INVALID_NAME if the name is invalid or SUCCESS if the branch was created
-    successfully.
+    INVALID_NAME or SUCCESS.
   """
   if '/' in name or '_' in name:
     # Branches can't have a '/' so that we don't confuse them with remote
@@ -43,9 +43,9 @@ def create(name):
     # naming internal files.
     return INVALID_NAME
   ret = git_branch.create(name)
-  if ret is git_branch.INVALID_NAME:
+  if ret == git_branch.INVALID_NAME:
     return INVALID_NAME
-  elif ret is git_branch.SUCCESS:
+  elif ret == git_branch.SUCCESS:
     return SUCCESS
   else:
     raise Exception('Unrecognized ret code %s' % ret)
@@ -69,8 +69,7 @@ def set_upstream(upstream):
     upstreame: the upstream branch in the form remote/branch.
 
   Returns:
-    REMOTE_NOT_FOUND if the remote hasn't been defined yet or SUCCESS if the
-    operation finished successfully.
+    REMOTE_NOT_FOUND or SUCCESS.
   """
   upstream_remote, upstream_branch = upstream.split('/')
   if not remote_lib.is_set(upstream_remote):
@@ -81,7 +80,7 @@ def set_upstream(upstream):
   uf = _upstream_file(current_b, upstream_remote, upstream_branch)
   if os.path.exists(uf):
     os.remove(uf)
-  if ret is git_branch.UNFETCHED_OBJECT:
+  if ret == git_branch.UNFETCHED_OBJECT:
     # We work around this, it could be the case that the user is trying to push
     # a new branch to the remote or it could be that the branch exists but it
     # hasn't been fetched yet.
@@ -145,7 +144,7 @@ def status(name):
     # We have to check if the branch has an unpushed upstream.
     upstream = _unpushed_upstream(name)
     upstream_exists = False
-  
+
   return BranchStatus(exists, is_current, upstream, upstream_exists)
 
 

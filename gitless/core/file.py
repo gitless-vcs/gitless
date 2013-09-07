@@ -16,6 +16,7 @@ import repo as repo_lib
 import branch as branch_lib
 
 
+# Ret codes of methods.
 SUCCESS = 1
 FILE_NOT_FOUND = 2
 FILE_ALREADY_TRACKED = 3
@@ -27,7 +28,7 @@ FILE_IS_IGNORED = 8
 FILE_NOT_IN_CONFLICT = 9
 FILE_ALREADY_RESOLVED = 10
 
-# Possible type of files.
+# Possible Gitless's file types.
 TRACKED = 11
 UNTRACKED = 12
 IGNORED = 13
@@ -37,13 +38,11 @@ def track(fp):
   """Start tracking changes to fp.
 
   Args:
-      fp: The file path of the file to track.
+    fp: the file path of the file to track.
 
   Returns:
-      - FILE_NOT_FOUND: the given file was not found;
-      - FILE_ALREADY_TRACKED: the given file is already a tracked file;
-      - FILE_IS_IGNORED: the given file is an ignored file;
-      - SUCCESS: the operation finished sucessfully.
+    FILE_NOT_FOUND, FILE_ALREADY_TRACKED, FILE_IN_CONFLICT, FILE_IS_IGNORED or
+    SUCCESS.
   """
   f_st, s = _status(fp)
   if f_st == FILE_NOT_FOUND:
@@ -74,14 +73,11 @@ def untrack(fp):
   """Stop tracking changes to fp.
 
   Args:
-      fp: The file path of the file to untrack.
+    fp: the file path of the file to untrack.
 
   Returns:
-      - FILE_NOT_FOUND: the given file was not found;
-      - FILE_ALREADY_UNTRACKED: the given file is already an untracked file;
-      - SUCCESS: the operation finished sucessfully;
-      - FILE_IN_CONFLICT: the file is in conflict;
-      - FILE_IS_IGNORED: the file is ignored.
+    FILE_NOT_FOUND, FILE_ALREADY_UNTRACKED, FILE_IN_CONFLICT, FILE_IS_IGNORED or
+    SUCCESS.
   """
   f_st, s = _status(fp)
   if f_st == FILE_NOT_FOUND:
@@ -97,15 +93,15 @@ def untrack(fp):
   #        uncomitted file) => reset changes;
   #   (ii) the file is a previously committed file => mark it as assumed
   #        unchanged.
-  if s is git_status.STAGED:
+  if s == git_status.STAGED:
     # Case (i).
     git_file.unstage(fp)
-  elif (s is git_status.TRACKED_UNMODIFIED or
-        s is git_status.TRACKED_MODIFIED or
-        s is git_status.DELETED):
+  elif (s == git_status.TRACKED_UNMODIFIED or
+        s == git_status.TRACKED_MODIFIED or
+        s == git_status.DELETED):
     # Case (ii).
     git_file.assume_unchanged(fp)
-  elif s is git_status.IN_CONFLICT:
+  elif s == git_status.IN_CONFLICT:
     return FILE_IN_CONFLICT
   else:
     raise Exception("File %s in unkown status %s" % (fp, s))
@@ -117,14 +113,11 @@ def diff(fp):
   """Compute the diff of the given file with its last committed version.
 
   Args:
-    fp: The file path of the file to diff.
+    fp: the file path of the file to diff.
 
   Returns:
-    A pair (result, out) where result is one of:
-      - FILE_NOT_FOUND: the given file was not found;
-      - FILE_IS_UNTRACKED: the given file is an untracked file;
-      - SUCCESS: the operation finished sucessfully.
-    and out is the output of the diff command.
+    a pair (result, out) where result is one of FILE_NOT_FOUND,
+    FILE_IS_UNTRACKED or SUCCESS and out is the output of the diff command.
   """
   # TODO(sperezde): process the output of the diff command and return it in a
   # friendlier way.
@@ -138,14 +131,14 @@ def diff(fp):
     return (FILE_IS_IGNORED, '')
 
   out = ''
-  if s is git_status.STAGED:
+  if s == git_status.STAGED:
     diff_out = git_file.staged_diff(fp)
     out = "\n".join(diff_out.splitlines()[5:])
-  elif s is git_status.ADDED_MODIFIED or s is git_status.MODIFIED_MODIFIED:
+  elif s == git_status.ADDED_MODIFIED or s == git_status.MODIFIED_MODIFIED:
     git_file.stage(fp)
     diff_out = git_file.staged_diff(fp)
     out = "\n".join(diff_out.splitlines()[5:])
-  elif s is git_status.DELETED:
+  elif s == git_status.DELETED:
     diff_out = git_file.diff(fp)
     out = "\n".join(diff_out.splitlines()[5:])
   else:
@@ -170,12 +163,12 @@ def checkout(fp, cp):
   rel_fp = os.path.join(repo_lib.cwd(), fp)[1:]
   ret, out = git_file.show(rel_fp, cp)
 
-  if ret is git_file.FILE_NOT_FOUND_AT_CP:
+  if ret == git_file.FILE_NOT_FOUND_AT_CP:
     return (FILE_NOT_FOUND_AT_CP, None)
 
   s = git_status.of_file(fp)
   unstaged = False
-  if s is git_status.STAGED:
+  if s == git_status.STAGED:
     git_file.unstage(fp)
     unstaged = True
 
@@ -191,7 +184,7 @@ def checkout(fp, cp):
 
 def status(fp):
   """Gets the status of fp.
-  
+
   Args:
     fp: the file to status.
 
@@ -223,9 +216,7 @@ def resolve(fp):
     fp: the file to mark as resolved.
 
   Returns:
-    - FILE_NOT_FOUND
-    - FILE_NOT_IN_CONFLICT
-    - SUCCESS
+    FILE_NOT_FOUND, FILE_NOT_IN_CONFLICT, FILE_ALREADY_RESOLVED or SUCCESS.
   """
   f_st = status(fp)
   if f_st == FILE_NOT_FOUND:
@@ -265,36 +256,36 @@ def _status(fp):
 def _build_f_st(s, fp):
   FileStatus = collections.namedtuple(
       'FileStatus', [
-        'fp', 'type', 'exists_in_lr', 'exists_in_wd', 'modified', 'in_conflict',
-        'resolved'])
+          'fp', 'type', 'exists_in_lr', 'exists_in_wd', 'modified', 'in_conflict',
+          'resolved'])
   # TODO(sperezde): refactor this.
-  if s is git_status.TRACKED_UNMODIFIED:
+  if s == git_status.TRACKED_UNMODIFIED:
     return FileStatus(fp, TRACKED, True, True, False, False, False)
-  elif s is git_status.TRACKED_MODIFIED:
+  elif s == git_status.TRACKED_MODIFIED:
     return FileStatus(fp, TRACKED, True, True, True, False, False)
-  elif s is git_status.STAGED:
+  elif s == git_status.STAGED:
     # Staged file don't exist in the lr for Gitless.
     return FileStatus(fp, TRACKED, False, True, True, False, False)
-  elif s is git_status.ASSUME_UNCHANGED:
+  elif s == git_status.ASSUME_UNCHANGED:
     return FileStatus(fp, UNTRACKED, True, True, True, False, False)
-  elif s is git_status.DELETED:
+  elif s == git_status.DELETED:
     return FileStatus(fp, TRACKED, True, False, True, False, False)
-  elif s is git_status.DELETED_STAGED:
+  elif s == git_status.DELETED_STAGED:
     # This can only happen if the user did a rm of a new file. The file doesn't
     # exist anymore for Gitless.
     git_file.unstage(fp)
-  elif s is git_status.DELETED_ASSUME_UNCHANGED:
+  elif s == git_status.DELETED_ASSUME_UNCHANGED:
     return FileStatus(fp, UNTRACKED, True, False, True, False, False)
-  elif s is git_status.IN_CONFLICT:
+  elif s == git_status.IN_CONFLICT:
     wr = _was_resolved(fp)
     return FileStatus(fp, TRACKED, True, True, True, not wr, wr)
-  elif s is git_status.IGNORED or s is git_status.IGNORED_STAGED:
+  elif s == git_status.IGNORED or s == git_status.IGNORED_STAGED:
     return FileStatus(fp, IGNORED, True, True, True, True, False)
-  elif s is git_status.MODIFIED_MODIFIED:
+  elif s == git_status.MODIFIED_MODIFIED:
     # The file was marked as resolved and then modified. To Gitless, this is
     # just a regular tracked file.
     return FileStatus(fp, TRACKED, True, True, True, False, True)
-  elif s is git_status.ADDED_MODIFIED:
+  elif s == git_status.ADDED_MODIFIED:
     # The file is a new file that was added and then modified. This can only
     # happen if the user gl tracks a file and then modifies it.
     return FileStatus(fp, TRACKED, True, True, True, False, False)

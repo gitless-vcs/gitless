@@ -19,6 +19,7 @@ import remote as remote_lib
 import repo as repo_lib
 
 
+# Ret codes of methods.
 SUCCESS = 1
 LOCAL_CHANGES_WOULD_BE_LOST = 2
 SRC_NOT_FOUND = 3
@@ -58,13 +59,13 @@ def merge(src):
   else:
     ret, out = git_sync.merge(src)
 
-  if ret is git_sync.SUCCESS:
+  if ret == git_sync.SUCCESS:
     return (SUCCESS, out)
-  elif ret is git_sync.CONFLICT:
+  elif ret == git_sync.CONFLICT:
     return (CONFLICT, out)
-  elif ret is git_sync.LOCAL_CHANGES_WOULD_BE_LOST:
+  elif ret == git_sync.LOCAL_CHANGES_WOULD_BE_LOST:
     return (LOCAL_CHANGES_WOULD_BE_LOST, out)
-  elif ret is git_sync.NOTHING_TO_MERGE:
+  elif ret == git_sync.NOTHING_TO_MERGE:
     return (NOTHING_TO_MERGE, out)
   raise Exception("Unexpected ret code %s" % ret)
 
@@ -95,15 +96,15 @@ def rebase(new_base):
     ret, out = git_sync.pull_rebase(remote, remote_b)
   else:
     ret, out = git_sync.rebase(new_base)
-  if ret is git_sync.SUCCESS:
+  if ret == git_sync.SUCCESS:
     return (SUCCESS, out)
-  elif ret is git_sync.LOCAL_CHANGES_WOULD_BE_LOST:
+  elif ret == git_sync.LOCAL_CHANGES_WOULD_BE_LOST:
     return (LOCAL_CHANGES_WOULD_BE_LOST, out)
-  elif ret is git_sync.CONFLICT:
+  elif ret == git_sync.CONFLICT:
     # We write a file to note the current branch being rebased and the new base.
     _write_rebase_file(current, new_base)
     return (CONFLICT, out)
-  elif ret is git_sync.NOTHING_TO_REBASE:
+  elif ret == git_sync.NOTHING_TO_REBASE:
     return (NOTHING_TO_REBASE, out)
   raise Exception("Unexpected ret code %s" % ret)
 
@@ -132,10 +133,10 @@ def skip_rebase_commit():
   if not rebase_in_progress():
     return REBASE_NOT_IN_PROGRESS
   s = git_sync.skip_rebase_commit()
-  if s[0] is git_sync.SUCCESS:
+  if s[0] == git_sync.SUCCESS:
     conclude_rebase()
     return (SUCCESS, s[1])
-  elif s[0] is git_sync.CONFLICT:
+  elif s[0] == git_sync.CONFLICT:
     return (SUCCESS, s[1])
   else:
     raise Exception('Unrecognized ret code %s' % s[0])
@@ -174,7 +175,7 @@ def _valid_remote_branch(b):
   # We know the remote exists, let's see if the branch exists.
   exists, err = git_remote.head_exist(remote_n, remote_b)
   if not exists:
-    if err is git_remote.REMOTE_UNREACHABLE:
+    if err == git_remote.REMOTE_UNREACHABLE:
       ret_err = REMOTE_UNREACHABLE
     else:
       ret_err = REMOTE_BRANCH_NOT_FOUND
@@ -194,17 +195,17 @@ def _parse_from_remote_branch(b):
 def publish():
   current_b = branch_lib.current()
   b_st = branch_lib.status(current_b)
-  if b_st.upstream is None:
+  if not b_st.upstream:
     return (UPSTREAM_NOT_SET, None)
   ret, out = git_sync.push(current_b, *b_st.upstream.split('/'))
-  if ret is git_sync.SUCCESS:
+  if ret == git_sync.SUCCESS:
     if not b_st.upstream_exists:
       # After the push the upstream exists. So we set it.
       branch_lib.set_upstream(b_st.upstream)
     return (SUCCESS, out)
-  elif ret is git_sync.NOTHING_TO_PUSH:
+  elif ret == git_sync.NOTHING_TO_PUSH:
     return (NOTHING_TO_PUSH, None)
-  elif ret is git_sync.PUSH_FAIL:
+  elif ret == git_sync.PUSH_FAIL:
     return (PUSH_FAIL, None)
   else:
     raise Exception('Unrecognized ret code %s' % ret)
@@ -257,10 +258,10 @@ def commit(files, msg):
         git_file.stage(f)
       file_lib.internal_resolved_cleanup()
       s = git_sync.rebase_continue()
-      if s[0] is SUCCESS:
+      if s[0] == SUCCESS:
         conclude_rebase()
         return (SUCCESS, s[1])
-      elif s[0] is CONFLICT:
+      elif s[0] == CONFLICT:
         return (SUCCESS, s[1])
       else:
         raise Exception('Unrecognized ret code %s' % s[0])
