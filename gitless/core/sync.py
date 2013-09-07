@@ -113,20 +113,20 @@ def rebase_in_progress():
   return os.path.exists(os.path.join(repo_lib.gl_dir(), 'GL_REBASE'))
 
 
-def rebase_info():
-  """Gets the name of the current branch being rebased and the new base."""
-  rf = open(_rebase_file(), 'r')
-  current = rf.readline().strip()
-  new_base = rf.readline().strip()
-  return (current, new_base)
-
-
 def abort_rebase():
   if not rebase_in_progress():
     return REBASE_NOT_IN_PROGRESS
   git_sync.abort_rebase()
   conclude_rebase()
   return SUCCESS
+
+
+def rebase_info():
+  """Gets the name of the current branch being rebased and the new base."""
+  rf = open(_rebase_file(), 'r')
+  current = rf.readline().strip()
+  new_base = rf.readline().strip()
+  return (current, new_base)
 
 
 def skip_rebase_commit():
@@ -147,52 +147,8 @@ def conclude_rebase():
   os.remove(_rebase_file())
 
 
-def _write_rebase_file(current, new_base):
-  rf = open(_rebase_file(), 'w')
-  rf.write(current + '\n')
-  rf.write(new_base + '\n')
-  rf.close()
-
-
-def _rebase_file():
-  return os.path.join(repo_lib.gl_dir(), 'GL_REBASE')
-
-
-def _valid_branch(b):
-  b_st = branch_lib.status(b)
-  if not b_st.exists:
-    return (False, SRC_NOT_FOUND)
-  if b_st.exists and b_st.is_current:
-    return (False, SRC_IS_CURRENT_BRANCH)
-  return (True, None)
-
-
-def _valid_remote_branch(b):
-  remote_n, remote_b = b.split('/')
-  if not remote_lib.is_set(remote_n):
-    return (False, REMOTE_NOT_FOUND)
-
-  # We know the remote exists, let's see if the branch exists.
-  exists, err = git_remote.head_exist(remote_n, remote_b)
-  if not exists:
-    if err == git_remote.REMOTE_UNREACHABLE:
-      ret_err = REMOTE_UNREACHABLE
-    else:
-      ret_err = REMOTE_BRANCH_NOT_FOUND
-    return (False, ret_err)
-
-  return (True, None)
-
-
-def _is_remote_branch(b):
-  return '/' in b
-
-
-def _parse_from_remote_branch(b):
-  return b.split('/')
-
-
 def publish():
+  """Publish local commits to the upstream branch."""
   current_b = branch_lib.current()
   b_st = branch_lib.status(current_b)
   if not b_st.upstream:
@@ -273,3 +229,51 @@ def commit(files, msg):
 
   # It's a regular commit.
   return (SUCCESS, git_sync.commit(files, msg))
+
+
+# Private methods.
+
+
+def _write_rebase_file(current, new_base):
+  rf = open(_rebase_file(), 'w')
+  rf.write(current + '\n')
+  rf.write(new_base + '\n')
+  rf.close()
+
+
+def _rebase_file():
+  return os.path.join(repo_lib.gl_dir(), 'GL_REBASE')
+
+
+def _valid_branch(b):
+  b_st = branch_lib.status(b)
+  if not b_st.exists:
+    return (False, SRC_NOT_FOUND)
+  if b_st.exists and b_st.is_current:
+    return (False, SRC_IS_CURRENT_BRANCH)
+  return (True, None)
+
+
+def _valid_remote_branch(b):
+  remote_n, remote_b = b.split('/')
+  if not remote_lib.is_set(remote_n):
+    return (False, REMOTE_NOT_FOUND)
+
+  # We know the remote exists, let's see if the branch exists.
+  exists, err = git_remote.head_exist(remote_n, remote_b)
+  if not exists:
+    if err == git_remote.REMOTE_UNREACHABLE:
+      ret_err = REMOTE_UNREACHABLE
+    else:
+      ret_err = REMOTE_BRANCH_NOT_FOUND
+    return (False, ret_err)
+
+  return (True, None)
+
+
+def _is_remote_branch(b):
+  return '/' in b
+
+
+def _parse_from_remote_branch(b):
+  return b.split('/')
