@@ -5,8 +5,6 @@
 """gl status - Show the status of files in the repo."""
 
 
-import os
-
 from gitless.core import branch as branch_lib
 from gitless.core import file as file_lib
 from gitless.core import repo as repo_lib
@@ -22,7 +20,7 @@ def parser(subparsers):
   status_parser.set_defaults(func=main)
 
 
-def main(args):
+def main(unused_args):
   pprint.msg(
       'On branch {}, repo-directory {}'.format(
           branch_lib.current(), repo_lib.cwd()))
@@ -64,17 +62,17 @@ def _print_tracked_mod_files(tracked_mod_list):
     pprint.item('There are no tracked files with modifications to list')
   else:
     for f in tracked_mod_list:
-      str = ''
+      exp = ''
       # TODO(sperezde): sometimes files don't appear here if they were resolved.
       if not f.exists_in_lr:
-        str = ' (new file)'
+        exp = ' (new file)'
       elif not f.exists_in_wd:
-        str = ' (deleted)'
+        exp = ' (deleted)'
       elif f.in_conflict:
-        str = ' (with conflicts)'
+        exp = ' (with conflicts)'
       elif f.resolved:
-        str = ' (conflicts resolved)'
-      pprint.item(f.fp, opt_msg=str)
+        exp = ' (conflicts resolved)'
+      pprint.item(f.fp, opt_msg=exp)
 
 
 def _print_untracked_files(untracked_list):

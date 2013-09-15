@@ -5,8 +5,6 @@
 """gl checkout - Checkout committed versions of files."""
 
 
-import os
-
 from gitless.core import file as file_lib
 
 import pprint
@@ -48,7 +46,8 @@ def _checkout_file(fp, cp):
       'You have uncomitted changes in %s that could be overwritten by the '
       'checkout' % fp)
   f = file_lib.status(fp)
-  if f.type == TRACKED and f.modified and not pprint.conf_dialog(conf_msg):
+  if f.type == file_lib.TRACKED and f.modified and not pprint.conf_dialog(
+      conf_msg):
     pprint.err('Checkout aborted')
     return False
 

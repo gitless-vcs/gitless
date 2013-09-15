@@ -5,8 +5,6 @@
 """gl commit - Record changes in the local repository."""
 
 
-import os
-
 from gitless.core import file as file_lib
 from gitless.core import sync as sync_lib
 

@@ -8,7 +8,6 @@
 import collections
 import os
 import re
-import shutil
 
 from gitpylib import branch as git_branch
 from gitpylib import common as git_common
@@ -168,7 +167,7 @@ def status_all():
       continue
 
     if rebase_in_progress and name == current:
-      is_current = is_current
+      is_current = current
 
     upstream_exists = True
     if not upstream:

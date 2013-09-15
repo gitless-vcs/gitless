@@ -4,7 +4,6 @@
 
 """gl merge - Merge the divergent changes of one branch onto another."""
 
-import sys
 
 from gitless.core import branch as branch_lib
 from gitless.core import sync as sync_lib

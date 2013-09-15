@@ -7,7 +7,6 @@
 
 import collections
 import os
-import re
 
 from gitpylib import file as git_file
 from gitpylib import status as git_status
@@ -256,40 +255,41 @@ def _status(fp):
 def _build_f_st(s, fp):
   FileStatus = collections.namedtuple(
       'FileStatus', [
-          'fp', 'type', 'exists_in_lr', 'exists_in_wd', 'modified', 'in_conflict',
-          'resolved'])
+          'fp', 'type', 'exists_in_lr', 'exists_in_wd', 'modified',
+          'in_conflict', 'resolved'])
   # TODO(sperezde): refactor this.
+  ret = FileStatus(fp, UNTRACKED, False, True, True, False, False)
   if s == git_status.TRACKED_UNMODIFIED:
-    return FileStatus(fp, TRACKED, True, True, False, False, False)
+    ret = FileStatus(fp, TRACKED, True, True, False, False, False)
   elif s == git_status.TRACKED_MODIFIED:
-    return FileStatus(fp, TRACKED, True, True, True, False, False)
+    ret = FileStatus(fp, TRACKED, True, True, True, False, False)
   elif s == git_status.STAGED:
     # Staged file don't exist in the lr for Gitless.
-    return FileStatus(fp, TRACKED, False, True, True, False, False)
+    ret = FileStatus(fp, TRACKED, False, True, True, False, False)
   elif s == git_status.ASSUME_UNCHANGED:
-    return FileStatus(fp, UNTRACKED, True, True, True, False, False)
+    ret = FileStatus(fp, UNTRACKED, True, True, True, False, False)
   elif s == git_status.DELETED:
-    return FileStatus(fp, TRACKED, True, False, True, False, False)
+    ret = FileStatus(fp, TRACKED, True, False, True, False, False)
   elif s == git_status.DELETED_STAGED:
     # This can only happen if the user did a rm of a new file. The file doesn't
     # exist anymore for Gitless.
     git_file.unstage(fp)
   elif s == git_status.DELETED_ASSUME_UNCHANGED:
-    return FileStatus(fp, UNTRACKED, True, False, True, False, False)
+    ret = FileStatus(fp, UNTRACKED, True, False, True, False, False)
   elif s == git_status.IN_CONFLICT:
     wr = _was_resolved(fp)
-    return FileStatus(fp, TRACKED, True, True, True, not wr, wr)
+    ret = FileStatus(fp, TRACKED, True, True, True, not wr, wr)
   elif s == git_status.IGNORED or s == git_status.IGNORED_STAGED:
-    return FileStatus(fp, IGNORED, True, True, True, True, False)
+    ret = FileStatus(fp, IGNORED, True, True, True, True, False)
   elif s == git_status.MODIFIED_MODIFIED:
     # The file was marked as resolved and then modified. To Gitless, this is
     # just a regular tracked file.
-    return FileStatus(fp, TRACKED, True, True, True, False, True)
+    ret = FileStatus(fp, TRACKED, True, True, True, False, True)
   elif s == git_status.ADDED_MODIFIED:
     # The file is a new file that was added and then modified. This can only
     # happen if the user gl tracks a file and then modifies it.
-    return FileStatus(fp, TRACKED, True, True, True, False, False)
-  return FileStatus(fp, UNTRACKED, False, True, True, False, False)
+    ret = FileStatus(fp, TRACKED, True, True, True, False, False)
+  return ret
 
 
 def _was_resolved(fp):

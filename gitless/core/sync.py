@@ -6,7 +6,6 @@
 
 
 import os
-import re
 
 from gitpylib import file as git_file
 from gitpylib import status as git_status
