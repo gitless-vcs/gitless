@@ -12,7 +12,7 @@ setup(
     author_email='sperezde@csail.mit.edu',
     url='http://github.com/spderosso/gitless',
     packages=['gitless'],
-    install_requires=['gitpylib'],
+    install_requires=['gitpylib>=0.2'],
     license='GPLv2',
     classifiers=(
       'Development Status :: 2 - Pre-Alpha',
