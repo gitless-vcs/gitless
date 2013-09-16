@@ -9,7 +9,6 @@ import os
 
 from gitpylib import file as git_file
 from gitpylib import hook as git_hook
-from gitpylib import status as git_status
 from gitpylib import sync as git_sync
 from gitpylib import remote as git_remote
 
