@@ -31,6 +31,8 @@ def parser(subparsers):
             'must be untracked files)'),
       dest='inc_files')
   commit_parser.add_argument(
+      '-sc', '--skip-checks', help='skip pre-commit check', action='store_true', default=False, dest='sc')
+  commit_parser.add_argument(
       '-m', '--message', help='Commit message', dest='m')
   commit_parser.set_defaults(func=main)
 
@@ -68,11 +70,20 @@ def main(args):
       return False
 
   _auto_track(commit_files)
-  ret, out = sync_lib.commit(commit_files, msg)
-  if ret is sync_lib.SUCCESS:
+  ret, out = sync_lib.commit(commit_files, msg, skip_checks=args.sc)
+  if ret == sync_lib.SUCCESS:
     if out:
       pprint.msg(out)
-  elif ret is sync_lib.UNRESOLVED_CONFLICTS:
+  elif ret == sync_lib.PRE_COMMIT_FAILED:
+    pprint.err('Commit aborted')
+    pprint.err('The pre-commit check failed:')
+    pprint.err_exp('fix the problems and run gl commit again')
+    pprint.err_exp(
+        'alternatively, you can skip the pre-commit checks with the --skip-checks '
+        'flag')
+    pprint.err_blank()
+    pprint.err(out)
+  elif ret == sync_lib.UNRESOLVED_CONFLICTS:
     pprint.err('Commit aborted')
     pprint.err('You have unresolved conflicts:')
     pprint.err_exp(
@@ -81,7 +92,7 @@ def main(args):
     for f in out:
       pprint.err_item(f.fp)
     return False
-  elif ret is sync_lib.RESOLVED_FILES_NOT_IN_COMMIT:
+  elif ret == sync_lib.RESOLVED_FILES_NOT_IN_COMMIT:
     pprint.err('Commit aborted')
     pprint.err('You have resolved files that were not included in the commit:')
     pprint.err_exp('these must be part of the commit')

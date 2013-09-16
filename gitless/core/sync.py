@@ -8,6 +8,7 @@
 import os
 
 from gitpylib import file as git_file
+from gitpylib import hook as git_hook
 from gitpylib import status as git_status
 from gitpylib import sync as git_sync
 from gitpylib import remote as git_remote
@@ -37,6 +38,7 @@ REMOTE_BRANCH_NOT_FOUND = 16
 PUSH_FAIL = 17
 UNRESOLVED_CONFLICTS = 19
 RESOLVED_FILES_NOT_IN_COMMIT = 20
+PRE_COMMIT_FAILED = 21
 
 
 def merge(src):
@@ -166,16 +168,19 @@ def publish():
     raise Exception('Unrecognized ret code %s' % ret)
 
 
-def commit(files, msg):
+def commit(files, msg, skip_checks=False):
   """Record changes in the local repository.
 
   Args:
     files: the files to commit.
     msg: the commit message.
+    skip_checks: True if the pre-commit checks should be skipped (defaults to
+      False).
 
   Returns:
     a pair (status, out) where status can be:
     - UNRESOLVED_CONFLICTS -> out is the list of unresolved files.
+    - PRE_COMMIT_FAILED -> out is the output from the pre-commit hook.
     - SUCCESS -> out is the output of the commit command.
   """
   in_rebase = rebase_in_progress()
@@ -212,6 +217,10 @@ def commit(files, msg):
       for f in files:
         git_file.stage(f)
       file_lib.internal_resolved_cleanup()
+      if not skip_checks:
+        pc = git_hook.pre_commit()
+        if not pc.ok:
+          return (PRE_COMMIT_FAILED, pc.err)
       s = git_sync.rebase_continue()
       if s[0] == SUCCESS:
         conclude_rebase()
@@ -222,12 +231,20 @@ def commit(files, msg):
         raise Exception('Unrecognized ret code %s' % s[0])
 
     # It's a merge.
-    out = git_sync.commit_include(files, msg)
+    if not skip_checks:
+      pc = git_hook.pre_commit()
+      if not pc.ok:
+        return (PRE_COMMIT_FAILED, pc.err)
+    out = git_sync.commit(files, msg, skip_checks=True, stage_files=True)
     file_lib.internal_resolved_cleanup()
     return (SUCCESS, out)
 
   # It's a regular commit.
-  return (SUCCESS, git_sync.commit(files, msg))
+  if not skip_checks:
+    pc = git_hook.pre_commit()
+    if not pc.ok:
+      return (PRE_COMMIT_FAILED, pc.err)
+  return (SUCCESS, git_sync.commit(files, msg, skip_checks=True))
 
 
 # Private methods.
