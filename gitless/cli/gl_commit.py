@@ -31,7 +31,8 @@ def parser(subparsers):
             'must be untracked files)'),
       dest='inc_files')
   commit_parser.add_argument(
-      '-sc', '--skip-checks', help='skip pre-commit check', action='store_true', default=False, dest='sc')
+      '-sc', '--skip-checks', help='skip pre-commit check', action='store_true',
+      default=False, dest='sc')
   commit_parser.add_argument(
       '-m', '--message', help='Commit message', dest='m')
   commit_parser.set_defaults(func=main)
@@ -79,8 +80,8 @@ def main(args):
     pprint.err('The pre-commit check failed:')
     pprint.err_exp('fix the problems and run gl commit again')
     pprint.err_exp(
-        'alternatively, you can skip the pre-commit checks with the --skip-checks '
-        'flag')
+        'alternatively, you can skip the pre-commit checks with the '
+        '--skip-checks flag')
     pprint.err_blank()
     pprint.err(out)
   elif ret == sync_lib.UNRESOLVED_CONFLICTS:
