@@ -147,12 +147,12 @@ def diff(fp):
   return (SUCCESS, out)
 
 
-def checkout(fp, cp):
+def checkout(fp, cp='HEAD'):
   """Checkouts file fp at cp.
 
   Args:
     fp: the filepath to checkout.
-    cp: the commit point at which to checkout the file.
+    cp: the commit point at which to checkout the file (defaults to HEAD).
 
   Returns:
     a pair (status, out) where status is one of FILE_NOT_FOUND_AT_CP or SUCCESS
