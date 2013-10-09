@@ -288,7 +288,7 @@ def _build_f_st(s, fp):
   elif s == git_status.ADDED_MODIFIED:
     # The file is a new file that was added and then modified. This can only
     # happen if the user gl tracks a file and then modifies it.
-    ret = FileStatus(fp, TRACKED, True, True, True, False, False)
+    ret = FileStatus(fp, TRACKED, False, True, True, False, False)
   return ret
 
 
