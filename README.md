@@ -40,3 +40,23 @@ Documentation
 -------------
 
 TODO
+
+
+Contributing
+------------
+
+We only have two branches, `master` and `develop`. We code in `develop` and
+merge the changes onto `master` when the changes are stable and we're ready to
+cut a new release. So you'll find on the `develop` branch the latest changes.
+
+The following steps should get you ready to contribute:
+
+  $> git clone https://github.com/spderosso/gitpylib.git
+  $> cd gitpylib
+  $> git checkout develop
+  $> sudo ./setup.py develop
+  $> cd ..
+  $> git clone https://github.com/spderosso/gitless.git
+  $> cd gitless
+  $> git checkout develop
+  $> sudo ./setup.py develop
