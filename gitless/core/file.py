@@ -132,20 +132,52 @@ def diff(fp):
   out = ''
   if s == git_status.STAGED:
     diff_out = git_file.staged_diff(fp)
-    out = "\n".join(diff_out.splitlines()[5:])
+    out = diff_out.splitlines()[5:]
   elif s == git_status.ADDED_MODIFIED or s == git_status.MODIFIED_MODIFIED:
     git_file.stage(fp)
     diff_out = git_file.staged_diff(fp)
-    out = "\n".join(diff_out.splitlines()[5:])
+    out = diff_out.splitlines()[5:]
   elif s == git_status.DELETED:
     diff_out = git_file.diff(fp)
-    out = "\n".join(diff_out.splitlines()[5:])
+    out = diff_out.splitlines()[5:]
   else:
     diff_out = git_file.diff(fp)
-    out = "\n".join(diff_out.splitlines()[4:])
-
+    out = diff_out.splitlines()[4:]
+  parseDiffOutput(out) 
+  out = "\n".join(out)
   return (SUCCESS, out)
 
+#arg should be an array of diff lines
+def parseDiffOutput(diffout):
+  resulting = []
+  leftline = 0
+  rightline = 0
+  for line in diffout:
+    if line.startswith("@@"):
+      portions = line.split(" ") #0 = @@ 1 = left 2 = right 3 = @@
+      leftInfo = portions[1].split(",") #[-line,numlines]
+      leftline = int(leftInfo[0][1:]) #line
+
+      rightInfo = portions[2].split(",")
+      rightline = int(rightInfo[0][1:])
+      resulting += [line] #debug
+      print(line)
+    elif line.startswith(" "):
+      newline = "%d\t%d\t" % (leftline, rightline) + line
+      print(newline) #debug
+      resulting += [newline]
+      leftline += 1
+      rightline += 1
+    elif line.startswith("-"):
+      newline = '\033[0;31m' + "%d\t\t" % leftline + line + '\033[0m'
+      leftline += 1
+      print(newline)
+      resulting += [newline]
+    elif line.startswith("+"):
+      newline = '\033[0;32m' + "\t%d\t" % rightline + line + '\033[0m'
+      rightline += 1
+      print(newline)
+      resulting += [newline]
 
 def checkout(fp, cp='HEAD'):
   """Checkouts file fp at cp.
