@@ -51,12 +51,12 @@ cut a new release. So you'll find on the `develop` branch the latest changes.
 
 The following steps should get you ready to contribute:
 
-  $> git clone https://github.com/spderosso/gitpylib.git
-  $> cd gitpylib
-  $> git checkout develop
-  $> sudo ./setup.py develop
-  $> cd ..
-  $> git clone https://github.com/spderosso/gitless.git
-  $> cd gitless
-  $> git checkout develop
-  $> sudo ./setup.py develop
+    $> git clone https://github.com/spderosso/gitpylib.git
+    $> cd gitpylib
+    $> git checkout develop
+    $> sudo ./setup.py develop
+    $> cd ..
+    $> git clone https://github.com/spderosso/gitless.git
+    $> cd gitless
+    $> git checkout develop
+    $> sudo ./setup.py develop
