@@ -94,17 +94,38 @@ class TestUntrackFile(TestFile):
     self.assertEqual(file_lib.SUCCESS, file_lib.untrack(TRACKED_FP))
     self.assertEqual(file_lib.UNTRACKED, file_lib.status(TRACKED_FP).type)
 
+  @common.assert_contents_unchanged(TRACKED_FP_WITH_SPACE)
+  def test_untrack_tracked_fp_space(self):
+    self.assertEqual(file_lib.SUCCESS, file_lib.untrack(TRACKED_FP_WITH_SPACE))
+    self.assertEqual(
+        file_lib.UNTRACKED, file_lib.status(TRACKED_FP_WITH_SPACE).type)
+
   @common.assert_no_side_effects(UNTRACKED_FP)
   def test_untrack_untracked_fp(self):
     self.assertEqual(
         file_lib.FILE_ALREADY_UNTRACKED, file_lib.untrack(UNTRACKED_FP))
 
+  @common.assert_no_side_effects(UNTRACKED_FP_WITH_SPACE)
+  def test_untrack_untracked_fp_with_space(self):
+    self.assertEqual(
+        file_lib.FILE_ALREADY_UNTRACKED,
+        file_lib.untrack(UNTRACKED_FP_WITH_SPACE))
+
   def test_untrack_nonexistent_fp(self):
     self.assertEqual(file_lib.FILE_NOT_FOUND, file_lib.untrack(NONEXISTENT_FP))
+
+  def test_untrack_nonexistent_fp_with_space(self):
+    self.assertEqual(
+        file_lib.FILE_NOT_FOUND, file_lib.untrack(NONEXISTENT_FP_WITH_SPACE))
 
   @common.assert_no_side_effects(IGNORED_FP)
   def test_untrack_ignored(self):
     self.assertEqual(file_lib.FILE_IS_IGNORED, file_lib.untrack(IGNORED_FP))
+
+  @common.assert_no_side_effects(IGNORED_FP_WITH_SPACE)
+  def test_untrack_ignored_with_space(self):
+    self.assertEqual(
+        file_lib.FILE_IS_IGNORED, file_lib.untrack(IGNORED_FP_WITH_SPACE))
 
 
 class TestCheckoutFile(TestFile):
@@ -116,20 +137,46 @@ class TestCheckoutFile(TestFile):
     self.assertEqual(file_lib.SUCCESS, file_lib.checkout(TRACKED_FP)[0])
     self.assertEqual(contents, self._read_file(TRACKED_FP))
 
+  @common.assert_no_side_effects(TRACKED_FP_WITH_SPACE)
+  def test_checkout_fp_with_space_at_head(self):
+    contents = self._read_file(TRACKED_FP_WITH_SPACE)
+    self._write_file(TRACKED_FP_WITH_SPACE, contents='contents')
+    self.assertEqual(
+        file_lib.SUCCESS, file_lib.checkout(TRACKED_FP_WITH_SPACE)[0])
+    self.assertEqual(contents, self._read_file(TRACKED_FP_WITH_SPACE))
+
   def test_checkout_fp_at_cp_other_than_head(self):
     self._write_file(TRACKED_FP, contents='contents')
     self.assertEqual(
         file_lib.SUCCESS, file_lib.checkout(TRACKED_FP, 'HEAD^1')[0])
     self.assertEqual(TRACKED_FP_CONTENTS_1, self._read_file(TRACKED_FP))
 
+  def test_checkout_fp_with_space_at_cp_other_than_head(self):
+    self._write_file(TRACKED_FP_WITH_SPACE, contents='contents')
+    self.assertEqual(
+        file_lib.SUCCESS, file_lib.checkout(TRACKED_FP_WITH_SPACE, 'HEAD^1')[0])
+    self.assertEqual(
+        TRACKED_FP_CONTENTS_1, self._read_file(TRACKED_FP_WITH_SPACE))
+
   @common.assert_no_side_effects(UNTRACKED_FP)
   def test_checkout_uncommited_fp(self):
     self.assertEqual(
         file_lib.FILE_NOT_FOUND_AT_CP, file_lib.checkout(UNTRACKED_FP)[0])
 
+  @common.assert_no_side_effects(UNTRACKED_FP_WITH_SPACE)
+  def test_checkout_uncommited_fp(self):
+    self.assertEqual(
+        file_lib.FILE_NOT_FOUND_AT_CP,
+        file_lib.checkout(UNTRACKED_FP_WITH_SPACE)[0])
+
   def test_checkout_nonexistent_fp(self):
     self.assertEqual(
         file_lib.FILE_NOT_FOUND_AT_CP, file_lib.checkout(NONEXISTENT_FP)[0])
+
+  def test_checkout_nonexistent_fp_with_space(self):
+    self.assertEqual(
+        file_lib.FILE_NOT_FOUND_AT_CP,
+        file_lib.checkout(NONEXISTENT_FP_WITH_SPACE)[0])
 
 
 if __name__ == '__main__':
