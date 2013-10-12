@@ -26,5 +26,6 @@ setup(
       'console_scripts': [
         'gl = gitless.cli.gl:main'
         ]
-      }
+      },
+    test_suite='gitless.tests'
     )
