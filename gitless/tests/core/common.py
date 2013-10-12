@@ -23,13 +23,13 @@ class TestCore(unittest.TestCase):
     """Creates temporary dir and cds to it."""
     logging.basicConfig(stream=sys.stdout, level=logging.INFO)
     self.path = tempfile.mkdtemp(prefix='gl-core-test')
-    logging.debug('Created temporary directory %s', self.path)
+    logging.debug('Created temporary directory {}'.format(self.path))
     os.chdir(self.path)
 
   def tearDown(self):
     """Removes the temporary dir."""
     shutil.rmtree(self.path)
-    logging.debug('Removed dir %s', self.path)
+    logging.debug('Removed dir {}'.format(self.path))
 
   def _write_file(self, fp, contents='hello'):
     f = open(fp, 'w')
