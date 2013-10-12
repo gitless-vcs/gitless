@@ -5,6 +5,7 @@
 """Unit tests for file module."""
 
 
+import os
 import unittest
 
 import gitless.core.file as file_lib
@@ -21,6 +22,9 @@ IGNORED_FP = 'f3'
 IGNORED_FP_WITH_SPACE = 'f3 space'
 NONEXISTENT_FP = 'nonexistent'
 NONEXISTENT_FP_WITH_SPACE = 'nonexistent space'
+ALL_FPS_IN_WD = [
+    TRACKED_FP, TRACKED_FP_WITH_SPACE, UNTRACKED_FP, UNTRACKED_FP_WITH_SPACE,
+    IGNORED_FP, IGNORED_FP_WITH_SPACE, '.gitignore']
 
 
 class TestFile(common.TestCore):
@@ -195,6 +199,130 @@ class TestCheckoutFile(TestFile):
     self.assertEqual(
         file_lib.FILE_NOT_FOUND_AT_CP,
         file_lib.checkout(NONEXISTENT_FP_WITH_SPACE)[0])
+
+
+class TestStatus(TestFile):
+
+  def test_status_all(self):
+    st_all = file_lib.status_all()
+    seen = []
+    for fp, type, exists_in_lr, exists_in_wd, modified, _, _ in st_all:
+      if fp == TRACKED_FP or fp == TRACKED_FP_WITH_SPACE:
+        self.__assert_type(fp, file_lib.TRACKED, type)
+        self.__assert_field(fp, 'exists_in_lr', True, exists_in_lr)
+        self.__assert_field(fp, 'modified', False, modified)
+      elif fp == UNTRACKED_FP or fp == UNTRACKED_FP_WITH_SPACE:
+        self.__assert_type(fp, file_lib.UNTRACKED, type)
+        self.__assert_field(fp, 'exists_in_lr', False, exists_in_lr)
+        self.__assert_field(fp, 'modified', True, modified)
+      elif fp == IGNORED_FP or fp == IGNORED_FP_WITH_SPACE:
+        self.__assert_type(fp, file_lib.IGNORED, type)
+        self.__assert_field(fp, 'exists_in_lr', False, exists_in_lr)
+        self.__assert_field(fp, 'modified', True, modified)
+      elif fp == '.gitignore':
+        self.__assert_type(fp, file_lib.UNTRACKED, type)
+        self.__assert_field(fp, 'exists_in_lr', False, exists_in_lr)
+        self.__assert_field(fp, 'modified', True, modified)
+      else:
+        self.fail('Unexpected fp {}'.format(fp))
+      self.__assert_field(fp, 'exists_in_wd', True, exists_in_wd)
+      seen.append(fp)
+    self.assertItemsEqual(seen, ALL_FPS_IN_WD)
+
+  def test_status_equivalence(self):
+    self.assertItemsEqual(
+        file_lib.status_all(), [file_lib.status(fp) for fp in ALL_FPS_IN_WD])
+
+  def test_status_nonexistent_fp(self):
+    self.assertEqual(file_lib.FILE_NOT_FOUND, file_lib.status(NONEXISTENT_FP))
+
+  def test_status_nonexistent_fp_with_space(self):
+    self.assertEqual(
+        file_lib.FILE_NOT_FOUND, file_lib.status(NONEXISTENT_FP_WITH_SPACE))
+
+  def test_status_modify(self):
+    self._write_file(TRACKED_FP, contents='contents')
+    self.assertTrue(file_lib.status(TRACKED_FP).modified)
+    self._write_file(TRACKED_FP, contents=TRACKED_FP_CONTENTS_2)
+    self.assertFalse(file_lib.status(TRACKED_FP).modified)
+
+  def test_status_rm(self):
+    os.remove(TRACKED_FP)
+    st = file_lib.status(TRACKED_FP)
+    self.assertEqual(file_lib.TRACKED, st.type)
+    self.assertTrue(st.modified)
+    self.assertTrue(st.exists_in_lr)
+    self.assertFalse(st.exists_in_wd)
+
+    self._write_file(TRACKED_FP, contents=TRACKED_FP_CONTENTS_2)
+    st = file_lib.status(TRACKED_FP)
+    self.assertEqual(file_lib.TRACKED, st.type)
+    self.assertFalse(st.modified)
+    self.assertTrue(st.exists_in_lr)
+    self.assertTrue(st.exists_in_wd)
+
+  def test_status_track_rm(self):
+    file_lib.track(UNTRACKED_FP)
+    st = file_lib.status(UNTRACKED_FP)
+    self.assertEqual(file_lib.TRACKED, st.type)
+    self.assertTrue(st.modified)
+
+    os.remove(UNTRACKED_FP)
+    self.assertEqual(file_lib.FILE_NOT_FOUND, file_lib.status(UNTRACKED_FP))
+
+  def test_status_track_untrack(self):
+    file_lib.track(UNTRACKED_FP)
+    st = file_lib.status(UNTRACKED_FP)
+    self.assertEqual(file_lib.TRACKED, st.type)
+    self.assertTrue(st.modified)
+
+    file_lib.untrack(UNTRACKED_FP)
+    st = file_lib.status(UNTRACKED_FP)
+    self.assertEqual(file_lib.UNTRACKED, st.type)
+    self.assertTrue(st.modified)
+
+  def test_status_unignore(self):
+    self._write_file('.gitignore', contents='')
+    self.assertEqual(file_lib.UNTRACKED, file_lib.status(IGNORED_FP).type)
+    self.assertEqual(
+        file_lib.UNTRACKED, file_lib.status(IGNORED_FP_WITH_SPACE).type)
+
+  def test_status_ignore(self):
+    contents = self._read_file('.gitignore') + '\n' + TRACKED_FP
+    self._write_file('.gitignore', contents=contents)
+    # Tracked files can't be ignored.
+    self.assertEqual(file_lib.TRACKED, file_lib.status(TRACKED_FP).type)
+
+  def test_status_untrack_tracked_modify(self):
+    file_lib.untrack(TRACKED_FP)
+    st = file_lib.status(TRACKED_FP)
+    self.assertEqual(file_lib.UNTRACKED, st.type)
+    # self.assertFalse(st.modified)
+
+    self._write_file(TRACKED_FP, contents='contents')
+    st = file_lib.status(TRACKED_FP)
+    self.assertEqual(file_lib.UNTRACKED, st.type)
+    self.assertTrue(st.modified)
+
+  def test_status_untrack_tracked_rm(self):
+    file_lib.untrack(TRACKED_FP)
+    st = file_lib.status(TRACKED_FP)
+    self.assertEqual(file_lib.UNTRACKED, st.type)
+
+    os.remove(TRACKED_FP)
+    self.assertEqual(file_lib.FILE_NOT_FOUND, file_lib.status(TRACKED_FP))
+
+  def __assert_type(self, fp, expected, got):
+    self.assertEqual(
+        expected, got,
+        'Incorrect type for {}: expected {}, got {}'.format(
+            fp, expected, got))
+
+  def __assert_field(self, fp, field, expected, got):
+     self.assertEqual(
+          expected, got,
+          'Incorrect status for {}: expected {}={}, got {}={}'.format(
+              fp, field, expected, field, got))
 
 
 if __name__ == '__main__':
