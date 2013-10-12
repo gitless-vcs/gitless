@@ -20,7 +20,7 @@ UNTRACKED_FP_WITH_SPACE = 'f2 space'
 IGNORED_FP = 'f3'
 IGNORED_FP_WITH_SPACE = 'f3 space'
 NONEXISTENT_FP = 'nonexistent'
-NONEXISTENT_FP_WITH_SPACE = 'nonexistent'
+NONEXISTENT_FP_WITH_SPACE = 'nonexistent space'
 
 
 class TestFile(common.TestCore):
@@ -52,14 +52,23 @@ class TestTrackFile(TestFile):
 
   @common.assert_contents_unchanged(UNTRACKED_FP)
   def test_track_untracked_fp(self):
-    self.assertEqual(file_lib.SUCCESS, file_lib.track(UNTRACKED_FP))
-    self.assertEqual(file_lib.TRACKED, file_lib.status(UNTRACKED_FP).type)
+    self.__assert_track_fp(UNTRACKED_FP)
 
   @common.assert_contents_unchanged(UNTRACKED_FP_WITH_SPACE)
   def test_track_untracked_fp_with_space(self):
-    self.assertEqual(file_lib.SUCCESS, file_lib.track(UNTRACKED_FP_WITH_SPACE))
+    self.__assert_track_fp(UNTRACKED_FP_WITH_SPACE)
+
+  def __assert_track_fp(self, fp):
+    t = file_lib.track(fp)
     self.assertEqual(
-      file_lib.TRACKED, file_lib.status(UNTRACKED_FP_WITH_SPACE).type)
+        file_lib.SUCCESS, t,
+        'Track of fp "{}" failed: expected {}, got {}'.format(
+            fp, file_lib.SUCCESS, t))
+    st = file_lib.status(fp)
+    self.assertEqual(
+        file_lib.TRACKED, st.type,
+        'Track of fp "{}" failed: expected status.type={}, got '
+        'status.type={}'.format(fp, file_lib.TRACKED, st.type))
 
   @common.assert_no_side_effects(TRACKED_FP)
   def test_track_tracked_fp(self):
@@ -91,14 +100,23 @@ class TestUntrackFile(TestFile):
 
   @common.assert_contents_unchanged(TRACKED_FP)
   def test_untrack_tracked_fp(self):
-    self.assertEqual(file_lib.SUCCESS, file_lib.untrack(TRACKED_FP))
-    self.assertEqual(file_lib.UNTRACKED, file_lib.status(TRACKED_FP).type)
+    self.__assert_untrack_fp(TRACKED_FP)
 
   @common.assert_contents_unchanged(TRACKED_FP_WITH_SPACE)
   def test_untrack_tracked_fp_space(self):
-    self.assertEqual(file_lib.SUCCESS, file_lib.untrack(TRACKED_FP_WITH_SPACE))
+    self.__assert_untrack_fp(TRACKED_FP_WITH_SPACE)
+
+  def __assert_untrack_fp(self, fp):
+    t = file_lib.untrack(fp)
     self.assertEqual(
-        file_lib.UNTRACKED, file_lib.status(TRACKED_FP_WITH_SPACE).type)
+        file_lib.SUCCESS, t,
+        'Untrack of fp "{}" failed: expected {}, got {}'.format(
+            fp, file_lib.SUCCESS, t))
+    st = file_lib.status(fp)
+    self.assertEqual(
+        file_lib.UNTRACKED, st.type,
+        'Untrack of fp "{}" failed: expected status.type={}, got '
+        'status.type={}'.format(fp, file_lib.UNTRACKED, st.type))
 
   @common.assert_no_side_effects(UNTRACKED_FP)
   def test_untrack_untracked_fp(self):
@@ -164,7 +182,7 @@ class TestCheckoutFile(TestFile):
         file_lib.FILE_NOT_FOUND_AT_CP, file_lib.checkout(UNTRACKED_FP)[0])
 
   @common.assert_no_side_effects(UNTRACKED_FP_WITH_SPACE)
-  def test_checkout_uncommited_fp(self):
+  def test_checkout_uncommited_fp_with_space(self):
     self.assertEqual(
         file_lib.FILE_NOT_FOUND_AT_CP,
         file_lib.checkout(UNTRACKED_FP_WITH_SPACE)[0])
