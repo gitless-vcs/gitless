@@ -49,8 +49,11 @@ def _show(files):
   pprint.sep(p=cf.write)
   pprint.msg(
       'Please enter the commit message for your changes above. Lines starting '
-      'with \'#\' will be ignored, and an empty message aborts the commit.',
+      'with', p=cf.write)
+  pprint.msg(
+      '\'#\' will be ignored, and an empty message aborts the commit.',
       p=cf.write)
+  pprint.blank(p=cf.write)
   pprint.msg('These are the files that will be commited:', p=cf.write)
   pprint.exp('You can add/remove files to this list', p=cf.write)
   for f in files:
@@ -142,7 +145,9 @@ def _extract_info():
     msg += l
     l = cf.readline()
   # We reached the separator, this marks the end of the commit msg.
-  # We exhaust the two following lines so that we get to the file list.
+  # We exhaust the following lines so that we get to the file list.
+  cf.readline()
+  cf.readline()
   cf.readline()
   cf.readline()
   cf.readline()
