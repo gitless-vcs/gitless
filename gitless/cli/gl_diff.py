@@ -41,18 +41,31 @@ def main(args):
     ret, out = file_lib.diff(fp)
 
     if ret is file_lib.FILE_NOT_FOUND:
-      pprint.err('Can\'t diff a non-existent file: %s' % fp)
+      pprint.err('Can\'t diff a non-existent file: {}'.format(fp))
       success = False
     elif ret is file_lib.FILE_IS_UNTRACKED:
       pprint.err(
-          'You tried to diff untracked file %s. It\'s probably a mistake. If '
+          'You tried to diff untracked file {}. It\'s probably a mistake. If '
           'you really care about changes in this file you should start '
-          'tracking changes to it with gl track %s' % (fp, fp))
+          'tracking changes to it with gl track {}'.format(fp, fp))
+      success = False
+    elif ret is file_lib.FILE_IS_IGNORED:
+      pprint.err(
+          'You tried to diff ignored file {}. It\'s probably a mistake. If '
+          'you really care about changes in this file you should stop ignoring '
+          'it by editing the .gigignore file'.format(fp))
       success = False
     elif ret is file_lib.SUCCESS:
+      if not out:
+        pprint.msg(
+            'The working version of file {} is the same as its last '
+            'committed version. No diffs to output'.format(fp))
+        continue
+
       tf = tempfile.NamedTemporaryFile(delete=False)
       pprint.msg(
-          'Diff of file %s with its last committed version' % fp, p=tf.write)
+          'Diff of file {} with its last committed version'.format(fp),
+          p=tf.write)
       pprint.exp(
           'lines starting with \'-\' are lines that are not in the working '
           'version but that are present in the last committed version of the '
@@ -63,7 +76,7 @@ def main(args):
       pprint.blank(p=tf.write)
       tf.write(out)
       tf.close()
-      subprocess.call('less %s' % tf.name, shell=True)
+      subprocess.call('less {}'.format(tf.name), shell=True)
       os.remove(tf.name)
     else:
       raise Exception('Unrecognized ret code %s' % ret)
