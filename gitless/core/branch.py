@@ -24,28 +24,38 @@ import repo as repo_lib
 SUCCESS = 1
 REMOTE_NOT_FOUND = 2
 INVALID_NAME = 3
+BRANCH_ALREADY_EXISTS = 4
+NONEXISTENT_BRANCH = 5
+BRANCH_IS_CURRENT = 6
+INVALID_DP = 7
 
 
-def create(name):
+def create(name, dp='HEAD'):
   """Creates a new branch with the given name.
 
   Args:
     name: the name of the branch to create.
+    dp: divergent point. The commit from where to 'branch out.' (Defaults to
+      HEAD.)
 
   Returns:
-    INVALID_NAME or SUCCESS.
+    INVALID_NAME, BRANCH_ALREADY_EXISTS, SUCCESS.
   """
-  if '/' in name or '_' in name:
+  if not name.strip() or '/' in name or '_' in name:
     # Branches can't have a '/' so that we don't confuse them with remote
     # branches that can be specified in the form remote/branch.
     # Also, they can't have a '_' so that it doesn't conflict with our way of
     # naming internal files.
     return INVALID_NAME
-  ret = git_branch.create(name)
+  ret = git_branch.create(name, sp=dp)
   if ret == git_branch.INVALID_NAME:
     return INVALID_NAME
+  elif ret == git_branch.BRANCH_ALREADY_EXISTS:
+    return BRANCH_ALREADY_EXISTS
   elif ret == git_branch.SUCCESS:
     return SUCCESS
+  elif ret == git_branch.INVALID_SP:
+    return INVALID_DP
   else:
     raise Exception('Unrecognized ret code %s' % ret)
 
@@ -55,10 +65,19 @@ def delete(name):
 
   Args:
     name: the name of the branch to delete.
+
+  Returns:
+    NONEXISTENT_BRANCH or SUCCESS.
   """
-  git_branch.force_delete(name)
-  # We also cleanup any stash left.
-  git_stash.drop(_stash_msg(name))
+  ret = git_branch.force_delete(name)
+  if ret == git_branch.NONEXISTENT_BRANCH:
+    return NONEXISTENT_BRANCH
+  elif ret == SUCCESS:
+    # We also cleanup any stash left.
+    git_stash.drop(_stash_msg(name))
+    return SUCCESS
+  else:
+    raise Exception('Unrecognized ret code %s' % ret)
 
 
 def set_upstream(upstream):
@@ -102,8 +121,13 @@ def switch(name):
 
   Args:
     name: the name of the destination branch.
+
+  Returns:
+    BRANCH_IS_CURRENT or SUCCESS.
   """
   current_b = current()
+  if name == current_b:
+    return BRANCH_IS_CURRENT
   # Stash doesn't save assumed unchanged files, so we save which files are
   # marked as assumed unchanged and unmark them. And when switching back we
   # look at this info and re-mark them.
@@ -112,6 +136,7 @@ def switch(name):
   git_branch.checkout(name)
   git_stash.pop(_stash_msg(name))
   _remark_au_files(name)
+  return SUCCESS
 
 
 def current():
