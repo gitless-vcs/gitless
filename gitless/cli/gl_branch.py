@@ -19,6 +19,10 @@ def parser(subparsers):
       'branch', nargs='?',
       help='switch to branch (will be created if it doesn\'t exist yet)')
   branch_parser.add_argument(
+      'divergent_point', nargs='?',
+      help='the commit from where to \'branch out\' (only relevant if a new '
+      'branch is created; defaults to HEAD)', default='HEAD')
+  branch_parser.add_argument(
       '-d', '--delete', nargs='+', help='delete branch(es)', dest='delete_b')
   branch_parser.add_argument(
       '-su', '--set-upstream', help='set the upstream branch',
@@ -48,9 +52,12 @@ def main(args):
       return False
 
     if not b_st.exists:
-      ret = branch_lib.create(args.branch)
+      ret = branch_lib.create(args.branch, dp=args.divergent_point)
       if ret is branch_lib.INVALID_NAME:
         pprint.err('Invalid branch name')
+        return False
+      elif ret == branch_lib.INVALID_DP:
+        pprint.msg('Invalid divergent point {}'.format(args.divergent_point))
         return False
       elif ret is branch_lib.SUCCESS:
         pprint.msg('Created new branch %s' % args.branch)
