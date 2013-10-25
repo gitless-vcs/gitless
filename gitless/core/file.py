@@ -149,6 +149,17 @@ def diff(fp):
 
 #arg should be an array of diff lines
 def parseDiffOutput(diffout):
+  WHITE = '\033[37m' 
+  STANDARD_BACK = '\033[49m' 
+  STANDARD_FRONT = '\033[39m'
+  GREEN = '\033[32m'
+  GREEN_BACK = '\033[42m'
+  GREENBOLD = '\033[1;32m'
+  RED = '\033[31m'
+  RED_BACK = '\033[41m'
+  REDBOLD = '\033[1;32m'
+  CLEAR = '\033[0m'
+  
   resulting = []
   leftline = 0
   rightline = 0
@@ -160,25 +171,55 @@ def parseDiffOutput(diffout):
 
       rightInfo = portions[2].split(",")
       rightline = int(rightInfo[0][1:])
-      resulting += [line] #debug
-      print(line)
+      resulting += [(line, STANDARD_FRONT, STANDARD_BACK)]
     elif line.startswith(" "):
       newline = "%d\t%d\t" % (leftline, rightline) + line
-      print(newline) #debug
-      resulting += [newline]
+      resulting += [(newline, STANDARD_FRONT, STANDARD_BACK)]
       leftline += 1
       rightline += 1
     elif line.startswith("-"):
-      newline = '\033[0;31m' + "%d\t\t" % leftline + line + '\033[0m'
+      newline = "%d\t\t" % leftline + line
       leftline += 1
-      print(newline)
-      resulting += [newline]
+      resulting += [(newline, WHITE, RED_BACK)]
     elif line.startswith("+"):
-      newline = '\033[0;32m' + "\t%d\t" % rightline + line + '\033[0m'
+      newline = "\t%d\t" % rightline + line 
       rightline += 1
-      print(newline)
-      resulting += [newline]
+      resulting += [(newline, WHITE, GREEN_BACK)]
+  if False:
+    print STANDARD_BACK + '\n'
+    for (index, (line, foreground, background)) in enumerate(resulting):
+      colored = background + foreground + line
+      if(index < len(resulting) - 1 and background != STANDARD_BACK):
+        colored += resulting[index + 1][2] #background color of next
+      print colored
+    print '\033[0m'
+  if True:
+    for (index, (line, foreground, background)) in enumerate(resulting):
+      if background == RED_BACK:
+        foreground = RED
+      elif background == GREEN_BACK:
+        foreground = GREEN
+      colored = foreground + line
+      print colored
+    print '\033[0m'
+    
+def highlight(lines, leftline, rightline):
+ prefix = 1
+ line1 = lines[0]
+ line2 = lines[1]
+ length = min(len(line1), len(line2)) - 1
+ while(prefix <= length and line1[prefix] == line2[prefix]):
+   prefix+=1 
+ suffix1 = len(line1) - 1
+ suffix2 = len(line2) - 1
+ while(suffix1 > prefix and suffix2 > prefix and line1[suffix1] == line2[suffix2]):
+   suffix1 -= 1
+   suffix2 -= 1
 
+ if(prefix - 1 > 0 ):
+   i = 0
+ return (prefix, suffix1 + 1, suffix2 + 1)
+ 
 def checkout(fp, cp='HEAD'):
   """Checkouts file fp at cp.
 
