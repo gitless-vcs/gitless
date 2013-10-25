@@ -7,6 +7,7 @@
 
 import collections
 import os
+import re
 
 from gitpylib import file as git_file
 from gitpylib import status as git_status
@@ -143,7 +144,7 @@ def diff(fp):
   else:
     diff_out = git_file.diff(fp)
     out = diff_out.splitlines()[4:]
-  parseDiffOutput(out) 
+  out = parseDiffOutput(out) 
   out = "\n".join(out)
   return (SUCCESS, out)
 
@@ -157,10 +158,22 @@ def parseDiffOutput(diffout):
   GREENBOLD = '\033[1;32m'
   RED = '\033[31m'
   RED_BACK = '\033[41m'
-  REDBOLD = '\033[1;32m'
+  REDBOLD = '\033[1;31m'
   CLEAR = '\033[0m'
-  
+  NEWDIFF = -1 
+  SAME = 0
+  ADDED = 1
+  MINUS = 2
   resulting = []
+
+  def format_line(line, linestatus, left, right):
+    if linestatus == SAME:
+      return "%d\t%d\t" % (left, right) + line
+    elif linestatus == ADDED:
+      return GREEN + "\t%d\t" % right + line 
+    elif linestatus == MINUS:
+      return RED + "%d\t\t" % left + line 
+    return CLEAR + line
   leftline = 0
   rightline = 0
   for line in diffout:
@@ -171,55 +184,82 @@ def parseDiffOutput(diffout):
 
       rightInfo = portions[2].split(",")
       rightline = int(rightInfo[0][1:])
-      resulting += [(line, STANDARD_FRONT, STANDARD_BACK)]
+      resulting += [(line, NEWDIFF, `leftline`, `rightline`)]
     elif line.startswith(" "):
-      newline = "%d\t%d\t" % (leftline, rightline) + line
-      resulting += [(newline, STANDARD_FRONT, STANDARD_BACK)]
+      resulting += [(line, SAME, leftline, rightline)]
       leftline += 1
       rightline += 1
     elif line.startswith("-"):
-      newline = "%d\t\t" % leftline + line
+      resulting += [(line, MINUS, leftline, rightline)]
       leftline += 1
-      resulting += [(newline, WHITE, RED_BACK)]
     elif line.startswith("+"):
-      newline = "\t%d\t" % rightline + line 
+      resulting += [(line, ADDED, leftline, rightline)]
       rightline += 1
-      resulting += [(newline, WHITE, GREEN_BACK)]
   if False:
     print STANDARD_BACK + '\n'
-    for (index, (line, foreground, background)) in enumerate(resulting):
+    for (index, (line, status, leftline, rightline)) in enumerate(resulting):
       colored = background + foreground + line
       if(index < len(resulting) - 1 and background != STANDARD_BACK):
         colored += resulting[index + 1][2] #background color of next
       print colored
     print '\033[0m'
   if True:
-    for (index, (line, foreground, background)) in enumerate(resulting):
-      if background == RED_BACK:
-        foreground = RED
-      elif background == GREEN_BACK:
-        foreground = GREEN
-      colored = foreground + line
-      print colored
-    print '\033[0m'
+    processed = []
+    for (index, (line, status, left, right)) in enumerate(resulting):
+      if status == ADDED and (index == len(resulting) - 1 or resulting[index + 1][1] <= SAME) and (index - 1 >= 0 and resulting[index - 1][1] == MINUS) and (index - 2 < 0 or resulting[index - 2][1] <= SAME):
+        interest = highlight(resulting[index-1][0][1:], line[1:])
+        if(interest != None):
+          (starts, prefixes, suffixes) = interest
+          otherline = resulting[index-1][0]
+          lineNumber = RED + `left-1` + "\t\t"
+          regular = otherline[:prefixes[0]]
+          bold = REDBOLD + otherline[prefixes[0]:suffixes[0] + 1]
+          end = CLEAR + RED + otherline[suffixes[0] + 1:]
+          coloredOne = lineNumber + regular + bold + end
+          processed[-1] = coloredOne
+          lineNumber = GREEN + "\t" + `right` + "\t"
+          regular = line[:prefixes[1]]
+          bold = GREENBOLD + line[prefixes[1]:suffixes[1] + 1]
+          end = CLEAR + GREEN + line[suffixes[1] + 1:]
+          coloredOne = lineNumber + regular + bold + end
+          processed += [coloredOne]
+        else:
+          colored = format_line(line, status, left, right)
+          processed += [colored]
+      else: 
+        colored = format_line(line, status, left, right)
+        processed += [colored]
+    for i in range(len(processed)):
+      print(processed[i] + CLEAR)
+    print(CLEAR)
+  return processed
     
-def highlight(lines, leftline, rightline):
- prefix = 1
- line1 = lines[0]
- line2 = lines[1]
+def highlight(line1, line2):
+ INTEREST = 0
+ start1 = 0
+ start2 = 0
+ match = re.search("\S", line1)
+ if(match != None):
+   start1 = match.start()
+ match = re.search("\S", line2)
+ if(match != None):
+   start2 = match.start()
  length = min(len(line1), len(line2)) - 1
- while(prefix <= length and line1[prefix] == line2[prefix]):
-   prefix+=1 
+ prefix1 = start1
+ prefix2 = start2
+ while(prefix1 <= length and prefix2 <= length and line1[prefix1] == line2[prefix2]):
+   prefix1 += 1
+   prefix2 += 1 
  suffix1 = len(line1) - 1
  suffix2 = len(line2) - 1
- while(suffix1 > prefix and suffix2 > prefix and line1[suffix1] == line2[suffix2]):
+ while(suffix1 >= prefix1 and suffix2 >= prefix2 and line1[suffix1] == line2[suffix2]):
    suffix1 -= 1
    suffix2 -= 1
 
- if(prefix - 1 > 0 ):
-   i = 0
- return (prefix, suffix1 + 1, suffix2 + 1)
- 
+ if prefix1 - start1 > INTEREST or len(line1) - suffix1 > 1:
+   return ((start1 + 1, start2 + 1), (prefix1 + 1, prefix2 + 1), (suffix1 + 1, suffix2 + 1))
+ return None
+
 def checkout(fp, cp='HEAD'):
   """Checkouts file fp at cp.
 
