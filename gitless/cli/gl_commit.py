@@ -53,6 +53,7 @@ def main(args):
   if not commit_files:
     pprint.err('Commit aborted')
     pprint.err('No files to commit')
+    pprint.err_exp('use gl track <f> if you want to track changes to file f')
     return False
 
   msg = args.m
@@ -66,6 +67,7 @@ def main(args):
     if not commit_files:
       pprint.err('Commit aborted')
       pprint.err('No files to commit')
+      pprint.err_exp('use gl track <f> if you want to track changes to file f')
       return False
     if not _valid_input(commit_files, [], []):
       return False
