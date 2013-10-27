@@ -213,4 +213,4 @@ def _auto_track(files):
   files = [file_lib.status(fp) for fp in files]
   for f in files:
     if f.type == file_lib.UNTRACKED:
-      file_lib.track(f)
+      file_lib.track(f.fp)
