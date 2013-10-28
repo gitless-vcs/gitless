@@ -189,9 +189,11 @@ def status(fp):
 
   Returns:
     FILE_NOT_FOUND or a named tuple (fp, type, exists_in_lr, exists_in_wd,
-    modified, in_conflict, resolved) where fp is a file path type is one of
+    modified, in_conflict, resolved) where fp is a file path, type is one of
     TRACKED, UNTRACKED or IGNORED and all the remaining fields are booleans. The
-    in_conflict and resolved fields are only applicable if the file is TRACKED.
+    modified field is True if the working version of the file differs from its
+    committed version (If there's no committed version, modified is set to
+    True.)
   """
   return _status(fp)[0]
 
@@ -201,11 +203,18 @@ def status_all():
 
   Returns:
     a list of named tuples (fp, type, exists_in_lr, exists_in_wd, modified,
-    in_conflict, resolved) where fp is a file path type is one of TRACKED,
+    in_conflict, resolved) where fp is a file path, type is one of TRACKED,
     UNTRACKED or IGNORED and all the remaining fields are booleans. The
-    in_conflict and resolved fields are only applicable if the file is TRACKED.
+    modified field is True if the working version of the file differs from its
+    committed version. (If there's no committed version, modified is set to
+    True.)
   """
-  return [_build_f_st(s, fp) for (s, fp) in git_status.of_repo()]
+  ret = []
+  for (s, fp) in git_status.of_repo():
+    f_st = _build_f_st(s, fp)
+    if f_st:
+      ret.append(f_st)
+  return ret
 
 
 def resolve(fp):
@@ -249,7 +258,10 @@ def _status(fp):
   s = git_status.of_file(fp)
   if s == git_status.FILE_NOT_FOUND:
     return (FILE_NOT_FOUND, s)
-  return (_build_f_st(s, fp), s)
+  gls = _build_f_st(s, fp)
+  if not gls:
+    return (FILE_NOT_FOUND, s)
+  return (gls, s)
 
 
 def _build_f_st(s, fp):
@@ -267,6 +279,7 @@ def _build_f_st(s, fp):
     # Staged file don't exist in the lr for Gitless.
     ret = FileStatus(fp, TRACKED, False, True, True, False, False)
   elif s == git_status.ASSUME_UNCHANGED:
+    # TODO(sperezde): detect whether it is modified or not?
     ret = FileStatus(fp, UNTRACKED, True, True, True, False, False)
   elif s == git_status.DELETED:
     ret = FileStatus(fp, TRACKED, True, False, True, False, False)
@@ -274,13 +287,14 @@ def _build_f_st(s, fp):
     # This can only happen if the user did a rm of a new file. The file doesn't
     # exist anymore for Gitless.
     git_file.unstage(fp)
+    ret = None
   elif s == git_status.DELETED_ASSUME_UNCHANGED:
-    ret = FileStatus(fp, UNTRACKED, True, False, True, False, False)
+    ret = None
   elif s == git_status.IN_CONFLICT:
     wr = _was_resolved(fp)
     ret = FileStatus(fp, TRACKED, True, True, True, not wr, wr)
   elif s == git_status.IGNORED or s == git_status.IGNORED_STAGED:
-    ret = FileStatus(fp, IGNORED, True, True, True, True, False)
+    ret = FileStatus(fp, IGNORED, False, True, True, True, False)
   elif s == git_status.MODIFIED_MODIFIED:
     # The file was marked as resolved and then modified. To Gitless, this is
     # just a regular tracked file.
