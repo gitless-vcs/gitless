@@ -4,7 +4,6 @@
 
 """gl merge - Merge the divergent changes of one branch onto another."""
 
-import sys
 
 from gitless.core import branch as branch_lib
 from gitless.core import sync as sync_lib
@@ -38,14 +37,14 @@ def main(args):
   if not args.src:
     # We use the upstream branch, if any.
     current = branch_lib.current()
-    ur, ub = branch_lib.upstream(current)
-    if ur is None:
+    b_st = branch_lib.status(current)
+    if b_st.upstream is None:
       pprint.err(
           'No src branch specified and the current branch has no upstream '
           'branch set')
       return False
 
-    if branch_lib.has_unpushed_upstream(current, ur, ub):
+    if not b_st.upstream_exists:
       pprint.err(
           'Current branch has an upstream set but it hasn\'t been published '
           'yet')
@@ -53,7 +52,7 @@ def main(args):
 
     # If we reached this point, it is safe to use the upstream branch to get
     # changes from.
-    args.src = '/'.join([ur, ub])
+    args.src = b_st.upstream
     pprint.msg(
         'No src branch specified, defaulted to getting changes from upstream '
         'branch %s' % args.src)

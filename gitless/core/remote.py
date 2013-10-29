@@ -8,6 +8,7 @@
 from gitpylib import remote as git_remote
 
 
+# Ret codes of methods.
 SUCCESS = 1
 REMOTE_NOT_FOUND = 2
 REMOTE_ALREADY_SET = 3
@@ -31,7 +32,7 @@ def add(remote_name, remote_url):
     return (REMOTE_ALREADY_SET, None)
   git_remote.add(remote_name, remote_url)
   ret, out = info(remote_name)
-  if ret is REMOTE_UNREACHABLE:
+  if ret == REMOTE_UNREACHABLE:
     git_remote.rm(remote_name)
     return (REMOTE_UNREACHABLE, None)
   return (SUCCESS, out)
@@ -43,11 +44,11 @@ def is_set(remote_name):
 
 def info(remote_name):
   ret, info = git_remote.show(remote_name)
-  if ret is git_remote.REMOTE_NOT_FOUND:
+  if ret == git_remote.REMOTE_NOT_FOUND:
     return (REMOTE_NOT_FOUND, None)
-  elif ret is git_remote.REMOTE_UNREACHABLE:
+  elif ret == git_remote.REMOTE_UNREACHABLE:
     return (REMOTE_UNREACHABLE, None)
-  elif ret is git_remote.SUCCESS:
+  elif ret == git_remote.SUCCESS:
     return (SUCCESS, info)
 
 

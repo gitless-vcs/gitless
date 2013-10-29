@@ -38,6 +38,7 @@ GL_VERSION = 'kendall.0.2.1'
 
 def main():
   parser = argparse.ArgumentParser()
+  parser.add_argument('--version', action='version', version=GL_VERSION)
   subparsers = parser.add_subparsers(dest='subcmd_name')
 
   sub_cmds = {

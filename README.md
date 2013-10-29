@@ -12,14 +12,11 @@ More info, downloads and documentation @
 About
 -----
 
-Gitless is an experimental version control system built on top of Git. We are
-exploring what conceptual integrity means with the goal of building a rigorous
-foundation for concept design. We encourage you to try out the current version
-of Gitless and send feedback. Keep in mind that Gitless might change in
-non-retrocompatible ways (so don't script around it just yet) as we seek to
-answer the fundamental question that drives this software project: if we were
-to challenge the very core concepts in version control systems, what would
-version control look like?
+Gitless is an experimental version control system built on top of Git. Keep in
+mind that Gitless might change in non-retrocompatible ways (so don't script
+around it just yet) as we seek to answer the fundamental question that drives
+this software project: if we were to challenge the very core concepts in
+version control systems, what would version control look like?
 
 In its current state, Gitless is a distributed version control system that
 supports all of the most commonly used Git features. We are missing some things
@@ -40,3 +37,32 @@ Documentation
 -------------
 
 TODO
+
+
+Installing
+----------
+
+Note that the installation **won't interfere** with your Git installation in any
+way, you can keep using Git, and switch between Git and Gitless seamleslly.
+
+You need to have Python and Git installed. If you don't, search for their
+official websites, install them and come back.
+
+The easiest way to install Gitless is using the Python Package Manager `pip`. If
+you don't have `pip`, just search the web for it, and you'll find installation
+instructions on their website. Now, once you have `pip` installed just do:
+
+    $> pip install gitless
+
+You should now be able to start executing the `gl` command.
+
+
+
+Contributing
+------------
+
+We only have two branches, `master` and `develop`. We code in `develop` and
+merge the changes onto `master` when the changes are stable and we're ready to
+cut a new release. So you'll find on `develop` the latest changes.
+
+To contribute: fork project, make changes, send pull request.

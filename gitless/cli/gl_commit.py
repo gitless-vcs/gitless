@@ -5,10 +5,7 @@
 """gl commit - Record changes in the local repository."""
 
 
-import os
-
 from gitless.core import file as file_lib
-from gitless.core import repo as repo_lib
 from gitless.core import sync as sync_lib
 
 import commit_dialog
@@ -34,6 +31,9 @@ def parser(subparsers):
             'must be untracked files)'),
       dest='inc_files')
   commit_parser.add_argument(
+      '-sc', '--skip-checks', help='skip pre-commit check', action='store_true',
+      default=False, dest='sc')
+  commit_parser.add_argument(
       '-m', '--message', help='Commit message', dest='m')
   commit_parser.set_defaults(func=main)
 
@@ -53,6 +53,7 @@ def main(args):
   if not commit_files:
     pprint.err('Commit aborted')
     pprint.err('No files to commit')
+    pprint.err_exp('use gl track <f> if you want to track changes to file f')
     return False
 
   msg = args.m
@@ -66,30 +67,40 @@ def main(args):
     if not commit_files:
       pprint.err('Commit aborted')
       pprint.err('No files to commit')
+      pprint.err_exp('use gl track <f> if you want to track changes to file f')
       return False
     if not _valid_input(commit_files, [], []):
       return False
 
   _auto_track(commit_files)
-  ret, out = sync_lib.commit(commit_files, msg)
-  if ret is sync_lib.SUCCESS:
+  ret, out = sync_lib.commit(commit_files, msg, skip_checks=args.sc)
+  if ret == sync_lib.SUCCESS:
     if out:
       pprint.msg(out)
-  elif ret is sync_lib.UNRESOLVED_CONFLICTS:
+  elif ret == sync_lib.PRE_COMMIT_FAILED:
+    pprint.err('Commit aborted')
+    pprint.err('The pre-commit check failed:')
+    pprint.err_exp('fix the problems and run gl commit again')
+    pprint.err_exp(
+        'alternatively, you can skip the pre-commit checks with the '
+        '--skip-checks flag')
+    pprint.err_blank()
+    pprint.err(out)
+  elif ret == sync_lib.UNRESOLVED_CONFLICTS:
     pprint.err('Commit aborted')
     pprint.err('You have unresolved conflicts:')
     pprint.err_exp(
         'use gl resolve <f> to mark file f as resolved once you fixed the '
         'conflicts')
     for f in out:
-      pprint.err_item(f)
+      pprint.err_item(f.fp)
     return False
-  elif ret is sync_lib.RESOLVED_FILES_NOT_IN_COMMIT:
+  elif ret == sync_lib.RESOLVED_FILES_NOT_IN_COMMIT:
     pprint.err('Commit aborted')
     pprint.err('You have resolved files that were not included in the commit:')
     pprint.err_exp('these must be part of the commit')
     for f in out:
-      pprint.err_item(f)
+      pprint.err_item(f.fp)
     return False
   else:
     raise Exception('Unexpected return code %s' % ret)
@@ -120,40 +131,43 @@ def _valid_input(only_files, exc_files, inc_files):
 
   ret = True
   err = []
-  for fp in only_files:
-    if not os.path.exists(fp) and not file_lib.is_deleted(fp):
+  only_files = [file_lib.status(fp) for fp in only_files]
+  for f in only_files:
+    if f == file_lib.FILE_NOT_FOUND:
       err.append('File %s doesn\'t exist' % fp)
       ret = False
-    elif file_lib.is_tracked(fp) and not file_lib.is_tracked_modified(fp):
+    elif f.type == file_lib.TRACKED and not f.modified:
       err.append(
           'File %s is a tracked file but has no modifications' % fp)
       ret = False
 
-  for fp in exc_files:
+  exc_files = [file_lib.status(fp) for fp in exc_files]
+  for f in exc_files:
     # We check that the files to be excluded are existing tracked files.
-    if not os.path.exists(fp) and not file_lib.is_deleted(fp):
+    if f == file_lib.FILE_NOT_FOUND:
       err.append('File %s doesn\'t exist' % fp)
       ret = False
-    elif not file_lib.is_tracked(fp):
+    elif f.type != file_lib.TRACKED:
       err.append(
           'File %s, listed to be excluded from commit, is not a tracked file' %
           fp)
       ret = False
-    elif not file_lib.is_tracked_modified(fp):
+    elif f.type == file_lib.TRACKED and not f.modified:
       err.append(
           'File %s, listed to be excluded from commit, is a tracked file but '
           'has no modifications' % fp)
       ret = False
-    elif sync_lib.is_resolved_file(fp):
+    elif f.resolved:
       err.append('You can\'t exclude a file that has been resolved')
       ret = False
 
-  for fp in inc_files:
+  inc_files = [file_lib.status(fp) for fp in inc_files]
+  for f in inc_files:
     # We check that the files to be included are existing untracked files.
-    if not os.path.exists(fp) and not file_lib.is_deleted(fp):
+    if f == file_lib.FILE_NOT_FOUND:
       err.append('File %s doesn\'t exist' % fp)
       ret = False
-    elif file_lib.is_tracked(fp):
+    elif f.type != file_lib.UNTRACKED:
       err.append(
           'File %s, listed to be included in the commit, is not a untracked '
           'file' % fp)
@@ -182,9 +196,10 @@ def _compute_fs(only_files, exc_files, inc_files):
   if only_files:
     ret = only_files
   else:
-    tracked_modified, unused_untracked = repo_lib.status()
-    # TODO(sperezde): push the use of frozenset to the library.
-    ret = frozenset(tm[0] for tm in tracked_modified)
+    # Tracked modified files.
+    ret = frozenset(
+        f.fp for f in file_lib.status_all() if f.type == file_lib.TRACKED and
+        f.modified)
     # TODO(sperezde): the following is a mega-hack, do it right.
     from gitpylib import common
     ret = ret.difference(common.real_case(exc_f) for exc_f in exc_files)
@@ -195,6 +210,7 @@ def _compute_fs(only_files, exc_files, inc_files):
 
 def _auto_track(files):
   """Tracks those untracked files in the list."""
+  files = [file_lib.status(fp) for fp in files]
   for f in files:
-    if not file_lib.is_tracked(f):
-      file_lib.track(f)
+    if f.type == file_lib.UNTRACKED:
+      file_lib.track(f.fp)

@@ -5,6 +5,8 @@
 """gl init - Create an empty repo or make a clone."""
 
 
+import os
+
 from gitless.core import repo as repo_lib
 
 import pprint
@@ -37,7 +39,7 @@ def main(args):
     pprint.err('Nothing to init, this directory is already a Gitless\'s repo')
     return False
   elif ret is repo_lib.SUCCESS:
-    pprint.msg('Gitless\'s local repository created successfully')
+    pprint.msg('Local repo created in {}'.format(os.getcwd()))
     return True
   else:
     raise Exception('Unexpected return code %s' % ret)
