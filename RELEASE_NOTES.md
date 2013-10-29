@@ -1,6 +1,17 @@
 Gitless's Release Notes
 =======================
 
+28th Oct 2013 - kendall.0.3
+---------------------------
+
+* General bug fixes.
+* UI improvements (made some messages more clear, consistent).
+* Allow the user to branch out from certain commit point.
+* Improvements in gl diff: now it outputs a message if the file is ignored or if
+  there are no diffs to show.
+* pre-commit hooks now work fine.
+
+
 4th Sept 2013 - kendall.0.2.1
 -----------------------------
 

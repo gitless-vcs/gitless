@@ -42,7 +42,20 @@ TODO
 Installing
 ----------
 
+Note that the installation **won't interfere** with your Git installation in any
+way, you can keep using Git, and switch between Git and Gitless seamleslly.
+
+You need to have Python and Git installed. If you don't, search for their
+official websites, install them and come back.
+
+The easiest way to install Gitless is using the Python Package Manager `pip`. If
+you don't have `pip`, just search the web for it, and you'll find installation
+instructions on their website. Now, once you have `pip` installed just do:
+
     $> pip install gitless
+
+You should now be able to start executing the `gl` command.
+
 
 
 Contributing
