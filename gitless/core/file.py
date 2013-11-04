@@ -150,14 +150,9 @@ def diff(fp):
 
 #arg should be an array of diff lines
 def parseDiffOutput(diffout):
-  WHITE = '\033[37m' 
-  STANDARD_BACK = '\033[49m' 
-  STANDARD_FRONT = '\033[39m'
   GREEN = '\033[32m'
-  GREEN_BACK = '\033[42m'
   GREENBOLD = '\033[1;32m'
   RED = '\033[31m'
-  RED_BACK = '\033[41m'
   REDBOLD = '\033[1;31m'
   CLEAR = '\033[0m'
   NEWDIFF = -1 
@@ -165,15 +160,17 @@ def parseDiffOutput(diffout):
   ADDED = 1
   MINUS = 2
   resulting = []
+  maxline = 0
 
   def format_line(line, linestatus, left, right):
     if linestatus == SAME:
-      return "%d\t%d\t" % (left, right) + line
+      return str(left).ljust(maxline) + str(right).ljust(maxline) + line + CLEAR
     elif linestatus == ADDED:
-      return GREEN + "\t%d\t" % right + line 
+      return " " * maxline + GREEN + str(right).ljust(maxline) + line + CLEAR
     elif linestatus == MINUS:
-      return RED + "%d\t\t" % left + line 
+      return RED + str(left).ljust(maxline) + " " * maxline + line + CLEAR
     return CLEAR + line
+
   leftline = 0
   rightline = 0
   for line in diffout:
@@ -181,10 +178,10 @@ def parseDiffOutput(diffout):
       portions = line.split(" ") #0 = @@ 1 = left 2 = right 3 = @@
       leftInfo = portions[1].split(",") #[-line,numlines]
       leftline = int(leftInfo[0][1:]) #line
-
       rightInfo = portions[2].split(",")
       rightline = int(rightInfo[0][1:])
       resulting += [(line, NEWDIFF, `leftline`, `rightline`)]
+      maxline = max([leftline + int(leftInfo[1]), rightline + int(rightInfo[1]), maxline])
     elif line.startswith(" "):
       resulting += [(line, SAME, leftline, rightline)]
       leftline += 1
@@ -195,49 +192,38 @@ def parseDiffOutput(diffout):
     elif line.startswith("+"):
       resulting += [(line, ADDED, leftline, rightline)]
       rightline += 1
-  if False:
-    print STANDARD_BACK + '\n'
-    for (index, (line, status, leftline, rightline)) in enumerate(resulting):
-      colored = background + foreground + line
-      if(index < len(resulting) - 1 and background != STANDARD_BACK):
-        colored += resulting[index + 1][2] #background color of next
-      print colored
-    print '\033[0m'
-  if True:
-    processed = []
-    for (index, (line, status, left, right)) in enumerate(resulting):
-      if status == ADDED and (index == len(resulting) - 1 or resulting[index + 1][1] <= SAME) and (index - 1 >= 0 and resulting[index - 1][1] == MINUS) and (index - 2 < 0 or resulting[index - 2][1] <= SAME):
-        interest = highlight(resulting[index-1][0][1:], line[1:])
-        if(interest != None):
-          (starts, prefixes, suffixes) = interest
-          otherline = resulting[index-1][0]
-          lineNumber = RED + `left-1` + "\t\t"
-          regular = otherline[:prefixes[0]]
-          bold = REDBOLD + otherline[prefixes[0]:suffixes[0] + 1]
-          end = CLEAR + RED + otherline[suffixes[0] + 1:]
-          coloredOne = lineNumber + regular + bold + end
-          processed[-1] = coloredOne
-          lineNumber = GREEN + "\t" + `right` + "\t"
-          regular = line[:prefixes[1]]
-          bold = GREENBOLD + line[prefixes[1]:suffixes[1] + 1]
-          end = CLEAR + GREEN + line[suffixes[1] + 1:]
-          coloredOne = lineNumber + regular + bold + end
-          processed += [coloredOne]
-        else:
-          colored = format_line(line, status, left, right)
-          processed += [colored]
-      else: 
+  maxline = len(str(maxline))
+  maxline = max(8, maxline + 1)
+  processed = []
+  for (index, (line, status, left, right)) in enumerate(resulting):
+    if status == ADDED and (index == len(resulting) - 1 or resulting[index + 1][1] <= SAME) and (index - 1 >= 0 and resulting[index - 1][1] == MINUS) and (index - 2 < 0 or resulting[index - 2][1] <= SAME):
+      interest = highlight(resulting[index-1][0][1:], line[1:])
+      if(interest != None):
+        (starts, prefixes, suffixes) = interest
+        otherline = resulting[index-1][0]
+        lineNumber = RED + str(left-1).ljust(maxline) + " " * maxline
+        regular = otherline[:prefixes[0]]
+        bold = REDBOLD + otherline[prefixes[0]:suffixes[0] + 1]
+        end = CLEAR + RED + otherline[suffixes[0] + 1:]
+        coloredOne = lineNumber + regular + bold + end + CLEAR
+        processed[-1] = coloredOne
+        lineNumber = " " * maxline + GREEN + str(right).ljust(maxline)
+        regular = line[:prefixes[1]]
+        bold = GREENBOLD + line[prefixes[1]:suffixes[1] + 1]
+        end = CLEAR + GREEN + line[suffixes[1] + 1:]
+        coloredOne = lineNumber + regular + bold + end + CLEAR
+        processed += [coloredOne]
+      else:
         colored = format_line(line, status, left, right)
         processed += [colored]
-    for i in range(len(processed)):
-      print(processed[i] + CLEAR)
-    print(CLEAR)
+    else: 
+      colored = format_line(line, status, left, right)
+      processed += [colored]
   return processed
-    
+
 def highlight(line1, line2):
  INTEREST = 0
- start1 = 0
- start2 = 0
+ start1 = start2 = 0
  match = re.search("\S", line1)
  if(match != None):
    start1 = match.start()
