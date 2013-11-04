@@ -63,7 +63,7 @@ def main(args):
       pprint.blank(p=tf.write)
       tf.write(out)
       tf.close()
-      subprocess.call('less %s' % tf.name, shell=True)
+      subprocess.call('less -r %s' % tf.name, shell=True)
       os.remove(tf.name)
     else:
       raise Exception('Unrecognized ret code %s' % ret)
