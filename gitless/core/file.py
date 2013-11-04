@@ -144,12 +144,12 @@ def diff(fp):
   else:
     diff_out = git_file.diff(fp)
     out = diff_out.splitlines()[4:]
-  out = parseDiffOutput(out) 
+  out = colorizeDiffOutput(out) 
   out = "\n".join(out)
   return (SUCCESS, out)
 
-#arg should be an array of diff lines
-def parseDiffOutput(diffout):
+def colorizeeDiffOutput(diffout):
+  '''Colors diff output and adds line numbers'''
   GREEN = '\033[32m'
   GREENBOLD = '\033[1;32m'
   RED = '\033[31m'
@@ -163,6 +163,7 @@ def parseDiffOutput(diffout):
   maxline = 0
 
   def format_line(line, linestatus, left, right):
+    '''Format a standard diff line'''
     if linestatus == SAME:
       return str(left).ljust(maxline) + str(right).ljust(maxline) + line + CLEAR
     elif linestatus == ADDED:
@@ -192,27 +193,31 @@ def parseDiffOutput(diffout):
     elif line.startswith("+"):
       resulting += [(line, ADDED, leftline, rightline)]
       rightline += 1
+
   maxline = len(str(maxline))
   maxline = max(8, maxline + 1)
   processed = []
+
   for (index, (line, status, left, right)) in enumerate(resulting):
+    #check if line is a single line diff (do diff within line if so)
     if status == ADDED and (index == len(resulting) - 1 or resulting[index + 1][1] <= SAME) and (index - 1 >= 0 and resulting[index - 1][1] == MINUS) and (index - 2 < 0 or resulting[index - 2][1] <= SAME):
       interest = highlight(resulting[index-1][0][1:], line[1:])
       if(interest != None):
         (starts, prefixes, suffixes) = interest
-        otherline = resulting[index-1][0]
+        otherline = resulting[index-1][0] #linenumber of negative diff
         lineNumber = RED + str(left-1).ljust(maxline) + " " * maxline
         regular = otherline[:prefixes[0]]
         bold = REDBOLD + otherline[prefixes[0]:suffixes[0] + 1]
         end = CLEAR + RED + otherline[suffixes[0] + 1:]
-        coloredOne = lineNumber + regular + bold + end + CLEAR
-        processed[-1] = coloredOne
+        coloredOutput = lineNumber + regular + bold + end + CLEAR
+        processed[-1] = coloredOutput
+
         lineNumber = " " * maxline + GREEN + str(right).ljust(maxline)
         regular = line[:prefixes[1]]
         bold = GREENBOLD + line[prefixes[1]:suffixes[1] + 1]
         end = CLEAR + GREEN + line[suffixes[1] + 1:]
-        coloredOne = lineNumber + regular + bold + end + CLEAR
-        processed += [coloredOne]
+        coloredOutput = lineNumber + regular + bold + end + CLEAR
+        processed += [coloredOutput]
       else:
         colored = format_line(line, status, left, right)
         processed += [colored]
@@ -222,9 +227,11 @@ def parseDiffOutput(diffout):
   return processed
 
 def highlight(line1, line2):
- INTEREST = 0
+ '''Given two lines, returns the sections that should be bolded if
+    the twolines have a common prefix or suffix'''
+ INTEREST = 0 #interest threshold, ie diff tolerance for bolding
  start1 = start2 = 0
- match = re.search("\S", line1)
+ match = re.search("\S", line1) #ignore leading whitespace, can't bold it anyway
  if(match != None):
    start1 = match.start()
  match = re.search("\S", line2)
@@ -242,7 +249,7 @@ def highlight(line1, line2):
    suffix1 -= 1
    suffix2 -= 1
 
- if prefix1 - start1 > INTEREST or len(line1) - suffix1 > 1:
+ if prefix1 - start1 > INTEREST or len(line1) - 1 - suffix1 > INTEREST:
    return ((start1 + 1, start2 + 1), (prefix1 + 1, prefix2 + 1), (suffix1 + 1, suffix2 + 1))
  return None
 
