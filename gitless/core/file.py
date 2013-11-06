@@ -119,8 +119,6 @@ def diff(fp):
     a pair (result, out) where result is one of FILE_NOT_FOUND,
     FILE_IS_UNTRACKED or SUCCESS and out is the output of the diff command.
   """
-  # TODO(sperezde): process the output of the diff command and return it in a
-  # friendlier way.
 
   f_st, s = _status(fp)
   if f_st == git_status.FILE_NOT_FOUND:
@@ -148,7 +146,7 @@ def diff(fp):
   out = "\n".join(out)
   return (SUCCESS, out)
 
-def colorizeeDiffOutput(diffout):
+def colorizeDiffOutput(diffout):
   '''Colors diff output and adds line numbers'''
   GREEN = '\033[32m'
   GREENBOLD = '\033[1;32m'
@@ -170,12 +168,12 @@ def colorizeeDiffOutput(diffout):
       return " " * maxline + GREEN + str(right).ljust(maxline) + line + CLEAR
     elif linestatus == MINUS:
       return RED + str(left).ljust(maxline) + " " * maxline + line + CLEAR
-    return CLEAR + line
+    return CLEAR + "\n" + line 
 
   leftline = 0
   rightline = 0
   for line in diffout:
-    if line.startswith("@@"):
+    if line.startswith("@@"): #get line info
       portions = line.split(" ") #0 = @@ 1 = left 2 = right 3 = @@
       leftInfo = portions[1].split(",") #[-line,numlines]
       leftline = int(leftInfo[0][1:]) #line
