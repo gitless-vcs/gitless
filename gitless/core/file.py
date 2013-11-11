@@ -142,12 +142,12 @@ def diff(fp):
   else:
     diff_out = git_file.diff(fp)
     out = diff_out.splitlines()[4:]
-  out = colorizeDiffOutput(out) 
+  out = colorize_diff_output(out) 
   out = "\n".join(out)
   return (SUCCESS, out)
 
-def colorizeDiffOutput(diffout):
-  '''Colors diff output and adds line numbers'''
+def colorize_diff_output(diffout):
+  """Colors diff output and adds line numbers"""
   GREEN = '\033[32m'
   GREENBOLD = '\033[1;32m'
   RED = '\033[31m'
@@ -161,7 +161,7 @@ def colorizeDiffOutput(diffout):
   maxline = 0
 
   def format_line(line, linestatus, left, right):
-    '''Format a standard diff line'''
+    """Format a standard diff line"""
     if linestatus == SAME:
       return str(left).ljust(maxline) + str(right).ljust(maxline) + line + CLEAR
     elif linestatus == ADDED:
@@ -173,14 +173,15 @@ def colorizeDiffOutput(diffout):
   leftline = 0
   rightline = 0
   for line in diffout:
-    if line.startswith("@@"): #get line info
-      portions = line.split(" ") #0 = @@ 1 = left 2 = right 3 = @@
-      leftInfo = portions[1].split(",") #[-line,numlines]
-      leftline = int(leftInfo[0][1:]) #line
+    if line.startswith("@@"): # get line info
+      portions = line.split(" ") # 0 = @@ 1 = left 2 = right 3 = @@
+      leftInfo = portions[1].split(",") # [-line,numlines]
+      leftline = int(leftInfo[0][1:]) # line
       rightInfo = portions[2].split(",")
       rightline = int(rightInfo[0][1:])
       resulting += [(line, NEWDIFF, `leftline`, `rightline`)]
-      maxline = max([leftline + int(leftInfo[1]), rightline + int(rightInfo[1]), maxline])
+      maxline = max([leftline + int(leftInfo[1]),
+                     rightline + int(rightInfo[1]), maxline])
     elif line.startswith(" "):
       resulting += [(line, SAME, leftline, rightline)]
       leftline += 1
@@ -197,12 +198,15 @@ def colorizeDiffOutput(diffout):
   processed = []
 
   for (index, (line, status, left, right)) in enumerate(resulting):
-    #check if line is a single line diff (do diff within line if so)
-    if status == ADDED and (index == len(resulting) - 1 or resulting[index + 1][1] <= SAME) and (index - 1 >= 0 and resulting[index - 1][1] == MINUS) and (index - 2 < 0 or resulting[index - 2][1] <= SAME):
+    # check if line is a single line diff (do diff within line if so)
+    if (status == ADDED and
+       (index == len(resulting) - 1 or resulting[index + 1][1] <= SAME) and
+       (index - 1 >= 0 and resulting[index - 1][1] == MINUS) and
+       (index - 2 < 0 or resulting[index - 2][1] <= SAME)):
       interest = highlight(resulting[index-1][0][1:], line[1:])
-      if(interest != None):
+      if interest:
         (starts, prefixes, suffixes) = interest
-        otherline = resulting[index-1][0] #linenumber of negative diff
+        otherline = resulting[index-1][0] # linenumber of negative diff
         lineNumber = RED + str(left-1).ljust(maxline) + " " * maxline
         regular = otherline[:prefixes[0]]
         bold = REDBOLD + otherline[prefixes[0]:suffixes[0] + 1]
@@ -225,30 +229,33 @@ def colorizeDiffOutput(diffout):
   return processed
 
 def highlight(line1, line2):
- '''Given two lines, returns the sections that should be bolded if
-    the twolines have a common prefix or suffix'''
- INTEREST = 0 #interest threshold, ie diff tolerance for bolding
+ """Given two lines, returns the sections that should be bolded if
+    the twolines have a common prefix or suffix"""
+ INTEREST = 0 # interest threshold, ie diff tolerance for bolding
  start1 = start2 = 0
- match = re.search("\S", line1) #ignore leading whitespace, can't bold it anyway
- if(match != None):
+ match = re.search("\S", line1) # ignore leading whitespace
+ if match:
    start1 = match.start()
  match = re.search("\S", line2)
- if(match != None):
+ if match:
    start2 = match.start()
  length = min(len(line1), len(line2)) - 1
  prefix1 = start1
  prefix2 = start2
- while(prefix1 <= length and prefix2 <= length and line1[prefix1] == line2[prefix2]):
+ while (prefix1 <= length and prefix2 <= length and
+        line1[prefix1] == line2[prefix2]):
    prefix1 += 1
    prefix2 += 1 
  suffix1 = len(line1) - 1
  suffix2 = len(line2) - 1
- while(suffix1 >= prefix1 and suffix2 >= prefix2 and line1[suffix1] == line2[suffix2]):
+ while (suffix1 >= prefix1 and suffix2 >= prefix2 and
+        line1[suffix1] == line2[suffix2]):
    suffix1 -= 1
    suffix2 -= 1
 
  if prefix1 - start1 > INTEREST or len(line1) - 1 - suffix1 > INTEREST:
-   return ((start1 + 1, start2 + 1), (prefix1 + 1, prefix2 + 1), (suffix1 + 1, suffix2 + 1))
+   return ((start1 + 1, start2 + 1), (prefix1 + 1, prefix2 + 1),
+           (suffix1 + 1, suffix2 + 1))
  return None
 
 def checkout(fp, cp='HEAD'):
