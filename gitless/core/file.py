@@ -143,7 +143,7 @@ def diff(fp):
     diff_out = git_file.diff(fp)
     out = diff_out.splitlines()[4:]
   out = process_diff_output(out) 
-  out = "\n".join(out)
+  out = '\n'.join(out)
   return (SUCCESS, out)
 
 def process_diff_output(diff_out):
