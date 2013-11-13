@@ -167,16 +167,16 @@ def process_diff_output(diff_out):
   # ie 8 or so characters. In the event that the largest line number is
   # is MIN_LINE_PADDING or greater digits long, we should space appropriately.
 
-  def format_line(line, line_status, left, right):
+  def format_line(line, line_status, old_num, new_num):
     """Format a standard diff line"""
     if line_status == SAME:
-      return (str(left).ljust(max_line_digits) + 
-              str(right).ljust(max_line_digits) + line + CLEAR)
+      return (str(old_num).ljust(max_line_digits) + 
+              str(new_num).ljust(max_line_digits) + line + CLEAR)
     elif line_status == ADDED:
       return (' ' * max_line_digits + GREEN + 
-              str(right).ljust(max_line_digits) + line + CLEAR)
+              str(new_num).ljust(max_line_digits) + line + CLEAR)
     elif line_status == MINUS:
-      return (RED + str(left).ljust(max_line_digits) + ' ' *
+      return (RED + str(old_num).ljust(max_line_digits) + ' ' *
               max_line_digits + line + CLEAR)
     return CLEAR + '\n' + line 
 
@@ -185,14 +185,14 @@ def process_diff_output(diff_out):
   new_line_number = 0
   for line in diff_out:
     if line.startswith('@@'): # get line info
-      portions = line.split(' ') # 0 = @@ 1 = left 2 = right 3 = @@
-      left_info = portions[1].split(',') # [-line,numlines]
-      old_line_number = int(left_info[0][1:]) # convert to int so we can track
-      right_info = portions[2].split(',')
-      new_line_number = int(right_info[0][1:]) # later convert back to string
+      portions = line.split(' ') # 0 = @@ 1 = old 2 = new 3 = @@
+      old_info = portions[1].split(',') # (starting line,num lines) tuple
+      old_line_number = int(old_info[0][1:]) # convert to int so we can track
+      new_info = portions[2].split(',') # repeat for new diff
+      new_line_number = int(new_info[0][1:]) # later convert back to string
       resulting += [(line, NEW_DIFF, old_line_number, new_line_number)]
-      max_line_digits = max([old_line_number + int(left_info[1]), 
-                             new_line_number + int(right_info[1]),
+      max_line_digits = max([old_line_number + int(old_info[1]), 
+                             new_line_number + int(new_info[1]),
                              max_line_digits]) # start + length of each diff
     elif line.startswith(' '):
       resulting += [(line, SAME, old_line_number, new_line_number)]
@@ -209,7 +209,7 @@ def process_diff_output(diff_out):
   max_line_digits = max(MIN_LINE_PADDING, max_line_digits + 1)
   processed = []
 
-  for (index, (line, status, left, right)) in enumerate(resulting):
+  for (index, (line, status, old_num, new_num)) in enumerate(resulting):
     # check if line is a single line diff (do diff within line if so)
     if (status == ADDED and
        (index == len(resulting) - 1 or resulting[index + 1][1] <= SAME) and
@@ -221,7 +221,7 @@ def process_diff_output(diff_out):
         (starts, prefixes, suffixes) = interest
         # first bold negative diff
         old_line = resulting[index-1][0] # linenumber of negative diff
-        line_number = (RED + str(left-1).ljust(max_line_digits) + 
+        line_number = (RED + str(old_num-1).ljust(max_line_digits) + 
                        ' ' * max_line_digits)
         regular = old_line[:prefixes[0]]
         bold = RED_BOLD + old_line[prefixes[0]:suffixes[0] + 1]
@@ -231,15 +231,15 @@ def process_diff_output(diff_out):
 
         # bold positive diff
         line_number = (' ' * max_line_digits + GREEN + 
-                       str(right).ljust(max_line_digits))
+                       str(new_num).ljust(max_line_digits))
         regular = line[:prefixes[1]]
         bold = GREEN_BOLD + line[prefixes[1]:suffixes[1] + 1]
         end = CLEAR + GREEN + line[suffixes[1] + 1:]
         processed += [line_number + regular + bold + end + CLEAR]
       else:
-        processed += [format_line(line, status, left, right)]
+        processed += [format_line(line, status, old_num, new_num)]
     else: 
-      processed += [format_line(line, status, left, right)]
+      processed += [format_line(line, status, old_num, new_num)]
   return processed
 
 def highlight(line1, line2):
