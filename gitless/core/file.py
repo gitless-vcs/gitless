@@ -328,6 +328,8 @@ def _resolved_file(fp):
       repo_lib.gl_dir(), 'GL_RESOLVED_%s_%s' % (branch_lib.current(), fp))
 
 
+# TODO(sperezde): Move this to gitpylib, so that it returns this instead of the
+# raw git diff output when a user calls the gitpylib.file.diff function.
 def _process_diff_output(diff_out):
   """Process the git diff output.
 
@@ -374,6 +376,7 @@ def _process_diff_output(diff_out):
   return resulting, max_line_digits
 
 
+# TODO(sperezde): move this to the cli.
 def _format_diff_output(processed_diff, max_line_digits):
   """Uses line-by-line diff information to format lines nicely.
   
@@ -426,6 +429,7 @@ def _format_diff_output(processed_diff, max_line_digits):
   return processed
 
 
+# TODO(sperezde): move this to the cli as well.
 def _format_line(line_data, max_line_digits, bold_start = -1, bold_end = -1):
   """Format a standard diff line.
 
