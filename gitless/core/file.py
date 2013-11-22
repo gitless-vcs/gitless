@@ -229,6 +229,11 @@ def format_diff_output(processed_diff, max_line_digits):
   processed = []
   for index, line_data in enumerate(processed_diff):
     # check if line is a single line diff (do diff within line if so)
+    # condition: The current line was ADDED to the file AND
+    # the line after is non-existent or unchanged AND
+    # the line before was removed from the file AND
+    # the line two before is non-existent or unchanged.
+    # In other words: bold if only one line was changed in this area
     if (line_data.status == ADDED and
        (index == len(processed_diff) - 1 or 
            is_unchanged(processed_diff[index + 1].status)) and
