@@ -161,11 +161,13 @@ def diff(fp):
   return (SUCCESS, formatted)
 
 def process_diff_output(diff_out):
-  """Colors diff output and adds line numbers
-     Args:
-       diff_out: A list of lines output by the git diff command
-     Returns:
-       A list of DiffInfo objects corresponding to each line
+  """Process the git diff output
+
+  Args:
+    diff_out: A list of lines output by the git diff command
+
+  Returns:
+    A list of DiffInfo objects corresponding to each line
   """
 
   global max_line_digits
@@ -207,17 +209,30 @@ def format_diff_output(processed_diff):
   
   Args:
     processed_diff: A list of LineData objects
+
   Returns:
     A list of strings making up the formatted diff output
   """
+
+  def is_unchanged(status):
+    """Check if a diff status code does not correspond to + or -
+  
+    Args:
+      status: Status code of a line
+    
+    Returns:
+      true if status is SAME or DIFF_INFO
+    """
+    return status == SAME or status == DIFF_INFO
+
   processed = []
   for (index, line_data) in enumerate(processed_diff):
     # check if line is a single line diff (do diff within line if so)
     if (line_data.status == ADDED and
        (index == len(processed_diff) - 1 or 
-           processed_diff[index + 1].status <= SAME) and
+           is_unchanged(processed_diff[index + 1].status)) and
        (index - 1 >= 0 and processed_diff[index - 1].status == MINUS) and
-       (index - 2 < 0 or processed_diff[index - 2].status <= SAME)):
+       (index - 2 < 0 or is_unchanged(processed_diff[index - 2].status))):
       interest = highlight(processed_diff[index-1].line[1:], line_data.line[1:])
       if interest:
         # show changed line with bolded diff in both red and green
@@ -235,12 +250,14 @@ def format_diff_output(processed_diff):
 def highlight(line1, line2):
   """Given two lines, returns the sections that should be bolded if
      the twolines have a common prefix or suffix
-     Args:
-       line1: A line from a diff output without the first status character
-       line2: See line1
-     Returns:
-       Two tuples.  The first tuple indicates the ends of the shared
-       prefix and the second tuple indicates the starts of the shared suffix
+
+  Args:
+    line1: A line from a diff output without the first status character
+    line2: See line1
+
+  Returns:
+    Two tuples.  The first tuple indicates the ends of the shared
+    prefix and the second tuple indicates the starts of the shared suffix
    """
   start1 = start2 = 0
   match = re.search('\S', line1) # ignore leading whitespace
@@ -272,6 +289,7 @@ def highlight(line1, line2):
 
 def format_line(line_data, prefix = -1, suffix = -1):
   """Format a standard diff line
+
   Args:
     line_data: A LineData tuple to be formatted
     prefixes: For single-line modifications, indicates common prefix
@@ -288,9 +306,10 @@ def format_line(line_data, prefix = -1, suffix = -1):
   RED_BOLD = '\033[1;31m'
   CLEAR = '\033[0m'
   line = line_data.line
+  formatted = ""
   if line_data.status == SAME:
-    return (str(line_data.number['old']).ljust(max_line_digits) + 
-	    str(line_data.number['new']).ljust(max_line_digits) + line + CLEAR)
+    formatted =  (str(line_data.number['old']).ljust(max_line_digits) + 
+	    str(line_data.number['new']).ljust(max_line_digits) + line)
 
   elif line_data.status == ADDED:
     formatted = (' ' * max_line_digits + GREEN + 
@@ -300,8 +319,6 @@ def format_line(line_data, prefix = -1, suffix = -1):
     else:
       formatted += (line[:prefix] + GREEN_BOLD + line[prefix:suffix] + 
                     CLEAR + GREEN + line[suffix:])
-    return formatted + CLEAR
-
   elif line_data.status == MINUS:
     formatted = (RED + str(line_data.number['old']).ljust(max_line_digits) + 
                  ' ' * max_line_digits)
@@ -310,10 +327,9 @@ def format_line(line_data, prefix = -1, suffix = -1):
     else:
       formatted += (line[:prefix] + RED_BOLD + line[prefix:suffix] + 
                     CLEAR + RED + line[suffix:])
-    return formatted + CLEAR
-
   elif line_data.status == DIFF_INFO:
-    return CLEAR + '\n' + line 
+    formatted = CLEAR + '\n' + line 
+  return formatted + CLEAR
 
 def checkout(fp, cp='HEAD'):
   """Checkouts file fp at cp.
