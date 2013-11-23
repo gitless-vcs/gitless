@@ -33,11 +33,10 @@ UNTRACKED = 12
 IGNORED = 13
 
 # Possible diff output lines.
-DIFF_INFO = git_file.DIFF_INFO # line carrying diff info for new hunk.
-DIFF_SAME = git_file.DIFF_SAME # line that git diff includes for context.
-DIFF_ADDED = git_file.DIFF_ADDED 
+DIFF_INFO = git_file.DIFF_INFO  # line carrying diff info for new hunk.
+DIFF_SAME = git_file.DIFF_SAME  # line that git diff includes for context.
+DIFF_ADDED = git_file.DIFF_ADDED
 DIFF_MINUS = git_file.DIFF_MINUS
-
 
 
 def track(fp):
@@ -125,7 +124,8 @@ def diff(fp):
     a pair (result, out) where result is one of FILE_NOT_FOUND,
     FILE_IS_UNTRACKED or SUCCESS and out is the output of the diff command in a
     machine-friendly way: it's a tuple of the form
-    (list of LineData objects, line number padding).
+    (list of namedtuples with fields 'line', 'status', 'old_line_number',
+     'new_line_number', line number padding).
   """
   f_st, s = _status(fp)
   if f_st == git_status.FILE_NOT_FOUND:

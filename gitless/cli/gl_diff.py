@@ -89,7 +89,7 @@ def main(args):
 
 def _format_diff_output(processed_diff, max_line_digits):
   """Uses line-by-line diff information to format lines nicely.
-  
+
   Args:
     processed_diff: a list of LineData objects.
     max_line_digits: largest number of digits in a line number (for padding).
@@ -100,12 +100,12 @@ def _format_diff_output(processed_diff, max_line_digits):
 
   def is_unchanged(status):
     """Check if a diff status code does not correspond to + or -.
-  
+
     Args:
       status: status code of a line.
-    
+
     Returns:
-      true if status is file_lib.DIFF_SAME or file_lib.DIFF_INFO.
+      True if status is file_lib.DIFF_SAME or file_lib.DIFF_INFO.
     """
     return status == file_lib.DIFF_SAME or status == file_lib.DIFF_INFO
 
@@ -118,7 +118,7 @@ def _format_diff_output(processed_diff, max_line_digits):
     # the line two before is non-existent or unchanged.
     # In other words: bold if only one line was changed in this area.
     if (line_data.status == file_lib.DIFF_ADDED and
-       (index == len(processed_diff) - 1 or 
+       (index == len(processed_diff) - 1 or
            is_unchanged(processed_diff[index + 1].status)) and
        (index - 1 >= 0 and
          processed_diff[index - 1].status == file_lib.DIFF_MINUS) and
@@ -136,7 +136,7 @@ def _format_diff_output(processed_diff, max_line_digits):
             line_data, max_line_digits, bold_delim=(starts[1], ends[1]))]
       else:
         processed += [_format_line(line_data, max_line_digits)]
-    else: 
+    else:
       processed += [_format_line(line_data, max_line_digits)]
   return processed
 
@@ -145,7 +145,7 @@ def _format_line(line_data, max_line_digits, bold_delim=None):
   """Format a standard diff line.
 
   Args:
-    line_data: a LineData tuple to be formatted.
+    line_data: a namedtuple with the line info to be formatted.
     max_line_digits: maximum number of digits in a line number (for padding).
     bold_delim: optional arg indicate where to start/end bolding.
 
@@ -163,45 +163,45 @@ def _format_line(line_data, max_line_digits, bold_delim=None):
   formatted = ''
 
   if line_data.status == file_lib.DIFF_SAME:
-    formatted = (str(line_data.number['old']).ljust(max_line_digits) + 
-        str(line_data.number['new']).ljust(max_line_digits) + line)
+    formatted = (str(line_data.old_line_number).ljust(max_line_digits) +
+        str(line_data.new_line_number).ljust(max_line_digits) + line)
   elif line_data.status == file_lib.DIFF_ADDED:
-    formatted = (' ' * max_line_digits + GREEN + 
-        str(line_data.number['new']).ljust(max_line_digits))
+    formatted = (' ' * max_line_digits + GREEN +
+        str(line_data.new_line_number).ljust(max_line_digits))
     if not bold_delim:
       formatted += line
     else:
       bold_start, bold_end = bold_delim
-      formatted += (line[:bold_start] + GREEN_BOLD + 
+      formatted += (line[:bold_start] + GREEN_BOLD +
           line[bold_start:bold_end] + CLEAR + GREEN + line[bold_end:])
   elif line_data.status == file_lib.DIFF_MINUS:
-    formatted = (RED + str(line_data.number['old']).ljust(max_line_digits) + 
+    formatted = (RED + str(line_data.old_line_number).ljust(max_line_digits) +
                  ' ' * max_line_digits)
     if not bold_delim:
       formatted += line
     else:
       bold_start, bold_end = bold_delim
-      formatted += (line[:bold_start] + RED_BOLD + line[bold_start:bold_end] + 
+      formatted += (line[:bold_start] + RED_BOLD + line[bold_start:bold_end] +
           CLEAR + RED + line[bold_end:])
   elif line_data.status == file_lib.DIFF_INFO:
-    formatted = CLEAR + '\n' + line 
+    formatted = CLEAR + '\n' + line
 
   return formatted + CLEAR
 
 
 def _highlight(line1, line2):
   """Returns the sections that should be bolded in the given lines.
-  
+
   Args:
     line1: a line from a diff output without the first status character.
-    line2: See line1
+    line2: see line1
 
   Returns:
     two tuples. The first tuple indicates the starts of where to bold
     and the second tuple indicated the ends.
    """
   start1 = start2 = 0
-  match = re.search('\S', line1) # ignore leading whitespace.
+  match = re.search('\S', line1)  # ignore leading whitespace.
   if match:
     start1 = match.start()
   match = re.search('\S', line2)
@@ -213,8 +213,8 @@ def _highlight(line1, line2):
   while (bold_start1 <= length and bold_start2 <= length and
          line1[bold_start1] == line2[bold_start2]):
     bold_start1 += 1
-    bold_start2 += 1 
-  match = re.search('\s*$', line1) # ignore trailing whitespace.
+    bold_start2 += 1
+  match = re.search('\s*$', line1)  # ignore trailing whitespace.
   bold_end1 = match.start() - 1
   match = re.search('\s*$', line2)
   bold_end2 = match.start() - 1
