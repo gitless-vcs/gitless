@@ -7,7 +7,6 @@
 
 import collections
 import os
-import re
 
 from gitpylib import file as git_file
 from gitpylib import status as git_status
@@ -33,18 +32,13 @@ TRACKED = 11
 UNTRACKED = 12
 IGNORED = 13
 
-# Possible diff output lines
-DIFF_INFO = 14  # line carrying diff info for new hunk
-SAME = 15 # line that git diff includes for context
-ADDED = 16
-MINUS = 17
+# Possible diff output lines.
+DIFF_INFO = git_file.DIFF_INFO # line carrying diff info for new hunk.
+DIFF_SAME = git_file.DIFF_SAME # line that git diff includes for context.
+DIFF_ADDED = git_file.DIFF_ADDED 
+DIFF_MINUS = git_file.DIFF_MINUS
 
-# diff formatting variables
-MIN_LINE_PADDING = 8
 
-# number is dictionary of {'old' and/or 'new' : integer}
-LineData = collections.namedtuple('LineData', 
-                           ['line', 'status', 'number'])
 
 def track(fp):
   """Start tracking changes to fp.
@@ -129,9 +123,10 @@ def diff(fp):
 
   Returns:
     a pair (result, out) where result is one of FILE_NOT_FOUND,
-    FILE_IS_UNTRACKED or SUCCESS and out is the output of the diff command.
+    FILE_IS_UNTRACKED or SUCCESS and out is the output of the diff command in a
+    machine-friendly way: it's a tuple of the form
+    (list of LineData objects, line number padding).
   """
-
   f_st, s = _status(fp)
   if f_st == git_status.FILE_NOT_FOUND:
     return (FILE_NOT_FOUND, '')
@@ -140,23 +135,18 @@ def diff(fp):
   elif f_st.type == IGNORED:
     return (FILE_IS_IGNORED, '')
 
-  out = ''
+  diff_out = None
   if s == git_status.STAGED:
     diff_out = git_file.staged_diff(fp)
-    out = diff_out.splitlines()[5:]
   elif s == git_status.ADDED_MODIFIED or s == git_status.MODIFIED_MODIFIED:
     git_file.stage(fp)
     diff_out = git_file.staged_diff(fp)
-    out = diff_out.splitlines()[5:]
   elif s == git_status.DELETED:
     diff_out = git_file.diff(fp)
-    out = diff_out.splitlines()[5:]
   else:
     diff_out = git_file.diff(fp)
-    out = diff_out.splitlines()[4:]
 
-  formatted = '\n'.join(_format_diff_output(*_process_diff_output(out)))
-  return (SUCCESS, formatted)
+  return (SUCCESS, diff_out)
 
 
 def checkout(fp, cp='HEAD'):
@@ -326,190 +316,3 @@ def _was_resolved(fp):
 def _resolved_file(fp):
   return os.path.join(
       repo_lib.gl_dir(), 'GL_RESOLVED_%s_%s' % (branch_lib.current(), fp))
-
-
-# TODO(sperezde): Move this to gitpylib, so that it returns this instead of the
-# raw git diff output when a user calls the gitpylib.file.diff function.
-def _process_diff_output(diff_out):
-  """Process the git diff output.
-
-  Args:
-    diff_out: a list of lines output by the git diff command.
-
-  Returns:
-    a 2-tuple of a list of LineData objects corresponding to each line and
-    the largest number of digits in a line number.
-  """
-  resulting = [] # accumulates line information for formatting.
-  max_line_digits = 0
-  old_line_number = 1
-  new_line_number = 1
-
-  for line in diff_out:
-    # @@ -(start of old),(length of old) +(start of new),(length of new) @@
-    new_hunk_regex = "^@@ -([0-9]+),([0-9]+) \+([0-9]+),([0-9]+) @@"
-    new_hunk_info = re.search(new_hunk_regex, line)
-    if new_hunk_info:
-      old_line_number = int(new_hunk_info.group(1))
-      old_diff_length = int(new_hunk_info.group(2))
-      new_line_number = int(new_hunk_info.group(3))
-      new_diff_length = int(new_hunk_info.group(4))
-      resulting += [LineData(
-          line, DIFF_INFO, {'old' : old_line_number, 'new' : new_line_number})]
-      max_line_digits = max([old_line_number + old_diff_length, 
-                             new_line_number + new_diff_length,
-                             max_line_digits]) # start + length of each diff.
-    elif line.startswith(' '):
-      resulting += [LineData(
-          line, SAME, {'old' : old_line_number, 'new' : new_line_number})]
-      old_line_number += 1
-      new_line_number += 1
-    elif line.startswith('-'):
-      resulting += [LineData(line, MINUS, {'old' : old_line_number})]
-      old_line_number += 1
-    elif line.startswith('+'):
-      resulting += [LineData(line, ADDED, {'new' : new_line_number})]
-      new_line_number += 1
-
-  max_line_digits = len(str(max_line_digits)) # digits = len(string of number).
-  max_line_digits = max(MIN_LINE_PADDING, max_line_digits + 1)
-  return resulting, max_line_digits
-
-
-# TODO(sperezde): move this to the cli.
-def _format_diff_output(processed_diff, max_line_digits):
-  """Uses line-by-line diff information to format lines nicely.
-  
-  Args:
-    processed_diff: a list of LineData objects.
-    max_line_digits: largest number of digits in a line number (for padding).
-
-  Returns:
-    a list of strings making up the formatted diff output.
-  """
-
-  def is_unchanged(status):
-    """Check if a diff status code does not correspond to + or -.
-  
-    Args:
-      status: status code of a line.
-    
-    Returns:
-      true if status is SAME or DIFF_INFO.
-    """
-    return status == SAME or status == DIFF_INFO
-
-  processed = []
-  for index, line_data in enumerate(processed_diff):
-    # check if line is a single line diff (do diff within line if so).
-    # condition: The current line was ADDED to the file AND
-    # the line after is non-existent or unchanged AND
-    # the line before was removed from the file AND
-    # the line two before is non-existent or unchanged.
-    # In other words: bold if only one line was changed in this area.
-    if (line_data.status == ADDED and
-       (index == len(processed_diff) - 1 or 
-           is_unchanged(processed_diff[index + 1].status)) and
-       (index - 1 >= 0 and processed_diff[index - 1].status == MINUS) and
-       (index - 2 < 0 or is_unchanged(processed_diff[index - 2].status))):
-      interest = _highlight(
-          processed_diff[index - 1].line[1:], line_data.line[1:])
-      if interest:
-        # show changed line with bolded diff in both red and green.
-        starts, ends = interest
-        # first bold negative diff.
-        processed[-1] = _format_line(
-            processed_diff[index - 1], max_line_digits, starts[0], ends[0])
-        processed += [_format_line(
-            line_data, max_line_digits, starts[1], ends[1])]
-      else:
-        processed += [_format_line(line_data, max_line_digits)]
-    else: 
-      processed += [_format_line(line_data, max_line_digits)]
-  return processed
-
-
-# TODO(sperezde): move this to the cli as well.
-def _format_line(line_data, max_line_digits, bold_start = -1, bold_end = -1):
-  """Format a standard diff line.
-
-  Args:
-    line_data: a LineData tuple to be formatted.
-    max_line_digits: maximum number of digits in a line number (for padding).
-    bold_start: for single-line modifications, indicated where to start bolding.
-    bold_end: for single-line modifications, indicates where to end bolding.
-
-  Returns:
-    a colored version of the diff line using ANSI control characters.
-  """
-  # Color constants.
-  GREEN = '\033[32m'
-  GREEN_BOLD = '\033[1;32m'
-  RED = '\033[31m'
-  RED_BOLD = '\033[1;31m'
-  CLEAR = '\033[0m'
-
-  line = line_data.line
-  formatted = ''
-
-  if line_data.status == SAME:
-    formatted = (str(line_data.number['old']).ljust(max_line_digits) + 
-        str(line_data.number['new']).ljust(max_line_digits) + line)
-  elif line_data.status == ADDED:
-    formatted = (' ' * max_line_digits + GREEN + 
-        str(line_data.number['new']).ljust(max_line_digits))
-    if bold_start == -1:
-      formatted += line
-    else:
-      formatted += (line[:bold_start] + GREEN_BOLD + 
-          line[bold_start:bold_end] + CLEAR + GREEN + line[bold_end:])
-  elif line_data.status == MINUS:
-    formatted = (RED + str(line_data.number['old']).ljust(max_line_digits) + 
-                 ' ' * max_line_digits)
-    if bold_start == -1:
-      formatted += line
-    else:
-      formatted += (line[:bold_start] + RED_BOLD + line[bold_start:bold_end] + 
-          CLEAR + RED + line[bold_end:])
-  elif line_data.status == DIFF_INFO:
-    formatted = CLEAR + '\n' + line 
-
-  return formatted + CLEAR
-
-
-def _highlight(line1, line2):
-  """Returns the sections that should be bolded in the given lines.
-  
-  Args:
-    line1: a line from a diff output without the first status character.
-    line2: See line1
-
-  Returns:
-    two tuples. The first tuple indicates the starts of where to bold
-    and the second tuple indicated the ends.
-   """
-  start1 = start2 = 0
-  match = re.search('\S', line1) # ignore leading whitespace.
-  if match:
-    start1 = match.start()
-  match = re.search('\S', line2)
-  if match:
-    start2 = match.start()
-  length = min(len(line1), len(line2)) - 1
-  bold_start1 = start1
-  bold_start2 = start2
-  while (bold_start1 <= length and bold_start2 <= length and
-         line1[bold_start1] == line2[bold_start2]):
-    bold_start1 += 1
-    bold_start2 += 1 
-  match = re.search('\s*$', line1) # ignore trailing whitespace.
-  bold_end1 = match.start() - 1
-  match = re.search('\s*$', line2)
-  bold_end2 = match.start() - 1
-  while (bold_end1 >= bold_start1 and bold_end2 >= bold_start2 and
-         line1[bold_end1] == line2[bold_end2]):
-    bold_end1 -= 1
-    bold_end2 -= 1
-  if bold_start1 - start1 > 0 or len(line1) - 1 - bold_end1 > 0:
-    return (bold_start1 + 1, bold_start2 + 1), (bold_end1 + 2, bold_end2 + 2)
-  return None
