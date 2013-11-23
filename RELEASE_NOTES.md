@@ -1,6 +1,12 @@
 Gitless's Release Notes
 =======================
 
+23rd Nov 2013 - kendall.0.4
+---------------------------
+
+* revamped gl diff.
+
+
 28th Oct 2013 - kendall.0.3
 ---------------------------
 

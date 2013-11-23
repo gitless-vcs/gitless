@@ -32,6 +32,12 @@ TRACKED = 11
 UNTRACKED = 12
 IGNORED = 13
 
+# Possible diff output lines.
+DIFF_INFO = git_file.DIFF_INFO  # line carrying diff info for new hunk.
+DIFF_SAME = git_file.DIFF_SAME  # line that git diff includes for context.
+DIFF_ADDED = git_file.DIFF_ADDED
+DIFF_MINUS = git_file.DIFF_MINUS
+
 
 def track(fp):
   """Start tracking changes to fp.
@@ -116,11 +122,11 @@ def diff(fp):
 
   Returns:
     a pair (result, out) where result is one of FILE_NOT_FOUND,
-    FILE_IS_UNTRACKED or SUCCESS and out is the output of the diff command.
+    FILE_IS_UNTRACKED or SUCCESS and out is the output of the diff command in a
+    machine-friendly way: it's a tuple of the form
+    (list of namedtuples with fields 'line', 'status', 'old_line_number',
+     'new_line_number', line number padding).
   """
-  # TODO(sperezde): process the output of the diff command and return it in a
-  # friendlier way.
-
   f_st, s = _status(fp)
   if f_st == git_status.FILE_NOT_FOUND:
     return (FILE_NOT_FOUND, '')
@@ -129,22 +135,18 @@ def diff(fp):
   elif f_st.type == IGNORED:
     return (FILE_IS_IGNORED, '')
 
-  out = ''
+  diff_out = None
   if s == git_status.STAGED:
     diff_out = git_file.staged_diff(fp)
-    out = "\n".join(diff_out.splitlines()[5:])
   elif s == git_status.ADDED_MODIFIED or s == git_status.MODIFIED_MODIFIED:
     git_file.stage(fp)
     diff_out = git_file.staged_diff(fp)
-    out = "\n".join(diff_out.splitlines()[5:])
   elif s == git_status.DELETED:
     diff_out = git_file.diff(fp)
-    out = "\n".join(diff_out.splitlines()[5:])
   else:
     diff_out = git_file.diff(fp)
-    out = "\n".join(diff_out.splitlines()[4:])
 
-  return (SUCCESS, out)
+  return (SUCCESS, diff_out)
 
 
 def checkout(fp, cp='HEAD'):
