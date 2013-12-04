@@ -39,7 +39,7 @@ def main(args):
 
   success = True
   for fp in files:
-    ret, out = file_lib.diff(fp)
+    ret, (out, padding) = file_lib.diff(fp)
 
     if ret is file_lib.FILE_NOT_FOUND:
       pprint.err('Can\'t diff a non-existent file: {}'.format(fp))
@@ -74,7 +74,7 @@ def main(args):
       pprint.exp(
           'lines starting with \'+\' are lines that are in the working version '
           'but not in the last committed version of the file', p=tf.write)
-      tf.write('\n'.join(_format_diff_output(*out)))
+      tf.write('\n'.join(_format_diff_output(out, padding)))
       tf.close()
       subprocess.call('less -r {}'.format(tf.name), shell=True)
       os.remove(tf.name)
