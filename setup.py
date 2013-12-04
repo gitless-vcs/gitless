@@ -15,17 +15,14 @@ setup(
     install_requires=['gitpylib>=0.4'],
     license='GPLv2',
     classifiers=(
-      'Development Status :: 2 - Pre-Alpha',
-      'Intended Audience :: Developers',
-      'License :: OSI Approved :: GNU General Public License v2 (GPLv2)',
-      'Natural Language :: English',
-      'Programming Language :: Python',
-      'Topic :: Software Development :: Version Control'
-      ),
+        'Development Status :: 2 - Pre-Alpha',
+        'Intended Audience :: Developers',
+        'License :: OSI Approved :: GNU General Public License v2 (GPLv2)',
+        'Natural Language :: English',
+        'Programming Language :: Python',
+        'Topic :: Software Development :: Version Control'),
     entry_points={
-      'console_scripts': [
-        'gl = gitless.cli.gl:main'
-        ]
-      },
-    test_suite='gitless.tests'
-    )
+        'console_scripts': [
+            'gl = gitless.cli.gl:main'
+        ]},
+    test_suite='gitless.tests')

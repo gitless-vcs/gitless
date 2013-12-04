@@ -18,7 +18,7 @@ def parser(help_msg, subcmd):
     p = subparsers.add_parser(
         subcmd, help=help_msg)
     p.add_argument(
-       'files', nargs='+', help='the file(s) to {}'.format(subcmd))
+        'files', nargs='+', help='the file(s) to {}'.format(subcmd))
     p.set_defaults(func=main(subcmd))
   return f
 
