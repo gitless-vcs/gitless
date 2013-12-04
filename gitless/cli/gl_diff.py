@@ -121,7 +121,7 @@ def _format_diff_output(processed_diff, max_line_digits):
        (index == len(processed_diff) - 1 or
            is_unchanged(processed_diff[index + 1].status)) and
        (index - 1 >= 0 and
-         processed_diff[index - 1].status == file_lib.DIFF_MINUS) and
+           processed_diff[index - 1].status == file_lib.DIFF_MINUS) and
        (index - 2 < 0 or is_unchanged(processed_diff[index - 2].status))):
       interest = _highlight(
           processed_diff[index - 1].line[1:], line_data.line[1:])
@@ -163,25 +163,30 @@ def _format_line(line_data, max_line_digits, bold_delim=None):
   formatted = ''
 
   if line_data.status == file_lib.DIFF_SAME:
-    formatted = (str(line_data.old_line_number).ljust(max_line_digits) +
+    formatted = (
+        str(line_data.old_line_number).ljust(max_line_digits) +
         str(line_data.new_line_number).ljust(max_line_digits) + line)
   elif line_data.status == file_lib.DIFF_ADDED:
-    formatted = (' ' * max_line_digits + GREEN +
+    formatted = (
+        ' ' * max_line_digits + GREEN +
         str(line_data.new_line_number).ljust(max_line_digits))
     if not bold_delim:
       formatted += line
     else:
       bold_start, bold_end = bold_delim
-      formatted += (line[:bold_start] + GREEN_BOLD +
-          line[bold_start:bold_end] + CLEAR + GREEN + line[bold_end:])
+      formatted += (
+          line[:bold_start] + GREEN_BOLD + line[bold_start:bold_end] + CLEAR +
+          GREEN + line[bold_end:])
   elif line_data.status == file_lib.DIFF_MINUS:
-    formatted = (RED + str(line_data.old_line_number).ljust(max_line_digits) +
-                 ' ' * max_line_digits)
+    formatted = (
+        RED + str(line_data.old_line_number).ljust(max_line_digits) +
+        ' ' * max_line_digits)
     if not bold_delim:
       formatted += line
     else:
       bold_start, bold_end = bold_delim
-      formatted += (line[:bold_start] + RED_BOLD + line[bold_start:bold_end] +
+      formatted += (
+          line[:bold_start] + RED_BOLD + line[bold_start:bold_end] +
           CLEAR + RED + line[bold_end:])
   elif line_data.status == file_lib.DIFF_INFO:
     formatted = CLEAR + '\n' + line

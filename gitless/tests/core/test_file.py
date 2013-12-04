@@ -13,8 +13,8 @@ import common
 
 
 TRACKED_FP = 'f1'
-TRACKED_FP_CONTENTS_1 = 'f1-1'
-TRACKED_FP_CONTENTS_2 = 'f1-2'
+TRACKED_FP_CONTENTS_1 = 'f1-1\n'
+TRACKED_FP_CONTENTS_2 = 'f1-2\n'
 TRACKED_FP_WITH_SPACE = 'f1 space'
 UNTRACKED_FP = 'f2'
 UNTRACKED_FP_WITH_SPACE = 'f2 space'
@@ -47,7 +47,8 @@ class TestFile(common.TestCore):
     self._write_file(UNTRACKED_FP)
     self._write_file(UNTRACKED_FP_WITH_SPACE)
     self._write_file(
-      '.gitignore', contents='{}\n{}'.format(IGNORED_FP, IGNORED_FP_WITH_SPACE))
+        '.gitignore', contents='{}\n{}'.format(
+            IGNORED_FP, IGNORED_FP_WITH_SPACE))
     self._write_file(IGNORED_FP)
     self._write_file(IGNORED_FP_WITH_SPACE)
 
@@ -81,14 +82,14 @@ class TestTrackFile(TestFile):
   @common.assert_no_side_effects(TRACKED_FP_WITH_SPACE)
   def test_track_tracked_fp_with_space(self):
     self.assertEqual(
-      file_lib.FILE_ALREADY_TRACKED, file_lib.track(TRACKED_FP_WITH_SPACE))
+        file_lib.FILE_ALREADY_TRACKED, file_lib.track(TRACKED_FP_WITH_SPACE))
 
   def test_track_nonexistent_fp(self):
     self.assertEqual(file_lib.FILE_NOT_FOUND, file_lib.track(NONEXISTENT_FP))
 
   def test_track_nonexistent_fp_with_space(self):
     self.assertEqual(
-      file_lib.FILE_NOT_FOUND, file_lib.track(NONEXISTENT_FP_WITH_SPACE))
+        file_lib.FILE_NOT_FOUND, file_lib.track(NONEXISTENT_FP_WITH_SPACE))
 
   @common.assert_no_side_effects(IGNORED_FP)
   def test_track_ignored(self):
@@ -97,7 +98,7 @@ class TestTrackFile(TestFile):
   @common.assert_no_side_effects(IGNORED_FP_WITH_SPACE)
   def test_track_ignored_with_space(self):
     self.assertEqual(
-      file_lib.FILE_IS_IGNORED, file_lib.track(IGNORED_FP_WITH_SPACE))
+        file_lib.FILE_IS_IGNORED, file_lib.track(IGNORED_FP_WITH_SPACE))
 
 
 class TestUntrackFile(TestFile):
@@ -320,9 +321,106 @@ class TestStatus(TestFile):
 
   def __assert_field(self, fp, field, expected, got):
      self.assertEqual(
-          expected, got,
-          'Incorrect status for {}: expected {}={}, got {}={}'.format(
-              fp, field, expected, field, got))
+         expected, got,
+         'Incorrect status for {}: expected {}={}, got {}={}'.format(
+             fp, field, expected, field, got))
+
+
+class TestDiff(TestFile):
+
+  @common.assert_no_side_effects(UNTRACKED_FP)
+  def test_diff_untracked_fp(self):
+    self.assertEqual(file_lib.FILE_IS_UNTRACKED, file_lib.diff(UNTRACKED_FP)[0])
+
+  @common.assert_no_side_effects(UNTRACKED_FP_WITH_SPACE)
+  def test_diff_untracked_fp_with_space(self):
+    self.assertEqual(
+        file_lib.FILE_IS_UNTRACKED, file_lib.diff(UNTRACKED_FP_WITH_SPACE)[0])
+
+  @common.assert_no_side_effects(IGNORED_FP)
+  def test_diff_ignored_fp(self):
+    self.assertEqual(file_lib.FILE_IS_IGNORED, file_lib.diff(IGNORED_FP)[0])
+
+  @common.assert_no_side_effects(IGNORED_FP_WITH_SPACE)
+  def test_diff_ignored_fp_with_space(self):
+    self.assertEqual(file_lib.FILE_IS_IGNORED, file_lib.diff(IGNORED_FP_WITH_SPACE)[0])
+
+  def test_diff_nonexistent_fp(self):
+    self.assertEqual(file_lib.FILE_NOT_FOUND, file_lib.diff(NONEXISTENT_FP)[0])
+
+  def test_diff_nonexistent_fp_with_space(self):
+    self.assertEqual(
+        file_lib.FILE_NOT_FOUND, file_lib.diff(NONEXISTENT_FP_WITH_SPACE)[0])
+
+  @common.assert_no_side_effects(TRACKED_FP)
+  def test_empty_diff(self):
+    ret, (out, _) = file_lib.diff(TRACKED_FP)
+    self.assertEqual(file_lib.SUCCESS, ret)
+    self.assertEqual([], out)
+
+  def test_diff_basic(self):
+    self._write_file(TRACKED_FP, contents='new contents')
+    ret, (out, _) = file_lib.diff(TRACKED_FP)
+
+    self.assertEqual(file_lib.SUCCESS, ret)
+    self.assertEqual(3, len(out))
+    # [:-1] removes the '\n'.
+    self.assertEqual('-' + TRACKED_FP_CONTENTS_2[:-1], out[1].line)
+    self.assertEqual(file_lib.DIFF_MINUS, out[1].status)
+    self.assertEqual(1, out[1].old_line_number)
+    self.assertEqual(None, out[1].new_line_number)
+
+    self.assertEqual('+new contents', out[2].line)
+    self.assertEqual(file_lib.DIFF_ADDED, out[2].status)
+    self.assertEqual(None, out[2].old_line_number)
+    self.assertEqual(1, out[2].new_line_number)
+
+  def test_diff_append(self):
+    self._append_to_file(TRACKED_FP, contents='new contents')
+    ret, (out, _) = file_lib.diff(TRACKED_FP)
+
+    self.assertEqual(file_lib.SUCCESS, ret)
+    self.assertEqual(3, len(out))
+    # [:-1] removes the '\n'.
+    self.assertEqual(' ' + TRACKED_FP_CONTENTS_2[:-1], out[1].line)
+    self.assertEqual(file_lib.DIFF_SAME, out[1].status)
+    self.assertEqual(1, out[1].old_line_number)
+    self.assertEqual(1, out[1].new_line_number)
+
+    self.assertEqual('+new contents', out[2].line)
+    self.assertEqual(file_lib.DIFF_ADDED, out[2].status)
+    self.assertEqual(None, out[2].old_line_number)
+    self.assertEqual(2, out[2].new_line_number)
+
+  def test_diff_new_fp(self):
+    fp = 'new'
+    self._write_file(fp, contents=fp + '\n')
+    file_lib.track(fp)
+    ret, (out, _) = file_lib.diff(fp)
+
+    self.assertEqual(file_lib.SUCCESS, ret)
+    self.assertEqual(2, len(out))
+    self.assertEqual('+' + fp, out[1].line)
+    self.assertEqual(file_lib.DIFF_ADDED, out[1].status)
+    self.assertEqual(None, out[1].old_line_number)
+    self.assertEqual(1, out[1].new_line_number)
+
+    # Now let's add some change to the file and check that diff notices it.
+    self._append_to_file(fp, contents='new line')
+    ret, (out, _) = file_lib.diff(fp)
+
+    self.assertEqual(file_lib.SUCCESS, ret)
+
+    self.assertEqual(3, len(out))
+    self.assertEqual('+' + fp, out[1].line)
+    self.assertEqual(file_lib.DIFF_ADDED, out[1].status)
+    self.assertEqual(None, out[1].old_line_number)
+    self.assertEqual(1, out[1].new_line_number)
+
+    self.assertEqual('+new line', out[2].line)
+    self.assertEqual(file_lib.DIFF_ADDED, out[2].status)
+    self.assertEqual(None, out[2].old_line_number)
+    self.assertEqual(2, out[2].new_line_number)
 
 
 if __name__ == '__main__':

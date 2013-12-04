@@ -36,6 +36,11 @@ class TestCore(unittest.TestCase):
     f.write(contents)
     f.close()
 
+  def _append_to_file(self, fp, contents='hello'):
+    f = open(fp, 'a')
+    f.write(contents)
+    f.close()
+
   def _read_file(self, fp):
     f = open(fp, 'r')
     ret = f.read()
@@ -55,7 +60,7 @@ class TestCore(unittest.TestCase):
     out, err = p.communicate()
     if p.returncode != 0:
       raise Exception('Git call {} failed \nout:{} \nerr:{}'.format(
-        subcmd, out, err))
+          subcmd, out, err))
 
 
 def assert_contents_unchanged(fp):
@@ -81,7 +86,7 @@ def assert_contents_unchanged(fp):
       self.assertEqual(
           contents, contents_prime,
           'Contents of file changed: from {} to {}'.format(
-               contents, contents_prime))
+              contents, contents_prime))
     return wrapper
   return decorator
 

@@ -129,11 +129,11 @@ def diff(fp):
   """
   f_st, s = _status(fp)
   if f_st == git_status.FILE_NOT_FOUND:
-    return (FILE_NOT_FOUND, '')
+    return (FILE_NOT_FOUND, (None, None))
   elif f_st.type == UNTRACKED:
-    return (FILE_IS_UNTRACKED, '')
+    return (FILE_IS_UNTRACKED, (None, None))
   elif f_st.type == IGNORED:
-    return (FILE_IS_IGNORED, '')
+    return (FILE_IS_IGNORED, (None, None))
 
   diff_out = None
   if s == git_status.STAGED:
