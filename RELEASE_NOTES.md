@@ -1,10 +1,17 @@
 Gitless's Release Notes
 =======================
 
+
+6th Dec 2013 - kendall.0.4.1
+----------------------------
+
+* Bug fixes (in diff and PyPI setup).
+
+
 23rd Nov 2013 - kendall.0.4
 ---------------------------
 
-* revamped gl diff.
+* Revamped gl diff.
 
 
 28th Oct 2013 - kendall.0.3
