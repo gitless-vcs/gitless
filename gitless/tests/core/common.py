@@ -32,6 +32,9 @@ class TestCore(unittest.TestCase):
     logging.debug('Removed dir {}'.format(self.path))
 
   def _write_file(self, fp, contents='hello'):
+    dirs, _ = os.path.split(fp)
+    if dirs:
+      os.makedirs(dirs)
     f = open(fp, 'w')
     f.write(contents)
     f.close()

@@ -26,11 +26,12 @@ FILE_IN_CONFLICT = 7
 FILE_IS_IGNORED = 8
 FILE_NOT_IN_CONFLICT = 9
 FILE_ALREADY_RESOLVED = 10
+FILE_IS_DIR = 11
 
 # Possible Gitless's file types.
-TRACKED = 11
-UNTRACKED = 12
-IGNORED = 13
+TRACKED = 12
+UNTRACKED = 13
+IGNORED = 14
 
 # Possible diff output lines.
 DIFF_INFO = git_file.DIFF_INFO  # line carrying diff info for new hunk.
@@ -46,9 +47,11 @@ def track(fp):
     fp: the file path of the file to track.
 
   Returns:
-    FILE_NOT_FOUND, FILE_ALREADY_TRACKED, FILE_IN_CONFLICT, FILE_IS_IGNORED or
-    SUCCESS.
+    FILE_NOT_FOUND, FILE_IS_DIR, FILE_ALREADY_TRACKED, FILE_IN_CONFLICT,
+    FILE_IS_IGNORED or SUCCESS.
   """
+  if os.path.isdir(fp):
+    return FILE_IS_DIR
   f_st, s = _status(fp)
   if f_st == FILE_NOT_FOUND:
     return FILE_NOT_FOUND
@@ -81,9 +84,11 @@ def untrack(fp):
     fp: the file path of the file to untrack.
 
   Returns:
-    FILE_NOT_FOUND, FILE_ALREADY_UNTRACKED, FILE_IN_CONFLICT, FILE_IS_IGNORED or
-    SUCCESS.
+    FILE_NOT_FOUND, FILE_IS_DIR, FILE_ALREADY_UNTRACKED, FILE_IN_CONFLICT,
+    FILE_IS_IGNORED or SUCCESS.
   """
+  if os.path.isdir(fp):
+    return FILE_IS_DIR
   f_st, s = _status(fp)
   if f_st == FILE_NOT_FOUND:
     return FILE_NOT_FOUND
@@ -122,11 +127,13 @@ def diff(fp):
 
   Returns:
     a pair (result, out) where result is one of FILE_NOT_FOUND,
-    FILE_IS_UNTRACKED or SUCCESS and out is the output of the diff command in a
-    machine-friendly way: it's a tuple of the form
+    FILE_IS_UNTRACKED, FILE_IS_DIR or SUCCESS and out is the output of the diff
+    command in a machine-friendly way: it's a tuple of the form
     (list of namedtuples with fields 'line', 'status', 'old_line_number',
      'new_line_number', line number padding).
   """
+  if os.path.isdir(fp):
+    return (FILE_IS_DIR, (None, None))
   f_st, s = _status(fp)
   if f_st == git_status.FILE_NOT_FOUND:
     return (FILE_NOT_FOUND, (None, None))
@@ -157,9 +164,11 @@ def checkout(fp, cp='HEAD'):
     cp: the commit point at which to checkout the file (defaults to HEAD).
 
   Returns:
-    a pair (status, out) where status is one of FILE_NOT_FOUND_AT_CP or SUCCESS
-    and out is the content of fp at cp.
+    a pair (status, out) where status is one of FILE_IS_DIR,
+    FILE_NOT_FOUND_AT_CP or SUCCESS and out is the content of fp at cp.
   """
+  if os.path.isdir(fp):
+    return (FILE_IS_DIR, None)
   # "show" expects the full path with respect to the repo root.
   rel_fp = os.path.join(repo_lib.cwd(), fp)[1:]
   ret, out = git_file.show(rel_fp, cp)

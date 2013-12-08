@@ -22,9 +22,11 @@ IGNORED_FP = 'f3'
 IGNORED_FP_WITH_SPACE = 'f3 space'
 NONEXISTENT_FP = 'nonexistent'
 NONEXISTENT_FP_WITH_SPACE = 'nonexistent space'
+DIR = 'dir'
+UNTRACKED_DIR_FILE = os.path.join(DIR, 'f1')
 ALL_FPS_IN_WD = [
     TRACKED_FP, TRACKED_FP_WITH_SPACE, UNTRACKED_FP, UNTRACKED_FP_WITH_SPACE,
-    IGNORED_FP, IGNORED_FP_WITH_SPACE, '.gitignore']
+    IGNORED_FP, IGNORED_FP_WITH_SPACE, UNTRACKED_DIR_FILE, '.gitignore']
 
 
 class TestFile(common.TestCore):
@@ -46,6 +48,7 @@ class TestFile(common.TestCore):
         'commit -m"2" "{}" "{}"'.format(TRACKED_FP, TRACKED_FP_WITH_SPACE))
     self._write_file(UNTRACKED_FP)
     self._write_file(UNTRACKED_FP_WITH_SPACE)
+    self._write_file(UNTRACKED_DIR_FILE)
     self._write_file(
         '.gitignore', contents='{}\n{}'.format(
             IGNORED_FP, IGNORED_FP_WITH_SPACE))
@@ -54,6 +57,9 @@ class TestFile(common.TestCore):
 
 
 class TestTrackFile(TestFile):
+
+  def test_track_dir_fp(self):
+    self.assertEqual(file_lib.FILE_IS_DIR, file_lib.track(DIR))
 
   @common.assert_contents_unchanged(UNTRACKED_FP)
   def test_track_untracked_fp(self):
@@ -102,6 +108,9 @@ class TestTrackFile(TestFile):
 
 
 class TestUntrackFile(TestFile):
+
+  def test_untrack_dir_fp(self):
+    self.assertEqual(file_lib.FILE_IS_DIR, file_lib.untrack(DIR))
 
   @common.assert_contents_unchanged(TRACKED_FP)
   def test_untrack_tracked_fp(self):
@@ -152,6 +161,9 @@ class TestUntrackFile(TestFile):
 
 
 class TestCheckoutFile(TestFile):
+
+  def test_checkout_dir_fp(self):
+    self.assertEqual(file_lib.FILE_IS_DIR, file_lib.checkout(DIR)[0])
 
   @common.assert_no_side_effects(TRACKED_FP)
   def test_checkout_fp_at_head(self):
@@ -212,7 +224,8 @@ class TestStatus(TestFile):
         self.__assert_type(fp, file_lib.TRACKED, type)
         self.__assert_field(fp, 'exists_in_lr', True, exists_in_lr)
         self.__assert_field(fp, 'modified', False, modified)
-      elif fp == UNTRACKED_FP or fp == UNTRACKED_FP_WITH_SPACE:
+      elif (fp == UNTRACKED_FP or fp == UNTRACKED_FP_WITH_SPACE
+            or fp == UNTRACKED_DIR_FILE):
         self.__assert_type(fp, file_lib.UNTRACKED, type)
         self.__assert_field(fp, 'exists_in_lr', False, exists_in_lr)
         self.__assert_field(fp, 'modified', True, modified)
@@ -328,6 +341,9 @@ class TestStatus(TestFile):
 
 class TestDiff(TestFile):
 
+  def test_diff_dir_fp(self):
+    self.assertEqual(file_lib.FILE_IS_DIR, file_lib.diff(DIR)[0])
+
   @common.assert_no_side_effects(UNTRACKED_FP)
   def test_diff_untracked_fp(self):
     self.assertEqual(file_lib.FILE_IS_UNTRACKED, file_lib.diff(UNTRACKED_FP)[0])
@@ -343,7 +359,8 @@ class TestDiff(TestFile):
 
   @common.assert_no_side_effects(IGNORED_FP_WITH_SPACE)
   def test_diff_ignored_fp_with_space(self):
-    self.assertEqual(file_lib.FILE_IS_IGNORED, file_lib.diff(IGNORED_FP_WITH_SPACE)[0])
+    self.assertEqual(
+        file_lib.FILE_IS_IGNORED, file_lib.diff(IGNORED_FP_WITH_SPACE)[0])
 
   def test_diff_nonexistent_fp(self):
     self.assertEqual(file_lib.FILE_NOT_FOUND, file_lib.diff(NONEXISTENT_FP)[0])

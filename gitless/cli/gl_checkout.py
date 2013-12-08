@@ -52,11 +52,14 @@ def _checkout_file(fp, cp):
     return False
 
   ret, out = file_lib.checkout(fp, cp)
-  if ret is file_lib.FILE_NOT_FOUND_AT_CP:
+  if ret == file_lib.FILE_NOT_FOUND_AT_CP:
     pprint.err('Checkout aborted')
     pprint.err('There\'s no file %s at %s' % (fp, cp))
     return False
-  elif ret is file_lib.SUCCESS:
+  elif ret == file_lib.FILE_IS_DIR:
+    pprint.dir_err_exp(fp, subcmd)
+    return False
+  elif ret == file_lib.SUCCESS:
     pprint.msg('File %s checked out sucessfully to its state at %s' % (fp, cp))
     return True
   else:

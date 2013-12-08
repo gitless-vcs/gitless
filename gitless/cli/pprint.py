@@ -67,3 +67,13 @@ def conf_dialog(msg):
   sys.stdout.write('# %s. Do you wish to continue? (y/N)' % msg)
   user_input = raw_input(' ')
   return user_input and user_input[0].lower() == 'y'
+
+
+def dir_err_exp(fp, subcmd):
+  """Prints the dir error exp to stderr."""
+  pprint.err('{} is a directory. Can\'t {} a directory'.format(fp, subcmd))
+  pprint.err_exp(
+      'do {}/* if you want to {} all files under {}'.format(fp, subcmd, fp))
+  pprint.err_exp(
+      'do {}/** if you want to recursively {} all files under {}'.format(
+          fp, subcmd, fp))
