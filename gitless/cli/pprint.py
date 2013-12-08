@@ -71,9 +71,8 @@ def conf_dialog(msg):
 
 def dir_err_exp(fp, subcmd):
   """Prints the dir error exp to stderr."""
-  pprint.err('{} is a directory. Can\'t {} a directory'.format(fp, subcmd))
-  pprint.err_exp(
-      'do {}/* if you want to {} all files under {}'.format(fp, subcmd, fp))
-  pprint.err_exp(
+  err('{} is a directory. Can\'t {} a directory'.format(fp, subcmd))
+  err_exp('do {}/* if you want to {} all files under {}'.format(fp, subcmd, fp))
+  err_exp(
       'do {}/** if you want to recursively {} all files under {}'.format(
           fp, subcmd, fp))
