@@ -1,14 +1,6 @@
 Gitless
 =======
 
-A version control system built on top of Git.
-
-This is under active development.
-
-
-About
------
-
 Gitless is an experimental version control system built on top of Git. Keep in
 mind that Gitless might change in non-retrocompatible ways (so don't script
 around it just yet) as we seek to answer the fundamental question that drives
