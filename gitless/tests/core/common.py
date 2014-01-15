@@ -33,7 +33,7 @@ class TestCore(unittest.TestCase):
 
   def _write_file(self, fp, contents='hello'):
     dirs, _ = os.path.split(fp)
-    if dirs:
+    if dirs and not os.path.exists(dirs):
       os.makedirs(dirs)
     f = open(fp, 'w')
     f.write(contents)
@@ -83,8 +83,12 @@ def assert_contents_unchanged(fp):
   def decorator(f):
     def wrapper(*args, **kwargs):
       self = args[0]
+      # We save up the cwd to chdir to it after the test has run so that the
+      # reading of the file still works even if the test changed the cwd.
+      cwd_before = os.getcwd()
       contents = self._read_file(fp)
       f(*args, **kwargs)
+      os.chdir(cwd_before)
       contents_prime = self._read_file(fp)
       self.assertEqual(
           contents, contents_prime,
