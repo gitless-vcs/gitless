@@ -2,6 +2,14 @@ Gitless's Release Notes
 =======================
 
 
+15th Jan 2014 - kendall.0.4.2
+-----------------------------
+
+* Performance improvements in status (updated to using gitpylib 0.4.2).
+* Output an error msg if the user provides a directory to file related ops.
+* Sort the files outputted by `gl status` so that it looks nicer.
+* Bug fixes.
+
 6th Dec 2013 - kendall.0.4.1
 ----------------------------
 
