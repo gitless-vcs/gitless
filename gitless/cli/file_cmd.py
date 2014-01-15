@@ -5,6 +5,8 @@
 """Helper module for gl_{track, untrack, resolve}."""
 
 
+import os
+
 import pprint
 
 from gitless.core import file as file_lib
@@ -31,6 +33,9 @@ def main(subcmd):
       ret = getattr(file_lib, subcmd)(fp)
       if ret == file_lib.FILE_NOT_FOUND:
         pprint.err('Can\'t {} a non-existent file: {}'.format(subcmd, fp))
+        success = False
+      elif ret == file_lib.FILE_IS_DIR:
+        pprint.dir_err_exp(fp, subcmd)
         success = False
       elif ret is file_lib.FILE_ALREADY_UNTRACKED:
         pprint.err('File {} is already untracked'.format(fp))

@@ -6,6 +6,7 @@
 
 
 import argparse
+import pkg_resources
 import traceback
 
 from gitless.core import repo as repo_lib
@@ -33,7 +34,7 @@ ERRORS_FOUND = 1
 INTERNAL_ERROR = 3
 NOT_IN_GL_REPO = 4
 
-GL_VERSION = 'kendall.0.2.1'
+GL_VERSION = 'GL Version: ' + pkg_resources.require('gitless')[0].version
 
 
 def main():

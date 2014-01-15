@@ -22,9 +22,27 @@ IGNORED_FP = 'f3'
 IGNORED_FP_WITH_SPACE = 'f3 space'
 NONEXISTENT_FP = 'nonexistent'
 NONEXISTENT_FP_WITH_SPACE = 'nonexistent space'
+DIR = 'dir'
+UNTRACKED_DIR_FP = os.path.join(DIR, 'f1')
+UNTRACKED_DIR_FP_WITH_SPACE = os.path.join(DIR, 'f1 space')
+TRACKED_DIR_FP = os.path.join(DIR, 'f2')
+TRACKED_DIR_FP_WITH_SPACE = os.path.join(DIR, 'f2 space')
+DIR_DIR = os.path.join(DIR, DIR)
+UNTRACKED_DIR_DIR_FP = os.path.join(DIR_DIR, 'f1')
+UNTRACKED_DIR_DIR_FP_WITH_SPACE = os.path.join(DIR_DIR, 'f1 space')
+TRACKED_DIR_DIR_FP = os.path.join(DIR_DIR, 'f2')
+TRACKED_DIR_DIR_FP_WITH_SPACE = os.path.join(DIR_DIR, 'f2 space')
 ALL_FPS_IN_WD = [
     TRACKED_FP, TRACKED_FP_WITH_SPACE, UNTRACKED_FP, UNTRACKED_FP_WITH_SPACE,
-    IGNORED_FP, IGNORED_FP_WITH_SPACE, '.gitignore']
+    IGNORED_FP, IGNORED_FP_WITH_SPACE, UNTRACKED_DIR_FP,
+    UNTRACKED_DIR_FP_WITH_SPACE, TRACKED_DIR_FP, TRACKED_DIR_FP_WITH_SPACE,
+    UNTRACKED_DIR_DIR_FP, UNTRACKED_DIR_DIR_FP_WITH_SPACE, TRACKED_DIR_DIR_FP,
+    TRACKED_DIR_DIR_FP_WITH_SPACE, '.gitignore']
+ALL_DIR_FPS_IN_WD = [
+    TRACKED_DIR_FP, TRACKED_DIR_FP_WITH_SPACE, UNTRACKED_DIR_FP,
+    UNTRACKED_DIR_FP_WITH_SPACE, TRACKED_DIR_DIR_FP,
+    TRACKED_DIR_DIR_FP_WITH_SPACE, UNTRACKED_DIR_DIR_FP,
+    UNTRACKED_DIR_DIR_FP_WITH_SPACE]
 
 
 class TestFile(common.TestCore):
@@ -37,15 +55,39 @@ class TestFile(common.TestCore):
     self._git_call('init')
     self._write_file(TRACKED_FP, contents=TRACKED_FP_CONTENTS_1)
     self._write_file(TRACKED_FP_WITH_SPACE, contents=TRACKED_FP_CONTENTS_1)
-    self._git_call('add "{}" "{}"'.format(TRACKED_FP, TRACKED_FP_WITH_SPACE))
+    self._write_file(TRACKED_DIR_FP, contents=TRACKED_FP_CONTENTS_1)
+    self._write_file(TRACKED_DIR_FP_WITH_SPACE, contents=TRACKED_FP_CONTENTS_1)
+    self._write_file(TRACKED_DIR_DIR_FP, contents=TRACKED_FP_CONTENTS_1)
+    self._write_file(
+        TRACKED_DIR_DIR_FP_WITH_SPACE, contents=TRACKED_FP_CONTENTS_1)
     self._git_call(
-        'commit -m"1" "{}" "{}"'.format(TRACKED_FP, TRACKED_FP_WITH_SPACE))
+        'add "{}" "{}" "{}" "{}" "{}" "{}"'.format(
+          TRACKED_FP, TRACKED_FP_WITH_SPACE,
+          TRACKED_DIR_FP, TRACKED_DIR_FP_WITH_SPACE,
+          TRACKED_DIR_DIR_FP, TRACKED_DIR_DIR_FP_WITH_SPACE))
+    self._git_call(
+        'commit -m"1" "{}" "{}" "{}" "{}" "{}" "{}"'.format(
+          TRACKED_FP, TRACKED_FP_WITH_SPACE,
+          TRACKED_DIR_FP, TRACKED_DIR_FP_WITH_SPACE,
+          TRACKED_DIR_DIR_FP, TRACKED_DIR_DIR_FP_WITH_SPACE))
     self._write_file(TRACKED_FP, contents=TRACKED_FP_CONTENTS_2)
     self._write_file(TRACKED_FP_WITH_SPACE, contents=TRACKED_FP_CONTENTS_2)
+    self._write_file(TRACKED_DIR_FP, contents=TRACKED_FP_CONTENTS_2)
+    self._write_file(TRACKED_DIR_FP_WITH_SPACE, contents=TRACKED_FP_CONTENTS_2)
+    self._write_file(TRACKED_DIR_DIR_FP, contents=TRACKED_FP_CONTENTS_2)
+    self._write_file(
+        TRACKED_DIR_DIR_FP_WITH_SPACE, contents=TRACKED_FP_CONTENTS_2)
     self._git_call(
-        'commit -m"2" "{}" "{}"'.format(TRACKED_FP, TRACKED_FP_WITH_SPACE))
+        'commit -m"2" "{}" "{}" "{}" "{}" "{}" "{}"'.format(
+          TRACKED_FP, TRACKED_FP_WITH_SPACE,
+          TRACKED_DIR_FP, TRACKED_DIR_FP_WITH_SPACE,
+          TRACKED_DIR_DIR_FP, TRACKED_DIR_DIR_FP_WITH_SPACE))
     self._write_file(UNTRACKED_FP)
     self._write_file(UNTRACKED_FP_WITH_SPACE)
+    self._write_file(UNTRACKED_DIR_FP)
+    self._write_file(UNTRACKED_DIR_FP_WITH_SPACE)
+    self._write_file(UNTRACKED_DIR_DIR_FP)
+    self._write_file(UNTRACKED_DIR_DIR_FP_WITH_SPACE)
     self._write_file(
         '.gitignore', contents='{}\n{}'.format(
             IGNORED_FP, IGNORED_FP_WITH_SPACE))
@@ -55,6 +97,9 @@ class TestFile(common.TestCore):
 
 class TestTrackFile(TestFile):
 
+  def test_track_dir(self):
+    self.assertEqual(file_lib.FILE_IS_DIR, file_lib.track(DIR))
+
   @common.assert_contents_unchanged(UNTRACKED_FP)
   def test_track_untracked_fp(self):
     self.__assert_track_fp(UNTRACKED_FP)
@@ -62,6 +107,36 @@ class TestTrackFile(TestFile):
   @common.assert_contents_unchanged(UNTRACKED_FP_WITH_SPACE)
   def test_track_untracked_fp_with_space(self):
     self.__assert_track_fp(UNTRACKED_FP_WITH_SPACE)
+
+  @common.assert_contents_unchanged(UNTRACKED_DIR_FP)
+  def test_track_untracked_dir_fp(self):
+    self.__assert_track_fp(UNTRACKED_DIR_FP)
+
+  @common.assert_contents_unchanged(UNTRACKED_DIR_FP_WITH_SPACE)
+  def test_track_untracked_dir_fp_with_space(self):
+    self.__assert_track_fp(UNTRACKED_DIR_FP_WITH_SPACE)
+
+  @common.assert_contents_unchanged(UNTRACKED_DIR_DIR_FP)
+  def test_track_untracked_dir_dir_fp(self):
+    self.__assert_track_fp(UNTRACKED_DIR_DIR_FP)
+
+  @common.assert_contents_unchanged(UNTRACKED_DIR_DIR_FP_WITH_SPACE)
+  def test_track_untracked_dir_dir_fp_with_space(self):
+    self.__assert_track_fp(UNTRACKED_DIR_DIR_FP_WITH_SPACE)
+
+  # TODO(sperezde): change the decorator so that it accepts varargs.
+  @common.assert_contents_unchanged(UNTRACKED_DIR_FP)
+  @common.assert_contents_unchanged(UNTRACKED_DIR_FP_WITH_SPACE)
+  @common.assert_contents_unchanged(UNTRACKED_DIR_DIR_FP)
+  @common.assert_contents_unchanged(UNTRACKED_DIR_DIR_FP_WITH_SPACE)
+  def test_track_untracked_relative(self):
+    os.chdir(DIR)
+    self.__assert_track_fp(os.path.relpath(UNTRACKED_DIR_FP, DIR))
+    self.__assert_track_fp(os.path.relpath(UNTRACKED_DIR_FP_WITH_SPACE, DIR))
+    os.chdir(DIR)
+    self.__assert_track_fp(os.path.relpath(UNTRACKED_DIR_DIR_FP, DIR_DIR))
+    self.__assert_track_fp(
+        os.path.relpath(UNTRACKED_DIR_DIR_FP_WITH_SPACE, DIR_DIR))
 
   def __assert_track_fp(self, fp):
     t = file_lib.track(fp)
@@ -84,6 +159,50 @@ class TestTrackFile(TestFile):
     self.assertEqual(
         file_lib.FILE_ALREADY_TRACKED, file_lib.track(TRACKED_FP_WITH_SPACE))
 
+  @common.assert_no_side_effects(TRACKED_DIR_FP)
+  def test_track_tracked_dir_fp(self):
+    self.assertEqual(
+        file_lib.FILE_ALREADY_TRACKED, file_lib.track(TRACKED_DIR_FP))
+
+  @common.assert_no_side_effects(TRACKED_DIR_FP_WITH_SPACE)
+  def test_track_tracked_dir_fp_with_space(self):
+    self.assertEqual(
+        file_lib.FILE_ALREADY_TRACKED,
+        file_lib.track(TRACKED_DIR_FP_WITH_SPACE))
+
+  @common.assert_contents_unchanged(TRACKED_DIR_DIR_FP)
+  def test_track_tracked_dir_dir_fp(self):
+    self.assertEqual(
+        file_lib.FILE_ALREADY_TRACKED,
+        file_lib.track(TRACKED_DIR_DIR_FP))
+
+  @common.assert_contents_unchanged(TRACKED_DIR_DIR_FP_WITH_SPACE)
+  def test_track_tracked_dir_dir_fp_with_space(self):
+    self.assertEqual(
+        file_lib.FILE_ALREADY_TRACKED,
+        file_lib.track(TRACKED_DIR_DIR_FP_WITH_SPACE))
+
+  # TODO(sperezde): change the decorator so that it accepts varargs.
+  @common.assert_contents_unchanged(TRACKED_DIR_FP)
+  @common.assert_contents_unchanged(TRACKED_DIR_FP_WITH_SPACE)
+  @common.assert_contents_unchanged(TRACKED_DIR_DIR_FP)
+  @common.assert_contents_unchanged(TRACKED_DIR_DIR_FP_WITH_SPACE)
+  def test_track_tracked_relative(self):
+    os.chdir(DIR)
+    self.assertEqual(
+        file_lib.FILE_ALREADY_TRACKED,
+        file_lib.track(os.path.relpath(TRACKED_DIR_FP, DIR)))
+    self.assertEqual(
+        file_lib.FILE_ALREADY_TRACKED,
+        file_lib.track(os.path.relpath(TRACKED_DIR_FP_WITH_SPACE, DIR)))
+    os.chdir(DIR)
+    self.assertEqual(
+        file_lib.FILE_ALREADY_TRACKED,
+        file_lib.track(os.path.relpath(TRACKED_DIR_DIR_FP, DIR_DIR)))
+    self.assertEqual(
+        file_lib.FILE_ALREADY_TRACKED,
+        file_lib.track(os.path.relpath(TRACKED_DIR_DIR_FP_WITH_SPACE, DIR_DIR)))
+
   def test_track_nonexistent_fp(self):
     self.assertEqual(file_lib.FILE_NOT_FOUND, file_lib.track(NONEXISTENT_FP))
 
@@ -103,6 +222,9 @@ class TestTrackFile(TestFile):
 
 class TestUntrackFile(TestFile):
 
+  def test_untrack_dir(self):
+    self.assertEqual(file_lib.FILE_IS_DIR, file_lib.untrack(DIR))
+
   @common.assert_contents_unchanged(TRACKED_FP)
   def test_untrack_tracked_fp(self):
     self.__assert_untrack_fp(TRACKED_FP)
@@ -110,6 +232,36 @@ class TestUntrackFile(TestFile):
   @common.assert_contents_unchanged(TRACKED_FP_WITH_SPACE)
   def test_untrack_tracked_fp_space(self):
     self.__assert_untrack_fp(TRACKED_FP_WITH_SPACE)
+
+  @common.assert_contents_unchanged(TRACKED_DIR_FP)
+  def test_untrack_tracked_dir_fp(self):
+    self.__assert_untrack_fp(TRACKED_DIR_FP)
+
+  @common.assert_contents_unchanged(TRACKED_DIR_FP_WITH_SPACE)
+  def test_untrack_tracked_dir_fp_with_space(self):
+    self.__assert_untrack_fp(TRACKED_DIR_FP_WITH_SPACE)
+
+  @common.assert_contents_unchanged(TRACKED_DIR_DIR_FP)
+  def test_untrack_tracked_dir_dir_fp(self):
+    self.__assert_untrack_fp(TRACKED_DIR_DIR_FP)
+
+  @common.assert_contents_unchanged(TRACKED_DIR_DIR_FP_WITH_SPACE)
+  def test_untrack_tracked_dir_dir_fp_with_space(self):
+    self.__assert_untrack_fp(TRACKED_DIR_DIR_FP_WITH_SPACE)
+
+  # TODO(sperezde): change the decorator so that it accepts varargs.
+  @common.assert_contents_unchanged(TRACKED_DIR_FP)
+  @common.assert_contents_unchanged(TRACKED_DIR_FP_WITH_SPACE)
+  @common.assert_contents_unchanged(TRACKED_DIR_DIR_FP)
+  @common.assert_contents_unchanged(TRACKED_DIR_DIR_FP_WITH_SPACE)
+  def test_untrack_tracked_relative(self):
+    os.chdir(DIR)
+    self.__assert_untrack_fp(os.path.relpath(TRACKED_DIR_FP, DIR))
+    self.__assert_untrack_fp(os.path.relpath(TRACKED_DIR_FP_WITH_SPACE, DIR))
+    os.chdir(DIR)
+    self.__assert_untrack_fp(os.path.relpath(TRACKED_DIR_DIR_FP, DIR_DIR))
+    self.__assert_untrack_fp(
+        os.path.relpath(TRACKED_DIR_DIR_FP_WITH_SPACE, DIR_DIR))
 
   def __assert_untrack_fp(self, fp):
     t = file_lib.untrack(fp)
@@ -134,6 +286,50 @@ class TestUntrackFile(TestFile):
         file_lib.FILE_ALREADY_UNTRACKED,
         file_lib.untrack(UNTRACKED_FP_WITH_SPACE))
 
+  @common.assert_no_side_effects(UNTRACKED_DIR_FP)
+  def test_untrack_untracked_dir_fp(self):
+    self.assertEqual(
+        file_lib.FILE_ALREADY_UNTRACKED, file_lib.untrack(UNTRACKED_DIR_FP))
+
+  @common.assert_no_side_effects(UNTRACKED_DIR_FP_WITH_SPACE)
+  def test_untrack_untracked_dir_fp_with_space(self):
+    self.assertEqual(
+        file_lib.FILE_ALREADY_UNTRACKED,
+        file_lib.untrack(UNTRACKED_DIR_FP_WITH_SPACE))
+
+  @common.assert_no_side_effects(UNTRACKED_DIR_DIR_FP)
+  def test_untrack_untracked_dir_dir_fp(self):
+    self.assertEqual(
+        file_lib.FILE_ALREADY_UNTRACKED, file_lib.untrack(UNTRACKED_DIR_DIR_FP))
+
+  @common.assert_no_side_effects(UNTRACKED_DIR_DIR_FP_WITH_SPACE)
+  def test_untrack_untracked_dir_dir_fp_with_space(self):
+    self.assertEqual(
+        file_lib.FILE_ALREADY_UNTRACKED,
+        file_lib.untrack(UNTRACKED_DIR_DIR_FP_WITH_SPACE))
+
+  # TODO(sperezde): change the decorator so that it accepts varargs.
+  @common.assert_contents_unchanged(UNTRACKED_DIR_FP)
+  @common.assert_contents_unchanged(UNTRACKED_DIR_FP_WITH_SPACE)
+  @common.assert_contents_unchanged(UNTRACKED_DIR_DIR_FP)
+  @common.assert_contents_unchanged(UNTRACKED_DIR_DIR_FP_WITH_SPACE)
+  def test_untrack_untracked_relative(self):
+    os.chdir(DIR)
+    self.assertEqual(
+        file_lib.FILE_ALREADY_UNTRACKED,
+        file_lib.untrack(os.path.relpath(UNTRACKED_DIR_FP, DIR)))
+    self.assertEqual(
+        file_lib.FILE_ALREADY_UNTRACKED,
+        file_lib.untrack(os.path.relpath(UNTRACKED_DIR_FP_WITH_SPACE, DIR)))
+    os.chdir(DIR)
+    self.assertEqual(
+        file_lib.FILE_ALREADY_UNTRACKED,
+        file_lib.untrack(os.path.relpath(UNTRACKED_DIR_DIR_FP, DIR_DIR)))
+    self.assertEqual(
+        file_lib.FILE_ALREADY_UNTRACKED,
+        file_lib.untrack(
+            os.path.relpath(UNTRACKED_DIR_DIR_FP_WITH_SPACE, DIR_DIR)))
+
   def test_untrack_nonexistent_fp(self):
     self.assertEqual(file_lib.FILE_NOT_FOUND, file_lib.untrack(NONEXISTENT_FP))
 
@@ -153,33 +349,50 @@ class TestUntrackFile(TestFile):
 
 class TestCheckoutFile(TestFile):
 
+  def test_checkout_dir(self):
+    self.assertEqual(file_lib.FILE_IS_DIR, file_lib.checkout(DIR)[0])
+
   @common.assert_no_side_effects(TRACKED_FP)
   def test_checkout_fp_at_head(self):
-    contents = self._read_file(TRACKED_FP)
-    self._write_file(TRACKED_FP, contents='contents')
-    self.assertEqual(file_lib.SUCCESS, file_lib.checkout(TRACKED_FP)[0])
-    self.assertEqual(contents, self._read_file(TRACKED_FP))
+    self.__assert_checkout_fp_at_head(TRACKED_FP)
 
   @common.assert_no_side_effects(TRACKED_FP_WITH_SPACE)
   def test_checkout_fp_with_space_at_head(self):
-    contents = self._read_file(TRACKED_FP_WITH_SPACE)
-    self._write_file(TRACKED_FP_WITH_SPACE, contents='contents')
-    self.assertEqual(
-        file_lib.SUCCESS, file_lib.checkout(TRACKED_FP_WITH_SPACE)[0])
-    self.assertEqual(contents, self._read_file(TRACKED_FP_WITH_SPACE))
+    self.__assert_checkout_fp_at_head(TRACKED_FP_WITH_SPACE)
+
+  @common.assert_no_side_effects(TRACKED_DIR_FP)
+  def test_checkout_dir_fp_at_head(self):
+    self.__assert_checkout_fp_at_head(TRACKED_DIR_FP)
+
+  @common.assert_no_side_effects(TRACKED_DIR_FP_WITH_SPACE)
+  def test_checkout_dir_fp_with_space_at_head(self):
+    self.__assert_checkout_fp_at_head(TRACKED_DIR_FP_WITH_SPACE)
+
+  @common.assert_no_side_effects(TRACKED_DIR_DIR_FP)
+  def test_checkout_dir_dir_fp_at_head(self):
+    self.__assert_checkout_fp_at_head(TRACKED_DIR_DIR_FP)
+
+  @common.assert_no_side_effects(TRACKED_DIR_DIR_FP_WITH_SPACE)
+  def test_checkout_dir_dir_fp_with_space_at_head(self):
+    self.__assert_checkout_fp_at_head(TRACKED_DIR_DIR_FP_WITH_SPACE)
 
   def test_checkout_fp_at_cp_other_than_head(self):
-    self._write_file(TRACKED_FP, contents='contents')
-    self.assertEqual(
-        file_lib.SUCCESS, file_lib.checkout(TRACKED_FP, 'HEAD^1')[0])
-    self.assertEqual(TRACKED_FP_CONTENTS_1, self._read_file(TRACKED_FP))
+    self.__assert_checkout_cp_other_than_head(TRACKED_FP)
 
   def test_checkout_fp_with_space_at_cp_other_than_head(self):
-    self._write_file(TRACKED_FP_WITH_SPACE, contents='contents')
-    self.assertEqual(
-        file_lib.SUCCESS, file_lib.checkout(TRACKED_FP_WITH_SPACE, 'HEAD^1')[0])
-    self.assertEqual(
-        TRACKED_FP_CONTENTS_1, self._read_file(TRACKED_FP_WITH_SPACE))
+    self.__assert_checkout_cp_other_than_head(TRACKED_FP_WITH_SPACE)
+
+  def test_checkout_dir_fp_at_cp_other_than_head(self):
+    self.__assert_checkout_cp_other_than_head(TRACKED_DIR_FP)
+
+  def test_checkout_dir_fp_with_space_at_cp_other_than_head(self):
+    self.__assert_checkout_cp_other_than_head(TRACKED_DIR_FP_WITH_SPACE)
+
+  def test_checkout_dir_dir_fp_at_cp_other_than_head(self):
+    self.__assert_checkout_cp_other_than_head(TRACKED_DIR_DIR_FP)
+
+  def test_checkout_dir_dir_fp_with_space_at_cp_other_than_head(self):
+    self.__assert_checkout_cp_other_than_head(TRACKED_DIR_DIR_FP_WITH_SPACE)
 
   @common.assert_no_side_effects(UNTRACKED_FP)
   def test_checkout_uncommited_fp(self):
@@ -201,6 +414,28 @@ class TestCheckoutFile(TestFile):
         file_lib.FILE_NOT_FOUND_AT_CP,
         file_lib.checkout(NONEXISTENT_FP_WITH_SPACE)[0])
 
+  def test_checkout_relative(self):
+    os.chdir(DIR)
+    self.__assert_checkout_fp_at_head(os.path.relpath(TRACKED_DIR_FP, DIR))
+    self.__assert_checkout_fp_at_head(
+        os.path.relpath(TRACKED_DIR_FP_WITH_SPACE, DIR))
+    os.chdir(DIR)
+    self.__assert_checkout_fp_at_head(
+        os.path.relpath(TRACKED_DIR_DIR_FP, DIR_DIR))
+    self.__assert_checkout_fp_at_head(
+        os.path.relpath(TRACKED_DIR_DIR_FP_WITH_SPACE, DIR_DIR))
+
+  def __assert_checkout_fp_at_head(self, fp):
+    contents = self._read_file(fp)
+    self._write_file(fp, contents='contents')
+    self.assertEqual(file_lib.SUCCESS, file_lib.checkout(fp)[0])
+    self.assertEqual(contents, self._read_file(fp))
+
+  def __assert_checkout_cp_other_than_head(self, fp):
+    self._write_file(fp, contents='contents')
+    self.assertEqual(file_lib.SUCCESS, file_lib.checkout(fp, 'HEAD^1')[0])
+    self.assertEqual(TRACKED_FP_CONTENTS_1, self._read_file(fp))
+
 
 class TestStatus(TestFile):
 
@@ -208,11 +443,16 @@ class TestStatus(TestFile):
     st_all = file_lib.status_all()
     seen = []
     for fp, type, exists_in_lr, exists_in_wd, modified, _, _ in st_all:
-      if fp == TRACKED_FP or fp == TRACKED_FP_WITH_SPACE:
+      if (fp == TRACKED_FP or fp == TRACKED_FP_WITH_SPACE or
+          fp == TRACKED_DIR_FP or fp == TRACKED_DIR_FP_WITH_SPACE or
+          fp == TRACKED_DIR_DIR_FP or fp == TRACKED_DIR_DIR_FP_WITH_SPACE):
         self.__assert_type(fp, file_lib.TRACKED, type)
         self.__assert_field(fp, 'exists_in_lr', True, exists_in_lr)
         self.__assert_field(fp, 'modified', False, modified)
-      elif fp == UNTRACKED_FP or fp == UNTRACKED_FP_WITH_SPACE:
+      elif (fp == UNTRACKED_FP or fp == UNTRACKED_FP_WITH_SPACE or
+            fp == UNTRACKED_DIR_FP or fp == UNTRACKED_DIR_FP_WITH_SPACE or
+            fp == UNTRACKED_DIR_DIR_FP or
+            fp == UNTRACKED_DIR_DIR_FP_WITH_SPACE):
         self.__assert_type(fp, file_lib.UNTRACKED, type)
         self.__assert_field(fp, 'exists_in_lr', False, exists_in_lr)
         self.__assert_field(fp, 'modified', True, modified)
@@ -313,6 +553,38 @@ class TestStatus(TestFile):
     os.remove(TRACKED_FP)
     self.assertEqual(file_lib.FILE_NOT_FOUND, file_lib.status(TRACKED_FP))
 
+  def test_status_all_relative(self):
+    rel_to_dir = lambda fp: os.path.relpath(fp, DIR)
+
+    os.chdir(DIR)
+
+    st_all = file_lib.status_all()
+    seen = []
+    for fp, type, exists_in_lr, exists_in_wd, modified, _, _ in st_all:
+      if (fp == rel_to_dir(TRACKED_DIR_FP) or
+          fp == rel_to_dir(TRACKED_DIR_FP_WITH_SPACE) or
+          fp == rel_to_dir(TRACKED_DIR_DIR_FP) or
+          fp == rel_to_dir(TRACKED_DIR_DIR_FP_WITH_SPACE)):
+        self.__assert_type(fp, file_lib.TRACKED, type)
+        self.__assert_field(fp, 'exists_in_lr', True, exists_in_lr)
+        self.__assert_field(fp, 'modified', False, modified)
+      elif (fp == rel_to_dir(UNTRACKED_DIR_FP) or
+            fp == rel_to_dir(UNTRACKED_DIR_FP_WITH_SPACE) or
+            fp == rel_to_dir(UNTRACKED_DIR_DIR_FP) or
+            fp == rel_to_dir(UNTRACKED_DIR_DIR_FP_WITH_SPACE)):
+        self.__assert_type(fp, file_lib.UNTRACKED, type)
+        self.__assert_field(fp, 'exists_in_lr', False, exists_in_lr)
+        self.__assert_field(fp, 'modified', True, modified)
+      else:
+        self.fail('Unexpected fp {}'.format(fp))
+      self.__assert_field(fp, 'exists_in_wd', True, exists_in_wd)
+      seen.append(fp)
+    self.assertItemsEqual(seen, [rel_to_dir(fp) for fp in ALL_DIR_FPS_IN_WD])
+
+  # TODO(sperezde): add the following tests:
+  #   - track then make ignore, file should still be there
+  #   - track then make ignore then untrack, file should be ignored?
+
   def __assert_type(self, fp, expected, got):
     self.assertEqual(
         expected, got,
@@ -327,6 +599,11 @@ class TestStatus(TestFile):
 
 
 class TestDiff(TestFile):
+
+  # TODO(sperezde): add DIR, DIR_DIR, relative tests to diff.
+
+  def test_diff_dir(self):
+    self.assertEqual(file_lib.FILE_IS_DIR, file_lib.diff(DIR)[0])
 
   @common.assert_no_side_effects(UNTRACKED_FP)
   def test_diff_untracked_fp(self):
@@ -343,7 +620,8 @@ class TestDiff(TestFile):
 
   @common.assert_no_side_effects(IGNORED_FP_WITH_SPACE)
   def test_diff_ignored_fp_with_space(self):
-    self.assertEqual(file_lib.FILE_IS_IGNORED, file_lib.diff(IGNORED_FP_WITH_SPACE)[0])
+    self.assertEqual(
+        file_lib.FILE_IS_IGNORED, file_lib.diff(IGNORED_FP_WITH_SPACE)[0])
 
   def test_diff_nonexistent_fp(self):
     self.assertEqual(file_lib.FILE_NOT_FOUND, file_lib.diff(NONEXISTENT_FP)[0])

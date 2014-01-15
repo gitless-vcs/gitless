@@ -2,6 +2,16 @@ Gitless's Release Notes
 =======================
 
 
+15th Jan 2014 - kendall.0.4.2
+-----------------------------
+
+* Performance improvements in status (updated to using gitpylib 0.4.2).
+* `gl history` is piped to less (updated to using gitpylib 0.4.2).
+* Output an error msg if the user provides a directory to file related ops.
+* Sort the files outputted by `gl status` so that it looks nicer.
+* Bug fixes.
+
+
 6th Dec 2013 - kendall.0.4.1
 ----------------------------
 
@@ -11,7 +21,7 @@ Gitless's Release Notes
 23rd Nov 2013 - kendall.0.4
 ---------------------------
 
-* Revamped gl diff.
+* Revamped `gl diff`.
 
 
 28th Oct 2013 - kendall.0.3
@@ -20,8 +30,8 @@ Gitless's Release Notes
 * General bug fixes.
 * UI improvements (made some messages more clear, consistent).
 * Allow the user to branch out from certain commit point.
-* Improvements in gl diff: now it outputs a message if the file is ignored or if
-  there are no diffs to show.
+* Improvements in `gl diff`: now it outputs a message if the file is ignored or
+  if there are no diffs to show.
 * pre-commit hooks now work fine.
 
 
@@ -35,18 +45,18 @@ Gitless's Release Notes
 ---------------------------
 
 * Support for files with spaces.
-* General improvements in the gl checkout command:
-    * Now the commit point is passed with the -cp flag (defaults to HEAD).
+* General improvements in the `gl checkout` command:
+    * Now the commit point is passed with the `-cp` flag (defaults to `HEAD`).
     * Fixed bug that made it impossible to checkout a file without specifying
       its full repo path.
     * Ask for confirmation by the user if there are uncommitted changes that
       could be overwritten by checkout.
-* General improvements in the gl diff command:
+* General improvements in the `gl diff` command:
     * Fixed bug that made it impossible to diff a deleted file.
     * Now if no arguments are given all tracked files with modifications are
       diffed.
-* Removed the gl rm command.
-* Now gl is the only command (in retrospect, having a "suite of commands" was
+* Removed the `gl rm` command.
+* Now `gl` is the only command (in retrospect, having a "suite of commands" was
   over-engineering, code is much simpler now).
 * Massive re-org of project.
 
@@ -57,8 +67,8 @@ Gitless's Release Notes
 * Minor improvements in output of commands.
 * Improvements in Makefile and added Python version checks.
 * Made case-sensitiveness consistent with FS.
-* Fixed bug that made it impossible to gl-track files under directories without
-  cd'ing first to that dir.
+* Fixed bug that made it impossible to `gl-track` files under directories
+  without cd'ing first to that dir.
 * Better support for evil branch names.
 * Before defaulting to using vim we now check to see if the user specified a
   value for Git's 'core.editor' config option or if the EDITOR env variable is
