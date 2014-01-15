@@ -38,8 +38,8 @@ class TestEndToEnd(unittest.TestCase):
       logging.debug('Err is \n{}'.format(err))
     if p.returncode != expected_ret_code:
       self.fail(
-          'Obtained ret code {} doesn\'t match the expected {}. Out of the'
-          'cmdd was:\n{}\nErr of the cmd was:\n{}\n, '.format(
+          'Obtained ret code {} doesn\'t match the expected {}.\nOut of the'
+          'cmd was:\n{}\nErr of the cmd was:\n{}\n'.format(
               p.returncode, expected_ret_code, out, err))
     return out, err
 
