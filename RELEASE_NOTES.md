@@ -2,6 +2,13 @@ Gitless's Release Notes
 =======================
 
 
+15th Jan 2014 - kendall.0.4.3
+-----------------------------
+
+* Fixed bug that occured when trying to commit after a conflicted rebase/merge.
+* Fixed bug that caused error msgs when a commit fails to be incorrect.
+
+
 15th Jan 2014 - kendall.0.4.2
 -----------------------------
 
