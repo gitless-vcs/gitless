@@ -60,6 +60,8 @@ class TestEndToEnd(unittest.TestCase):
     f.close()
     return ret
 
+  # TODO(sperezde): add dialog related tests.
+
   def test_e2e(self):
     self.__success('init')
     self.__write_file('file1', 'Contents of file1')

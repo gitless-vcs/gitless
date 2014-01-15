@@ -131,8 +131,8 @@ def _valid_input(only_files, exc_files, inc_files):
 
   ret = True
   err = []
-  only_files = [file_lib.status(fp) for fp in only_files]
-  for f in only_files:
+  for fp in only_files:
+    f = file_lib.status(fp)
     if f == file_lib.FILE_NOT_FOUND:
       err.append('File %s doesn\'t exist' % fp)
       ret = False
@@ -141,8 +141,8 @@ def _valid_input(only_files, exc_files, inc_files):
           'File %s is a tracked file but has no modifications' % fp)
       ret = False
 
-  exc_files = [file_lib.status(fp) for fp in exc_files]
-  for f in exc_files:
+  for fp in exc_files:
+    f = file_lib.status(fp)
     # We check that the files to be excluded are existing tracked files.
     if f == file_lib.FILE_NOT_FOUND:
       err.append('File %s doesn\'t exist' % fp)
@@ -161,8 +161,8 @@ def _valid_input(only_files, exc_files, inc_files):
       err.append('You can\'t exclude a file that has been resolved')
       ret = False
 
-  inc_files = [file_lib.status(fp) for fp in inc_files]
-  for f in inc_files:
+  for fp in inc_files:
+    f = file_lib.status(fp)
     # We check that the files to be included are existing untracked files.
     if f == file_lib.FILE_NOT_FOUND:
       err.append('File %s doesn\'t exist' % fp)
@@ -210,7 +210,7 @@ def _compute_fs(only_files, exc_files, inc_files):
 
 def _auto_track(files):
   """Tracks those untracked files in the list."""
-  files = [file_lib.status(fp) for fp in files]
-  for f in files:
+  for fp in files:
+    f = file_lib.status(fp)
     if f.type == file_lib.UNTRACKED:
       file_lib.track(f.fp)

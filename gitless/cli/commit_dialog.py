@@ -61,7 +61,7 @@ def _show(files):
   pprint.sep(p=cf.write)
   cf.close()
   _launch_editor()
-  return _extract_info()
+  return _extract_info(5)
 
 
 def _show_merge(files):
@@ -79,8 +79,11 @@ def _show_merge(files):
   pprint.sep(p=cf.write)
   pprint.msg(
       'Please enter the commit message for your changes above. Lines starting '
-      'with \'#\' will be ignored, and an empty message aborts the commit.',
+      'with', p=cf.write)
+  pprint.msg(
+      '\'#\' will be ignored, and an empty message aborts the commit.',
       p=cf.write)
+  pprint.blank(p=cf.write)
   pprint.msg(
       'These are the files that will be commited as part of the merge:',
       p=cf.write)
@@ -92,7 +95,7 @@ def _show_merge(files):
   pprint.sep(p=cf.write)
   cf.close()
   _launch_editor()
-  return _extract_info()
+  return _extract_info(5)
 
 
 def _show_rebase(files):
@@ -110,6 +113,7 @@ def _show_rebase(files):
   pprint.sep(p=cf.write)
   pprint.msg(
       'The commit will have the original commit message.', p=cf.write)
+  pprint.blank(p=cf.write)
   pprint.msg(
       'These are the files that will be commited as part of the rebase:',
       p=cf.write)
@@ -121,7 +125,7 @@ def _show_rebase(files):
   pprint.sep(p=cf.write)
   cf.close()
   _launch_editor()
-  return _extract_info()
+  return _extract_info(4)
 
 
 def _launch_editor():
@@ -130,8 +134,12 @@ def _launch_editor():
     raise Exception('Call to editor %s failed' % editor)
 
 
-def _extract_info():
+def _extract_info(exp_lines):
   """Extracts the commit msg and files to commit from the commit file.
+
+  Args:
+    exp_lines: the amount of lines between the separator and when the actual
+    file list begins.
 
   Returns:
     A tuple (msg, files) where msg is the commit msg and files are the files to
@@ -146,11 +154,8 @@ def _extract_info():
     l = cf.readline()
   # We reached the separator, this marks the end of the commit msg.
   # We exhaust the following lines so that we get to the file list.
-  cf.readline()
-  cf.readline()
-  cf.readline()
-  cf.readline()
-  cf.readline()
+  for i in range(0, exp_lines):
+    cf.readline()
 
   files = []
   l = cf.readline()
