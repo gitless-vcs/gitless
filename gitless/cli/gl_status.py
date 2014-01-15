@@ -42,9 +42,11 @@ def main(unused_args):
     elif f.type == file_lib.UNTRACKED:
       untracked_list.append(f)
   pprint.blank()
+  tracked_mod_list.sort(key=lambda f: f.fp)
   _print_tracked_mod_files(tracked_mod_list)
   pprint.blank()
   pprint.blank()
+  untracked_list.sort(key=lambda f: f.fp)
   _print_untracked_files(untracked_list)
   return True
 
