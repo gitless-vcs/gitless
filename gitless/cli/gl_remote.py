@@ -46,8 +46,8 @@ def _do_add(args):
     pprint.err_exp(
         'to get information about %s do gl remote show %s' % (rn, rn))
     pprint.err_exp(
-        'if you want to change the url for remote %s do gl rm %s, and then gl '
-        'add %s new_url' % (rn, rn, rn))
+        'if you want to change the url for remote %s do gl remote rm %s, and '
+        'then gl remote add %s new_url' % (rn, rn, rn))
     success = False
   elif ret is remote_lib.SUCCESS:
     pprint.msg('Remote added successfully')
