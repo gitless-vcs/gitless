@@ -41,22 +41,25 @@ def main(args):
   for fp in files:
     ret, (out, padding) = file_lib.diff(fp)
 
-    if ret is file_lib.FILE_NOT_FOUND:
+    if ret == file_lib.FILE_NOT_FOUND:
       pprint.err('Can\'t diff a non-existent file: {}'.format(fp))
       success = False
-    elif ret is file_lib.FILE_IS_UNTRACKED:
+    elif ret == file_lib.FILE_IS_UNTRACKED:
       pprint.err(
           'You tried to diff untracked file {}. It\'s probably a mistake. If '
           'you really care about changes in this file you should start '
           'tracking changes to it with gl track {}'.format(fp, fp))
       success = False
-    elif ret is file_lib.FILE_IS_IGNORED:
+    elif ret == file_lib.FILE_IS_IGNORED:
       pprint.err(
           'You tried to diff ignored file {}. It\'s probably a mistake. If '
           'you really care about changes in this file you should stop ignoring '
           'it by editing the .gigignore file'.format(fp))
       success = False
-    elif ret is file_lib.SUCCESS:
+    elif ret == file_lib.FILE_IS_DIR:
+      pprint.dir_err_exp(fp, 'diff')
+      success = False
+    elif ret == file_lib.SUCCESS:
       if not out:
         pprint.msg(
             'The working version of file {} is the same as its last '
