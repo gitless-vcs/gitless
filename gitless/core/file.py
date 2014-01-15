@@ -245,7 +245,9 @@ def resolve(fp):
   if f_st.resolved:
     return FILE_ALREADY_RESOLVED
 
-  # In Git, to mark a file as resolved we have to add it.
+  # We don't use Git to keep track of resolved files, but just to make it feel
+  # like doing a resolve in Gitless is similar to doing a resolve in Git
+  # (i.e., add) we stage the file.
   git_file.stage(fp)
   # We add a file in the Gitless directory to be able to tell when a file has
   # been marked as resolved.
@@ -287,7 +289,17 @@ def _build_f_st(s, fp):
   elif s == git_status.TRACKED_MODIFIED:
     ret = FileStatus(fp, TRACKED, True, True, True, False, False)
   elif s == git_status.STAGED:
-    # Staged file don't exist in the lr for Gitless.
+    # A file could have been "gl track"ed and later ignored by adding a matching
+    # pattern in a .gitignore file. We consider this kind of file to still be a
+    # tracked file. This is consistent with the idea that tracked files can't
+    # be ignored.
+    # TODO(sperezde): address the following rough edge: the user could untrack
+    # a tracked file (one that was not committed before) and if it's matched by
+    # a .gitignore file it will be ignored. The same thing won't happen if an
+    # already committed file is untracked (due to how Gitless keeps track of
+    # these kind of files).
+
+    # Staged files don't exist in the lr for Gitless.
     ret = FileStatus(fp, TRACKED, False, True, True, False, False)
   elif s == git_status.ASSUME_UNCHANGED:
     # TODO(sperezde): detect whether it is modified or not?
@@ -296,7 +308,7 @@ def _build_f_st(s, fp):
     ret = FileStatus(fp, TRACKED, True, False, True, False, False)
   elif s == git_status.DELETED_STAGED:
     # This can only happen if the user did a rm of a new file. The file doesn't
-    # exist anymore for Gitless.
+    # exist as far as Gitless is concerned.
     git_file.unstage(fp)
     ret = None
   elif s == git_status.DELETED_ASSUME_UNCHANGED:
@@ -304,7 +316,7 @@ def _build_f_st(s, fp):
   elif s == git_status.IN_CONFLICT:
     wr = _was_resolved(fp)
     ret = FileStatus(fp, TRACKED, True, True, True, not wr, wr)
-  elif s == git_status.IGNORED or s == git_status.IGNORED_STAGED:
+  elif s == git_status.IGNORED:
     ret = FileStatus(fp, IGNORED, False, True, True, True, False)
   elif s == git_status.MODIFIED_MODIFIED:
     # The file was marked as resolved and then modified. To Gitless, this is
