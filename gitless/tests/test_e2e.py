@@ -11,6 +11,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import time
 import unittest
 
 
@@ -18,6 +19,7 @@ class TestEndToEnd(unittest.TestCase):
 
   def setUp(self):
     # Create temporary dir and cd to it.
+    # TODO(sperezde): get the logging level via flags.
     logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
     self.path = tempfile.mkdtemp(prefix='gl-e2e-test')
     logging.debug('Created temporary directory %s', self.path)
@@ -28,10 +30,16 @@ class TestEndToEnd(unittest.TestCase):
     logging.debug('Removed dir %s', self.path)
 
   def __gl_call(self, cmd, expected_ret_code=0):
-    logging.debug('Calling gl {}'.format(cmd))
+    return self.__call('gl', cmd, expected_ret_code=expected_ret_code)
+
+  def __git_call(self, cmd, expected_ret_code=0):
+    return self.__call('git', cmd, expected_ret_code=expected_ret_code)
+
+  def __call(self, cmd, subcmd, expected_ret_code=0):
+    logging.debug('Calling {} {}'.format(cmd, subcmd))
     p = subprocess.Popen(
-        'gl {}'.format(cmd), stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-        shell=True)
+        '{} {}'.format(cmd, subcmd), stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE, shell=True)
     out, err = p.communicate()
     logging.debug('Out is \n{}'.format(out))
     if err:
@@ -62,7 +70,7 @@ class TestEndToEnd(unittest.TestCase):
 
   # TODO(sperezde): add dialog related tests.
 
-  def test_e2e(self):
+  def test_basic_functionality(self):
     self.__success('init')
     self.__write_file('file1', 'Contents of file1')
     # Track.
@@ -128,6 +136,45 @@ class TestEndToEnd(unittest.TestCase):
     self.__failure('commit -m"shouldn\'t work"')  # resolve not called.
     self.__success('resolve file1')
     self.__success('commit -m"fixed conflicts"')
+
+  # TODO(sperezde): add more performance tests to check that we're not dropping
+  # the ball: We should try to keep Gitless's performance reasonably close to
+  # Git's.
+
+  def test_status_performance(self):
+    """Assert that gl status is not too slow."""
+    # The test fails if gl status takes more than 100 times
+    # the time git status took.
+    MAX_TOLERANCE = 100
+
+    def assert_status_performance():
+      t = time.time()
+      self.__gl_call('status')
+      gl_t = time.time() - t
+
+      t = time.time()
+      self.__git_call('status')
+      git_t = time.time() - t
+
+      self.assertTrue(
+          gl_t < git_t*MAX_TOLERANCE,
+          msg='gl_t {}, git_t {}'.format(gl_t, git_t))
+
+    FPS_QTY = 10000  # how many files in the test repo.
+
+    for i in range(0, FPS_QTY):
+      fp = 'f' + str(i)
+      self.__write_file(fp, fp)
+
+    self.__gl_call('init')
+
+    # All files are untracked.
+    assert_status_performance()
+    # Track all files, repeat.
+    logging.info('Doing a massive git add, this might take a while')
+    self.__git_call('add .')
+    logging.info('Done')
+    assert_status_performance()
 
 
 if __name__ == '__main__':
