@@ -701,5 +701,58 @@ class TestDiff(TestFile):
     self.assertEqual(2, out[2].new_line_number)
 
 
+FP_IN_CONFLICT = 'f_conflict'
+DIR_FP_IN_CONFLICT = os.path.join(DIR, FP_IN_CONFLICT)
+
+
+class TestResolveFile(TestFile):
+
+  def setUp(self):
+    super(TestResolveFile, self).setUp()
+
+    # Generate a conflict.
+    self._git_call('checkout -b branch')
+    self._write_file(FP_IN_CONFLICT, contents='branch')
+    self._write_file(DIR_FP_IN_CONFLICT, contents='branch')
+    self._git_call('add "{}" "{}"'.format(FP_IN_CONFLICT, DIR_FP_IN_CONFLICT))
+    self._git_call(
+        'commit -m"branch" "{}" "{}"'.format(
+            FP_IN_CONFLICT, DIR_FP_IN_CONFLICT))
+    self._git_call('checkout master')
+    self._write_file(FP_IN_CONFLICT, contents='master')
+    self._write_file(DIR_FP_IN_CONFLICT, contents='master')
+    self._git_call('add "{}" "{}"'.format(FP_IN_CONFLICT, DIR_FP_IN_CONFLICT))
+    self._git_call(
+        'commit -m"master" "{}" "{}"'.format(
+            FP_IN_CONFLICT, DIR_FP_IN_CONFLICT))
+    self._git_call('merge branch', expected_ret_code=1)
+
+  def test_resolve_dir(self):
+    self.assertEqual(file_lib.FILE_IS_DIR, file_lib.resolve(DIR))
+
+  @common.assert_no_side_effects(TRACKED_FP)
+  def test_resolve_fp_with_no_conflicts(self):
+    self.assertEqual(
+        file_lib.FILE_NOT_IN_CONFLICT, file_lib.resolve(TRACKED_FP))
+
+  def test_resolve_fp_with_conflicts(self):
+    self.__assert_resolve_fp(FP_IN_CONFLICT)
+
+  def test_resolve_dir_fp_with_conflicts(self):
+    self.__assert_resolve_fp(DIR_FP_IN_CONFLICT)
+
+  def test_resolve_relative(self):
+    self.__assert_resolve_fp(DIR_FP_IN_CONFLICT)
+    os.chdir(DIR)
+    rel_fp = os.path.relpath(DIR_FP_IN_CONFLICT, DIR)
+    self.assertTrue(file_lib.status(rel_fp).resolved)
+    self.assertEqual(file_lib.FILE_ALREADY_RESOLVED, file_lib.resolve(rel_fp))
+
+  @common.assert_contents_unchanged(FP_IN_CONFLICT)
+  def __assert_resolve_fp(self, fp):
+    self.assertEqual(file_lib.SUCCESS, file_lib.resolve(fp))
+    self.assertTrue(file_lib.status(fp).resolved)
+
+
 if __name__ == '__main__':
   unittest.main()

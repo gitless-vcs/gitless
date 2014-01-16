@@ -2,6 +2,13 @@ Gitless's Release Notes
 =======================
 
 
+16th Jan 2014 - kendall.0.4.4
+-----------------------------
+
+* More performance improvements in status.
+* Bug fixes in `gl resolve`.
+
+
 15th Jan 2014 - kendall.0.4.3
 -----------------------------
 

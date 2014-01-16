@@ -225,6 +225,8 @@ def commit(files, msg, skip_checks=False):
         conclude_rebase()
         return (SUCCESS, s[1])
       elif s[0] == CONFLICT:
+        # TODO(sperezde): the next apply could actually result in another
+        # conflict.
         return (SUCCESS, s[1])
       else:
         raise Exception('Unrecognized ret code %s' % s[0])

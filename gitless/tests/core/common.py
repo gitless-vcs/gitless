@@ -50,20 +50,25 @@ class TestCore(unittest.TestCase):
     f.close()
     return ret
 
-  def _git_call(self, subcmd):
+  def _git_call(self, subcmd, expected_ret_code=0):
     """Issues a git call with the given subcmd.
 
     Args:
       subcmd: e.g., 'add f1'.
+
+    Returns:
+      a tuple (out, err).
     """
     logging.debug('Calling git {}'.format(subcmd))
     p = subprocess.Popen(
         'git {}'.format(subcmd), stdout=subprocess.PIPE,
         stderr=subprocess.PIPE, shell=True)
     out, err = p.communicate()
-    if p.returncode != 0:
-      raise Exception('Git call {} failed \nout:{} \nerr:{}'.format(
-          subcmd, out, err))
+    if p.returncode != expected_ret_code:
+      raise Exception(
+          'Git call {} failed (got ret code {})\nout:{} \nerr:{}'.format(
+              subcmd, p.returncode, out, err))
+    return out, err
 
 
 def assert_contents_unchanged(fp):

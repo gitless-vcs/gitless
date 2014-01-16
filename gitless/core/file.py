@@ -8,6 +8,7 @@
 import collections
 import os
 
+from gitpylib import common as git_common
 from gitpylib import file as git_file
 from gitpylib import status as git_status
 
@@ -209,8 +210,13 @@ def status(fp):
   return _status(fp)[0]
 
 
-def status_all():
+def status_all(include_tracked_unmodified_fps=True):
   """Gets the status of all files relative to the cwd.
+
+  Args:
+    include_tracked_unmodified_fps: if True, files that are tracked but
+      unmodified will be also reported. Setting it to False improves performance
+      significantly if the repo is big. (Defaults to True.)
 
   Returns:
     a list of named tuples (fp, type, exists_in_lr, exists_in_wd, modified,
@@ -220,12 +226,11 @@ def status_all():
     committed version. (If there's no committed version, modified is set to
     True.)
   """
-  ret = []
-  for (s, fp) in git_status.of_repo():
+  for (s, fp) in git_status.of_repo(
+      include_tracked_unmodified_fps=include_tracked_unmodified_fps):
     f_st = _build_f_st(s, fp)
     if f_st:
-      ret.append(f_st)
-  return ret
+      yield f_st
 
 
 def resolve(fp):
@@ -237,13 +242,15 @@ def resolve(fp):
   Returns:
     FILE_NOT_FOUND, FILE_NOT_IN_CONFLICT, FILE_ALREADY_RESOLVED or SUCCESS.
   """
+  if os.path.isdir(fp):
+    return FILE_IS_DIR
   f_st = status(fp)
   if f_st == FILE_NOT_FOUND:
     return FILE_NOT_FOUND
-  if not f_st.in_conflict:
-    return FILE_NOT_IN_CONFLICT
   if f_st.resolved:
     return FILE_ALREADY_RESOLVED
+  if not f_st.in_conflict:
+    return FILE_NOT_IN_CONFLICT
 
   # We don't use Git to keep track of resolved files, but just to make it feel
   # like doing a resolve in Gitless is similar to doing a resolve in Git
@@ -277,14 +284,21 @@ def _status(fp):
   return (gls, s)
 
 
+# This namedtuple is only used in _build_f_st, but putting it as a module var
+# instead of inside the function significantly improves performance (makes a
+# difference when the repo is big).
+FileStatus = collections.namedtuple(
+    'FileStatus', [
+        'fp', 'type', 'exists_in_lr', 'exists_in_wd', 'modified',
+        'in_conflict', 'resolved'])
+
+
 def _build_f_st(s, fp):
-  FileStatus = collections.namedtuple(
-      'FileStatus', [
-          'fp', 'type', 'exists_in_lr', 'exists_in_wd', 'modified',
-          'in_conflict', 'resolved'])
   # TODO(sperezde): refactor this.
-  ret = FileStatus(fp, UNTRACKED, False, True, True, False, False)
-  if s == git_status.TRACKED_UNMODIFIED:
+  ret = None
+  if s == git_status.UNTRACKED:
+    ret = FileStatus(fp, UNTRACKED, False, True, True, False, False)
+  elif s == git_status.TRACKED_UNMODIFIED:
     ret = FileStatus(fp, TRACKED, True, True, False, False, False)
   elif s == git_status.TRACKED_MODIFIED:
     ret = FileStatus(fp, TRACKED, True, True, True, False, False)
@@ -326,6 +340,8 @@ def _build_f_st(s, fp):
     # The file is a new file that was added and then modified. This can only
     # happen if the user gl tracks a file and then modifies it.
     ret = FileStatus(fp, TRACKED, False, True, True, False, False)
+  else:
+    raise Exception('Unrecognized status {}'.format(s))
   return ret
 
 
@@ -335,5 +351,7 @@ def _was_resolved(fp):
 
 
 def _resolved_file(fp):
+  fp = os.path.relpath(os.path.abspath(fp), git_common.repo_dir())
+  fp = fp.replace(os.path.sep, '-')  # this hack will do the trick for now.
   return os.path.join(
-      repo_lib.gl_dir(), 'GL_RESOLVED_%s_%s' % (branch_lib.current(), fp))
+      repo_lib.gl_dir(), 'GL_RESOLVED_{}_{}'.format(branch_lib.current(), fp))

@@ -36,7 +36,7 @@ def main(unused_args):
 
   tracked_mod_list = []
   untracked_list = []
-  for f in file_lib.status_all():
+  for f in file_lib.status_all(include_tracked_unmodified_fps=False):
     if f.type == file_lib.TRACKED and f.modified:
       tracked_mod_list.append(f)
     elif f.type == file_lib.UNTRACKED:
