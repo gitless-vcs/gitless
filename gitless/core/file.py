@@ -8,6 +8,7 @@
 import collections
 import os
 
+from gitpylib import common as git_common
 from gitpylib import file as git_file
 from gitpylib import status as git_status
 
@@ -241,13 +242,15 @@ def resolve(fp):
   Returns:
     FILE_NOT_FOUND, FILE_NOT_IN_CONFLICT, FILE_ALREADY_RESOLVED or SUCCESS.
   """
+  if os.path.isdir(fp):
+    return FILE_IS_DIR
   f_st = status(fp)
   if f_st == FILE_NOT_FOUND:
     return FILE_NOT_FOUND
-  if not f_st.in_conflict:
-    return FILE_NOT_IN_CONFLICT
   if f_st.resolved:
     return FILE_ALREADY_RESOLVED
+  if not f_st.in_conflict:
+    return FILE_NOT_IN_CONFLICT
 
   # We don't use Git to keep track of resolved files, but just to make it feel
   # like doing a resolve in Gitless is similar to doing a resolve in Git
@@ -348,5 +351,7 @@ def _was_resolved(fp):
 
 
 def _resolved_file(fp):
+  fp = os.path.relpath(os.path.abspath(fp), git_common.repo_dir())
+  fp = fp.replace(os.path.sep, '-')  # this hack will do the trick for now.
   return os.path.join(
-      repo_lib.gl_dir(), 'GL_RESOLVED_%s_%s' % (branch_lib.current(), fp))
+      repo_lib.gl_dir(), 'GL_RESOLVED_{}_{}'.format(branch_lib.current(), fp))
