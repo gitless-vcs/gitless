@@ -124,11 +124,9 @@ class TestTrackFile(TestFile):
   def test_track_untracked_dir_dir_fp_with_space(self):
     self.__assert_track_fp(UNTRACKED_DIR_DIR_FP_WITH_SPACE)
 
-  # TODO(sperezde): change the decorator so that it accepts varargs.
-  @common.assert_contents_unchanged(UNTRACKED_DIR_FP)
-  @common.assert_contents_unchanged(UNTRACKED_DIR_FP_WITH_SPACE)
-  @common.assert_contents_unchanged(UNTRACKED_DIR_DIR_FP)
-  @common.assert_contents_unchanged(UNTRACKED_DIR_DIR_FP_WITH_SPACE)
+  @common.assert_contents_unchanged(
+      UNTRACKED_DIR_FP, UNTRACKED_DIR_FP_WITH_SPACE, UNTRACKED_DIR_DIR_FP,
+      UNTRACKED_DIR_DIR_FP_WITH_SPACE)
   def test_track_untracked_relative(self):
     os.chdir(DIR)
     self.__assert_track_fp(os.path.relpath(UNTRACKED_DIR_FP, DIR))
@@ -182,11 +180,9 @@ class TestTrackFile(TestFile):
         file_lib.FILE_ALREADY_TRACKED,
         file_lib.track(TRACKED_DIR_DIR_FP_WITH_SPACE))
 
-  # TODO(sperezde): change the decorator so that it accepts varargs.
-  @common.assert_contents_unchanged(TRACKED_DIR_FP)
-  @common.assert_contents_unchanged(TRACKED_DIR_FP_WITH_SPACE)
-  @common.assert_contents_unchanged(TRACKED_DIR_DIR_FP)
-  @common.assert_contents_unchanged(TRACKED_DIR_DIR_FP_WITH_SPACE)
+  @common.assert_contents_unchanged(
+      TRACKED_DIR_FP, TRACKED_DIR_FP_WITH_SPACE, TRACKED_DIR_DIR_FP,
+      TRACKED_DIR_DIR_FP_WITH_SPACE)
   def test_track_tracked_relative(self):
     os.chdir(DIR)
     self.assertEqual(

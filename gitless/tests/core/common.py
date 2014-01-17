@@ -71,7 +71,7 @@ class TestCore(unittest.TestCase):
     return out, err
 
 
-def assert_contents_unchanged(fp):
+def assert_contents_unchanged(*fps):
   """Decorator that fails the test if the contents of the file fp changed.
 
   The method decorated should be a unit test.
@@ -83,27 +83,13 @@ def assert_contents_unchanged(fp):
       # assert something here.
 
   Args:
-    fp: the filepath to assert.
+    fps: the filepath(s) to assert.
   """
-  def decorator(f):
-    def wrapper(*args, **kwargs):
-      self = args[0]
-      # We save up the cwd to chdir to it after the test has run so that the
-      # reading of the file still works even if the test changed the cwd.
-      cwd_before = os.getcwd()
-      contents = self._read_file(fp)
-      f(*args, **kwargs)
-      os.chdir(cwd_before)
-      contents_prime = self._read_file(fp)
-      self.assertEqual(
-          contents, contents_prime,
-          'Contents of file changed: from {} to {}'.format(
-              contents, contents_prime))
-    return wrapper
-  return decorator
+  return __assert_decorator(
+      'Contents', lambda self, fp: self._read_file(fp), *fps)
 
 
-def assert_status_unchanged(fp):
+def assert_status_unchanged(*fps):
   """Decorator that fails the test if the status of fp changed.
 
   The method decorated should be a unit test.
@@ -115,22 +101,13 @@ def assert_status_unchanged(fp):
       # assert something here.
 
   Args:
-    fp: the filepath to assert.
+    fps: the filepath(s) to assert.
   """
-  def decorator(f):
-    def wrapper(*args, **kwargs):
-      self = args[0]
-      s = file_lib.status(fp)
-      f(*args, **kwargs)
-      s_prime = file_lib.status(fp)
-      self.assertEqual(
-          s, s_prime,
-          'Status of file changed: from {} to {}'.format(s, s_prime))
-    return wrapper
-  return decorator
+  return __assert_decorator(
+      'Status', lambda unused_self, fp: file_lib.status(fp), *fps)
 
 
-def assert_no_side_effects(fp):
+def assert_no_side_effects(*fps):
   """Decorator that fails the test if the contents or status of fp changed.
 
   The method decorated should be a unit test.
@@ -149,12 +126,35 @@ def assert_no_side_effects(fp):
       # assert something here.
 
   Args:
-    fp: the filepath to assert.
+    fps: the filepath(s) to assert.
   """
   def decorator(f):
-    @assert_contents_unchanged(fp)
-    @assert_status_unchanged(fp)
+    @assert_contents_unchanged(*fps)
+    @assert_status_unchanged(*fps)
     def wrapper(*args, **kwargs):
       f(*args, **kwargs)
+    return wrapper
+  return decorator
+
+
+# Private functions.
+
+
+def __assert_decorator(msg, prop, *fps):
+  def decorator(f):
+    def wrapper(*args, **kwargs):
+      self = args[0]
+      # We save up the cwd to chdir to it after the test has run so that the
+      # the given fps still "work" even if the test changed the cwd.
+      cwd_before = os.getcwd()
+      before_list = [prop(self, fp) for fp in fps]
+      f(*args, **kwargs)
+      os.chdir(cwd_before)
+      after_list = [prop(self, fp) for fp in fps]
+      for fp, before, after in zip(fps, before_list, after_list):
+        self.assertEqual(
+            before, after,
+            '{} of file "{}" changed: from "{}" to "{}"'.format(
+                msg, fp, before, after))
     return wrapper
   return decorator
