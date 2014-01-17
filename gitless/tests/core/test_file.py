@@ -577,9 +577,25 @@ class TestStatus(TestFile):
       seen.append(fp)
     self.assertItemsEqual(seen, [rel_to_dir(fp) for fp in ALL_DIR_FPS_IN_WD])
 
-  # TODO(sperezde): add the following tests:
-  #   - track then make ignore, file should still be there
-  #   - track then make ignore then untrack, file should be ignored?
+  def test_status_ignore_tracked(self):
+    """Assert that ignoring a tracked file has no effect."""
+    self._append_to_file('.gitignore', contents='\n' + TRACKED_FP + '\n')
+    self.__assert_type(
+        TRACKED_FP, file_lib.TRACKED, file_lib.status(TRACKED_FP).type)
+
+  def test_status_ignore_untracked(self):
+    """Assert that ignoring a untracked file makes it ignored."""
+    self._append_to_file('.gitignore', contents='\n' + UNTRACKED_FP + '\n')
+    self.__assert_type(
+        UNTRACKED_FP, file_lib.IGNORED, file_lib.status(UNTRACKED_FP).type)
+
+  # TODO(sperezde): this test exposes a rough edge that we haven't fixed yet.
+  # Uncomment the test once it's fixed.
+  #def test_status_ignore_untracked_tracked(self):
+  #  file_lib.untrack(TRACKED_FP)
+  #  self._append_to_file('.gitignore', contents='\n' + TRACKED_FP + '\n')
+  #  self.__assert_type(
+  #      TRACKED_FP, file_lib.IGNORED, file_lib.status(TRACKED_FP).type)
 
   def __assert_type(self, fp, expected, got):
     self.assertEqual(
