@@ -8,7 +8,7 @@
 from gitpylib import remote as git_remote
 
 
-# Ret codes of methods.
+# Ret codes of functions.
 SUCCESS = 1
 REMOTE_NOT_FOUND = 2
 REMOTE_ALREADY_SET = 3
@@ -17,29 +17,24 @@ REMOTE_UNREACHABLE = 5
 
 
 def add(remote_name, remote_url):
-  """Add a remote for the current Gitless repo.
+  """Add a remote.
 
   Args:
     remote_name: the name of the remote.
     remote_url: the url of the remote
 
   Returns:
-    a pair (status, out) where status is one of REMOTE_ALREADY_SET,
-    REMOTE_UNREACHABLE or SUCCESS and out has additional information about the
-    remote if status=SUCCESS.
+    REMOTE_ALREADY_SET, REMOTE_UNREACHABLE or SUCCESS.
   """
-  if is_set(remote_name):
-    return (REMOTE_ALREADY_SET, None)
-  git_remote.add(remote_name, remote_url)
-  ret, out = info(remote_name)
-  if ret == REMOTE_UNREACHABLE:
-    git_remote.rm(remote_name)
-    return (REMOTE_UNREACHABLE, None)
-  return (SUCCESS, out)
-
-
-def is_set(remote_name):
-  return remote_name in git_remote.list()
+  if __is_set(remote_name):
+    return REMOTE_ALREADY_SET
+  s = git_remote.add(remote_name, remote_url)
+  if s == git_remote.REMOTE_UNREACHABLE:
+    return REMOTE_UNREACHABLE
+  elif s == git_remote.SUCCESS:
+    return SUCCESS
+  else:
+    raise Exception('Unrecognized ret code {}'.format(s))
 
 
 def info(remote_name):
@@ -52,12 +47,19 @@ def info(remote_name):
     return (SUCCESS, info)
 
 
-def list():
-  return git_remote.list()
+def info_all():
+  return git_remote.show_all()
 
 
 def rm(remote_name):
-  if not is_set(remote_name):
+  if not __is_set(remote_name):
     return REMOTE_NOT_FOUND
   git_remote.rm(remote_name)
   return SUCCESS
+
+
+# Private functions.
+
+
+def __is_set(remote_name):
+  return remote_name in git_remote.show_all()

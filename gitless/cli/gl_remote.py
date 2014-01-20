@@ -38,7 +38,7 @@ def parser(subparsers):
 def _do_add(args):
   rn = args.remote_name
   ru = args.remote_url
-  ret, info = remote_lib.add(rn, ru)
+  ret = remote_lib.add(rn, ru)
   success = True
 
   if ret is remote_lib.REMOTE_ALREADY_SET:
@@ -49,16 +49,17 @@ def _do_add(args):
         'if you want to change the url for remote %s do gl remote rm %s, and '
         'then gl remote add %s new_url' % (rn, rn, rn))
     success = False
+  elif ret == remote_lib.REMOTE_UNREACHABLE:
+    pprint.err('Couldn\'t reach {} to create {}'.format(ru, rn))
+    pprint.err_exp('make sure that you are connected to the internet')
+    pprint.err_exp(
+        'make sure that you have permissions to access the remote')
+    success = False
   elif ret is remote_lib.SUCCESS:
     pprint.msg('Remote added successfully')
     pprint.exp(
         'to get information about %s do gl remote show %s' % (rn, rn))
     pprint.exp('to remove %s do gl remote rm %s' % (rn, rn))
-    # TODO(sperezde): Print the info was we parse it.
-    #pprint.blank()
-    #pprint.msg('Info about remote:')
-    #pprint.blank()
-    #pprint.item(info)
   else:
     raise Exception('Unrecognized ret code %s' % ret)
 
@@ -93,12 +94,12 @@ def _do_show(args):
     pprint.exp(
         'to get more information about a particular remote do gl remote show '
         'remote_name')
-    remotes = remote_lib.list()
+    remotes = remote_lib.info_all()
     pprint.blank()
     if not remotes:
       pprint.item('There are no remotes to list')
     else:
-      for rn in remote_lib.list():
+      for rn in remotes:
         pprint.item(rn)
 
   return success
