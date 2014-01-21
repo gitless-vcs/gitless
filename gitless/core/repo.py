@@ -7,9 +7,12 @@
 
 import os
 
+import branch
+
 from gitpylib import common as git_common
 from gitpylib import config as git_config
 from gitpylib import repo as git_repo
+from gitpylib import remote as git_remote
 
 
 # Ret codes of methods.
@@ -40,6 +43,15 @@ def init_from(remote_repo):
   if gl_dir():
     return NOTHING_TO_INIT
   git_repo.clone(remote_repo)
+  # We get all remote branches as well and create local equivalents.
+  for remote_branch in git_remote.branches('origin'):
+    if remote_branch == 'master':
+      continue
+    s = branch.create(remote_branch, 'origin/{}'.format(remote_branch))
+    if s != SUCCESS:
+      raise Exception(
+          'Unexpected status code {} when creating local branch {}'.format(
+              s, remote_branch))
   return SUCCESS
 
 
