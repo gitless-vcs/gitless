@@ -43,7 +43,9 @@ def main(args):
     pprint.err('Nothing to init, this directory is already a Gitless\'s repo')
     return False
   elif ret is repo_lib.SUCCESS:
-    pprint.msg('Local repo created in {}'.format(os.getcwd()))
+    pprint.msg('Local repo created in \'{}\''.format(os.getcwd()))
+    if args.repo:
+      pprint.msg('Initialized from remote \'{}\''.format(args.repo))
     return True
   else:
     raise Exception('Unexpected return code %s' % ret)
