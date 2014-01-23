@@ -18,6 +18,7 @@ from gitpylib import remote as git_remote
 # Ret codes of methods.
 SUCCESS = 1
 NOTHING_TO_INIT = 2
+REPO_UNREACHABLE = 3
 
 
 def cwd():
@@ -42,7 +43,8 @@ def init_from(remote_repo):
   """Clones the remote_repo into the cwd."""
   if gl_dir():
     return NOTHING_TO_INIT
-  git_repo.clone(remote_repo)
+  if not git_repo.clone(remote_repo):
+    return REPO_UNREACHABLE
   # We get all remote branches as well and create local equivalents.
   for remote_branch in git_remote.branches('origin'):
     if remote_branch == 'master':

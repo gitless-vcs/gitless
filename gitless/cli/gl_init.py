@@ -25,16 +25,17 @@ def parser(subparsers):
 
 
 def main(args):
-  if args.repo:
-    ret = repo_lib.init_from(args.repo)
-  else:
-    ret = repo_lib.init_dir()
+  ret = repo_lib.init_from(args.repo) if args.repo else repo_lib.init_dir()
 
-  #if ret is repo_lib.REPO_UNREACHABLE:
-  #  pprint.err('Couldn\'t reach repository %s' % args.repo)
-  #  pprint.err_exp('make sure you are connected to the internet')
-  #  pprint.err_exp('make sure you have the necessary permissions')
-  #  return cmd.ERRORS_FOUND
+  if ret == repo_lib.REPO_UNREACHABLE:
+    pprint.err(
+        'Couldn\'t reach remote repository \'{}\' to init from'.format(
+            args.repo))
+    pprint.err_exp('make sure you are connected to the internet')
+    pprint.err_exp(
+        'make sure you have the necessary permissions to access {}'.format(
+            args.repo))
+    return False
   if ret is repo_lib.NOTHING_TO_INIT:
     pprint.err('Nothing to init, this directory is already a Gitless\'s repo')
     return False
