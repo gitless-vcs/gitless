@@ -14,6 +14,7 @@ REMOTE_NOT_FOUND = 2
 REMOTE_ALREADY_SET = 3
 REMOTE_NOT_FOUND = 4
 REMOTE_UNREACHABLE = 5
+INVALID_NAME = 6
 
 
 def add(remote_name, remote_url):
@@ -26,6 +27,8 @@ def add(remote_name, remote_url):
   Returns:
     REMOTE_ALREADY_SET, REMOTE_UNREACHABLE or SUCCESS.
   """
+  if '/' in remote_name:
+    return INVALID_NAME
   if __is_set(remote_name):
     return REMOTE_ALREADY_SET
   s = git_remote.add(remote_name, remote_url)

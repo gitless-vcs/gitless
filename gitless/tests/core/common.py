@@ -71,6 +71,25 @@ class TestCore(unittest.TestCase):
     return out, err
 
 
+def stub(module, stub):
+  """Stub the given module with the given stub.
+
+  Each symbol in the module is overrwritten with its matching symbol
+  in the stub.
+
+  Args:
+    module: the module to stub.
+    stub: an instance of a class used for stubbing.
+  """
+  clz = dir(stub)
+  for key_mod in dir(module):
+    if key_mod in clz:
+      stub_obj = getattr(stub, key_mod)
+      if hasattr(stub_obj, '__call__'):
+        stub_obj = stub_obj()
+      setattr(module, key_mod, stub_obj)
+
+
 def assert_contents_unchanged(*fps):
   """Decorator that fails the test if the contents of the file fp changed.
 

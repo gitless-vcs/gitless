@@ -55,6 +55,10 @@ def _do_add(args):
     pprint.err_exp(
         'make sure that you have permissions to access the remote')
     success = False
+  elif ret == remote_lib.INVALID_NAME:
+    pprint.err(
+        'Invalid remote name {}, remote names can\'t have \'/\''.format(ru))
+    success = False
   elif ret is remote_lib.SUCCESS:
     pprint.msg('Remote added successfully')
     pprint.exp(
