@@ -20,7 +20,10 @@ def parser(subparsers):
           'create an empty Gitless\'s repository or create one from an '
           'existing remote repository.'))
   init_parser.add_argument(
-      'repo', nargs='?', help='an optional repo path to create the repo from')
+      'repo', nargs='?',
+      help=(
+          'an optional remote repo address from where to read to create the'
+          'local repo.'))
   init_parser.set_defaults(func=main)
 
 
