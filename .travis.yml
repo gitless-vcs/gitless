@@ -1,7 +1,7 @@
 language: python
 python:
   - "2.7"
-# TODO: add other Python versions.
+# TODO(sperezde): add other Python versions.
 install:
   - pip install -r reqs.txt
   - pip install .
