@@ -12,7 +12,7 @@ setup(
     author_email='sperezde@csail.mit.edu',
     url='http://github.com/sdg-mit/gitless',
     packages=['gitless', 'gitless.cli', 'gitless.core'],
-    install_requires=['gitpylib>=0.4.3'],
+    install_requires=open('reqs.txt').readlines(),
     license='GPLv2',
     classifiers=(
         'Development Status :: 2 - Pre-Alpha',
