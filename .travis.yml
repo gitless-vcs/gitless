@@ -5,6 +5,9 @@ python:
 install:
   - pip install git+git://github.com/sdg-mit/gitpylib@develop#egg=gitpylib
   - pip install .
+before_script:
+  - git config user.name "travis"
+  - git config user.email "travis@ci.com"
 script:
   - python -m unittest discover
 branches:
