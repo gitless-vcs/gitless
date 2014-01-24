@@ -20,7 +20,7 @@ class TestEndToEnd(unittest.TestCase):
   def setUp(self):
     # Create temporary dir and cd to it.
     # TODO(sperezde): get the logging level via flags.
-    logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
+    logging.basicConfig(stream=sys.stdout, level=logging.INFO)
     self.path = tempfile.mkdtemp(prefix='gl-e2e-test')
     logging.debug('Created temporary directory %s', self.path)
     os.chdir(self.path)
