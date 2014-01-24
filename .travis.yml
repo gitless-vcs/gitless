@@ -3,10 +3,10 @@ python:
   - "2.7"
 # TODO(sperezde): add other Python versions.
 install:
-  - pip install -r .travis-reqs.txt
+  - pip install git+git://github.com/sdg-mit/gitpylib@develop#egg=gitpylib
   - pip install .
 script:
-  - sudo ./setup.py test
+  - python -m unittest discover
 branches:
   except:
     - master
