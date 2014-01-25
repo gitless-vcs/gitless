@@ -1,6 +1,7 @@
 language: python
 python:
   - "2.7"
+  - "3.3"
 # TODO(sperezde): add other Python versions.
 install:
   - pip install git+git://github.com/sdg-mit/gitpylib@develop#egg=gitpylib
