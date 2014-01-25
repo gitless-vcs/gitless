@@ -68,10 +68,15 @@ class TestEndToEnd(unittest.TestCase):
     f.close()
     return ret
 
+  def __set_test_config(self):
+    self.__git_call('config user.name \"test\"')
+    self.__git_call('config user.email \"test@test.com\"')
+
   # TODO(sperezde): add dialog related tests.
 
   def test_basic_functionality(self):
     self.__success('init')
+    self.__set_test_config()
     self.__write_file('file1', 'Contents of file1')
     # Track.
     self.__success('track file1')
@@ -167,6 +172,7 @@ class TestEndToEnd(unittest.TestCase):
       self.__write_file(fp, fp)
 
     self.__gl_call('init')
+    self.__set_test_config()
 
     # All files are untracked.
     assert_status_performance()

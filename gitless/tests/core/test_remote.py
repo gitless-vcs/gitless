@@ -49,7 +49,6 @@ class TestRemote(common.TestCore):
 
   def setUp(self):
     super(TestRemote, self).setUp()
-    self._git_call('init')
     common.stub(remote_lib.git_remote, RemoteStub())
 
 

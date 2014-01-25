@@ -25,6 +25,9 @@ class TestCore(unittest.TestCase):
     self.path = tempfile.mkdtemp(prefix='gl-core-test')
     logging.debug('Created temporary directory {}'.format(self.path))
     os.chdir(self.path)
+    self._git_call('init')
+    self._git_call('config user.name \"test\"')
+    self._git_call('config user.email \"test@test.com\"')
 
   def tearDown(self):
     """Removes the temporary dir."""

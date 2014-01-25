@@ -52,7 +52,6 @@ class TestFile(common.TestCore):
     super(TestFile, self).setUp()
 
     # Build up an interesting mock repo.
-    self._git_call('init')
     self._write_file(TRACKED_FP, contents=TRACKED_FP_CONTENTS_1)
     self._write_file(TRACKED_FP_WITH_SPACE, contents=TRACKED_FP_CONTENTS_1)
     self._write_file(TRACKED_DIR_FP, contents=TRACKED_FP_CONTENTS_1)

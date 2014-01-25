@@ -29,7 +29,6 @@ class TestBranch(common.TestCore):
     super(TestBranch, self).setUp()
 
     # Build up an interesting mock repo.
-    self._git_call('init')
     self._write_file(TRACKED_FP, contents=TRACKED_FP_CONTENTS_1)
     self._git_call('add "{}"'.format(TRACKED_FP))
     self._git_call('commit -m"1" "{}"'.format(TRACKED_FP))
