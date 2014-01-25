@@ -7,7 +7,7 @@
 
 import unittest
 
-import common
+from . import common
 
 import gitless.core.remote as remote_lib
 
@@ -35,7 +35,7 @@ class RemoteStub:
 
   def show_all(self):
     def stub_show_all():
-      return self.remotes.keys()
+      return list(self.remotes.keys())
     return stub_show_all
 
   def rm(self):

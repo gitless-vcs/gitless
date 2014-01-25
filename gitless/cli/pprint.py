@@ -65,7 +65,12 @@ def conf_dialog(msg):
     True if the user confirmed she wanted to continue or False if otherwise.
   """
   sys.stdout.write('# %s. Do you wish to continue? (y/N)' % msg)
-  user_input = raw_input(' ')
+  # Python 2/3 compatibility.
+  try:
+    input = raw_input
+  except NameError:
+    pass
+  user_input = input(' ')
   return user_input and user_input[0].lower() == 'y'
 
 

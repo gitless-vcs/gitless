@@ -15,9 +15,8 @@ from gitpylib import file as git_file
 from gitpylib import stash as git_stash
 from gitpylib import status as git_status
 
-import sync as sync_lib
-import remote as remote_lib
-import repo as repo_lib
+from . import remote as remote_lib
+from . import repo as repo_lib
 
 
 # Ret codes of methods.
@@ -141,10 +140,10 @@ def switch(name):
 
 def current():
   """Get the name of the current branch."""
-  if sync_lib.rebase_in_progress():
+  if _rebase_in_progress():
     # While in a rebase, Git actually moves to a "no-branch" status.
     # In Gitless, the user is in the branch being re-based.
-    return sync_lib.rebase_info()[0]
+    return _rebase_branch()
   return git_branch.current()
 
 
@@ -182,9 +181,9 @@ def status_all():
   BranchStatus = collections.namedtuple(
       'b_status', ['name', 'is_current', 'upstream', 'upstream_exists'])
 
-  rebase_in_progress = sync_lib.rebase_in_progress()
+  rebase_in_progress = _rebase_in_progress()
   if rebase_in_progress:
-    current = sync_lib.rebase_info()[0]
+    current = _rebase_branch()
 
   ret = []
   for name, is_current, upstream in git_branch.status_all():
@@ -241,12 +240,11 @@ def _unmark_au_files(branch):
     return
 
   gl_dir = repo_lib.gl_dir()
-  f = open(os.path.join(gl_dir, 'GL_AU_%s' % branch), 'w')
-
   repo_dir = git_common.repo_dir()
-  for fp in assumed_unchanged_fps:
-    f.write(fp + '\n')
-    git_file.not_assume_unchanged(os.path.join(repo_dir, fp))
+  with open(os.path.join(gl_dir, 'GL_AU_%s' % branch), 'w') as f:
+    for fp in assumed_unchanged_fps:
+      f.write(fp + '\n')
+      git_file.not_assume_unchanged(os.path.join(repo_dir, fp))
 
 
 def _remark_au_files(branch):
@@ -260,11 +258,25 @@ def _remark_au_files(branch):
   if not os.path.exists(au_info_fp):
     return
 
-  f = open(au_info_fp, 'r')
-
   repo_dir = git_common.repo_dir()
-  for fp in f:
-    fp = fp.strip()
-    git_file.assume_unchanged(os.path.join(repo_dir, fp))
+  with open(au_info_fp, 'r') as f:
+    for fp in f:
+      fp = fp.strip()
+      git_file.assume_unchanged(os.path.join(repo_dir, fp))
 
   os.remove(au_info_fp)
+
+
+# Temporal hack until we refactor the sync module.
+def _rebase_in_progress():
+  return os.path.exists(_rebase_file())
+
+
+def _rebase_branch():
+  """Gets the name of the current branch being rebased."""
+  rf = open(_rebase_file(), 'r')
+  return rf.readline().strip()
+
+
+def _rebase_file():
+  return os.path.join(repo_lib.gl_dir(), 'GL_REBASE')

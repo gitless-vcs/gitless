@@ -5,7 +5,7 @@
 """gl untrack - Stop tracking changes to files."""
 
 
-import file_cmd
+from . import file_cmd
 
 
 parser = file_cmd.parser('stop tracking changes to files', 'untrack')

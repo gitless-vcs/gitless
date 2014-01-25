@@ -7,7 +7,7 @@
 
 import os
 
-import pprint
+from . import pprint
 
 from gitless.core import file as file_lib
 

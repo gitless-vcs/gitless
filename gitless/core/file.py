@@ -12,8 +12,8 @@ from gitpylib import common as git_common
 from gitpylib import file as git_file
 from gitpylib import status as git_status
 
-import repo as repo_lib
-import branch as branch_lib
+from . import repo as repo_lib
+from . import branch as branch_lib
 
 
 # Ret codes of methods.

@@ -11,7 +11,7 @@ import subprocess
 from gitless.core import repo as repo_lib
 from gitless.core import sync as sync_lib
 
-import pprint
+from . import pprint
 
 
 _COMMIT_FILE = '.GL_COMMIT_EDIT_MSG'

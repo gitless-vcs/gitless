@@ -10,7 +10,7 @@ from gitless.core import file as file_lib
 from gitless.core import repo as repo_lib
 from gitless.core import sync as sync_lib
 
-import pprint
+from . import pprint
 
 
 def parser(subparsers):

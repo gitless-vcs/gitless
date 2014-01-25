@@ -34,6 +34,13 @@ class TestCore(unittest.TestCase):
     shutil.rmtree(self.path)
     logging.debug('Removed dir {}'.format(self.path))
 
+  # Python 2/3 compatibility.
+  def assertItemsEqual(self, actual, expected, msg=None):
+    try:
+      return super(TestCore, self).assertItemsEqual(actual, expected, msg=msg)
+    except AttributeError:
+      return super(TestCore, self).assertCountEqual(actual, expected, msg=msg)
+
   def _write_file(self, fp, contents='hello'):
     dirs, _ = os.path.split(fp)
     if dirs and not os.path.exists(dirs):

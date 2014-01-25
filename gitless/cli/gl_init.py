@@ -7,9 +7,9 @@
 
 import os
 
-from gitless.core import repo as repo_lib
+from gitless.core import init as init_lib
 
-import pprint
+from . import pprint
 
 
 def parser(subparsers):
@@ -28,9 +28,9 @@ def parser(subparsers):
 
 
 def main(args):
-  ret = repo_lib.init_from(args.repo) if args.repo else repo_lib.init_dir()
+  ret = init_lib.init_from(args.repo) if args.repo else init_lib.init_cwd()
 
-  if ret == repo_lib.REPO_UNREACHABLE:
+  if ret == init_lib.REPO_UNREACHABLE:
     pprint.err(
         'Couldn\'t reach remote repository \'{}\' to init from'.format(
             args.repo))
@@ -39,10 +39,10 @@ def main(args):
         'make sure you have the necessary permissions to access {}'.format(
             args.repo))
     return False
-  if ret is repo_lib.NOTHING_TO_INIT:
+  if ret is init_lib.NOTHING_TO_INIT:
     pprint.err('Nothing to init, this directory is already a Gitless\'s repo')
     return False
-  elif ret is repo_lib.SUCCESS:
+  elif ret is init_lib.SUCCESS:
     pprint.msg('Local repo created in \'{}\''.format(os.getcwd()))
     if args.repo:
       pprint.msg('Initialized from remote \'{}\''.format(args.repo))

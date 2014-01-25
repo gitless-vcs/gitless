@@ -8,8 +8,8 @@
 from gitless.core import file as file_lib
 from gitless.core import sync as sync_lib
 
-import commit_dialog
-import pprint
+from . import commit_dialog
+from . import pprint
 
 
 def parser(subparsers):

@@ -7,7 +7,7 @@
 
 from gitless.core import sync as sync_lib
 
-import pprint
+from . import pprint
 
 
 def parser(subparsers):
@@ -22,7 +22,7 @@ def main(unused_args):
   success = True
 
   if ret == sync_lib.SUCCESS:
-    print out
+    print(out)
   elif ret == sync_lib.UPSTREAM_NOT_SET:
     pprint.err('Current branch has no upstream set')
     pprint.err_exp(

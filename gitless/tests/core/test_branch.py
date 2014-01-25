@@ -10,7 +10,7 @@ import unittest
 
 import gitless.core.file as file_lib
 import gitless.core.branch as branch_lib
-import common
+from . import common
 
 
 TRACKED_FP = 'f1'

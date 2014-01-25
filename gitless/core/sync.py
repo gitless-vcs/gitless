@@ -12,10 +12,10 @@ from gitpylib import hook as git_hook
 from gitpylib import sync as git_sync
 from gitpylib import remote as git_remote
 
-import branch as branch_lib
-import file as file_lib
-import remote as remote_lib
-import repo as repo_lib
+from . import branch as branch_lib
+from . import file as file_lib
+from . import remote as remote_lib
+from . import repo as repo_lib
 
 
 # Ret codes of methods.

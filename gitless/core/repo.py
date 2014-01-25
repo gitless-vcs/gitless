@@ -7,18 +7,8 @@
 
 import os
 
-import branch
-
 from gitpylib import common as git_common
 from gitpylib import config as git_config
-from gitpylib import repo as git_repo
-from gitpylib import remote as git_remote
-
-
-# Ret codes of methods.
-SUCCESS = 1
-NOTHING_TO_INIT = 2
-REPO_UNREACHABLE = 3
 
 
 def cwd():
@@ -37,32 +27,6 @@ def gl_dir():
   """
   # We use the same .git directory.
   return git_common.git_dir()
-
-
-def init_from(remote_repo):
-  """Clones the remote_repo into the cwd."""
-  if gl_dir():
-    return NOTHING_TO_INIT
-  if not git_repo.clone(remote_repo):
-    return REPO_UNREACHABLE
-  # We get all remote branches as well and create local equivalents.
-  for remote_branch in git_remote.branches('origin'):
-    if remote_branch == 'master':
-      continue
-    s = branch.create(remote_branch, 'origin/{}'.format(remote_branch))
-    if s != SUCCESS:
-      raise Exception(
-          'Unexpected status code {} when creating local branch {}'.format(
-              s, remote_branch))
-  return SUCCESS
-
-
-def init_dir():
-  """Makes the cwd a Gitless's repository."""
-  if gl_dir():
-    return NOTHING_TO_INIT
-  git_repo.init()
-  return SUCCESS
 
 
 def editor():

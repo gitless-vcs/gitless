@@ -7,7 +7,7 @@
 
 from gitless.core import file as file_lib
 
-import pprint
+from . import pprint
 
 
 def parser(subparsers):

@@ -41,6 +41,9 @@ class TestEndToEnd(unittest.TestCase):
         '{} {}'.format(cmd, subcmd), stdout=subprocess.PIPE,
         stderr=subprocess.PIPE, shell=True)
     out, err = p.communicate()
+    if sys.version > "3":
+      out = out.decode('utf-8')
+      err = err.decode('utf-8')
     logging.debug('Out is \n{}'.format(out))
     if err:
       logging.debug('Err is \n{}'.format(err))

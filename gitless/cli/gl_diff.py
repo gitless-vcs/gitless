@@ -12,7 +12,7 @@ import tempfile
 
 from gitless.core import file as file_lib
 
-import pprint
+from . import pprint
 
 
 def parser(subparsers):
@@ -66,7 +66,7 @@ def main(args):
             'committed version. No diffs to output'.format(fp))
         continue
 
-      tf = tempfile.NamedTemporaryFile(delete=False)
+      tf = tempfile.NamedTemporaryFile(mode='w', delete=False)
       pprint.msg(
           'Diff of file {} with its last committed version'.format(fp),
           p=tf.write)

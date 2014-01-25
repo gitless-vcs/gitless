@@ -11,21 +11,21 @@ import traceback
 
 from gitless.core import repo as repo_lib
 
-import gl_track
-import gl_untrack
-import gl_status
-import gl_diff
-import gl_commit
-import gl_branch
-import gl_checkout
-import gl_merge
-import gl_rebase
-import gl_remote
-import gl_resolve
-import gl_publish
-import gl_init
-import gl_history
-import pprint
+from . import gl_track
+from . import gl_untrack
+from . import gl_status
+from . import gl_diff
+from . import gl_commit
+from . import gl_branch
+from . import gl_checkout
+from . import gl_merge
+from . import gl_rebase
+from . import gl_remote
+from . import gl_resolve
+from . import gl_publish
+from . import gl_init
+from . import gl_history
+from . import pprint
 
 
 SUCCESS = 0
@@ -61,7 +61,7 @@ def main():
     return SUCCESS if args.func(args) else ERRORS_FOUND
   except KeyboardInterrupt:
     # The user pressed Crl-c.
-    print '\n'
+    print('\n')
     pprint.msg('Keyboard interrupt detected, operation aborted')
     return SUCCESS
   except:
