@@ -185,14 +185,11 @@ class TestEndToEnd(unittest.TestCase):
     self.__build_repo()
     # Temporary hack until we get stuff working smoothly when the repo has no
     # commits.
-    print 'commit'
     self.__gl_call('commit -m"commit" f1')
-    print 'done'
 
     t = time.time()
     self.__gl_call('branch develop')
     gl_t = time.time() - t
-    print 'done %s' % gl_t
 
     # go back to previous state.
     self.__gl_call('branch master')
@@ -203,7 +200,6 @@ class TestEndToEnd(unittest.TestCase):
     self.__git_call('stash save --all')
     self.__git_call('checkout gitdev')
     git_t = time.time() - t
-    print 'done git %s' % git_t
 
     self.assertTrue(
         gl_t < git_t*MAX_TOLERANCE,
