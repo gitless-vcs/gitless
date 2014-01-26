@@ -42,17 +42,17 @@ def main(args):
     ret, (out, padding) = file_lib.diff(fp)
 
     if ret == file_lib.FILE_NOT_FOUND:
-      pprint.err('Can\'t diff a non-existent file: {}'.format(fp))
+      pprint.err('Can\'t diff a non-existent file: {0}'.format(fp))
       success = False
     elif ret == file_lib.FILE_IS_UNTRACKED:
       pprint.err(
-          'You tried to diff untracked file {}. It\'s probably a mistake. If '
+          'You tried to diff untracked file {0}. It\'s probably a mistake. If '
           'you really care about changes in this file you should start '
-          'tracking changes to it with gl track {}'.format(fp, fp))
+          'tracking changes to it with gl track {1}'.format(fp, fp))
       success = False
     elif ret == file_lib.FILE_IS_IGNORED:
       pprint.err(
-          'You tried to diff ignored file {}. It\'s probably a mistake. If '
+          'You tried to diff ignored file {0}. It\'s probably a mistake. If '
           'you really care about changes in this file you should stop ignoring '
           'it by editing the .gigignore file'.format(fp))
       success = False
@@ -62,13 +62,13 @@ def main(args):
     elif ret == file_lib.SUCCESS:
       if not out:
         pprint.msg(
-            'The working version of file {} is the same as its last '
+            'The working version of file {0} is the same as its last '
             'committed version. No diffs to output'.format(fp))
         continue
 
       tf = tempfile.NamedTemporaryFile(mode='w', delete=False)
       pprint.msg(
-          'Diff of file {} with its last committed version'.format(fp),
+          'Diff of file {0} with its last committed version'.format(fp),
           p=tf.write)
       pprint.exp(
           'lines starting with \'-\' are lines that are not in the working '
@@ -79,7 +79,7 @@ def main(args):
           'but not in the last committed version of the file', p=tf.write)
       tf.write('\n'.join(_format_diff_output(out, padding)))
       tf.close()
-      subprocess.call('less -r {}'.format(tf.name), shell=True)
+      subprocess.call('less -r {0}'.format(tf.name), shell=True)
       os.remove(tf.name)
     else:
       raise Exception('Unrecognized ret code %s' % ret)

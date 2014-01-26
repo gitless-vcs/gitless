@@ -1,6 +1,13 @@
 #!/usr/bin/env python
 
+import sys
+
 from setuptools import setup
+
+
+reqs = ['gitpylib>=0.4.3']
+if sys.version_info < (2, 7) or sys.version_info < (3, 3):
+  reqs.append('argparse')
 
 
 setup(
@@ -12,7 +19,7 @@ setup(
     author_email='sperezde@csail.mit.edu',
     url='http://github.com/sdg-mit/gitless',
     packages=['gitless', 'gitless.cli', 'gitless.core'],
-    install_requires=['gitpylib>=0.4.3'],
+    install_requires=reqs,
     license='GPLv2',
     classifiers=(
         'Development Status :: 2 - Pre-Alpha',

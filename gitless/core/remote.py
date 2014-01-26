@@ -37,7 +37,7 @@ def add(remote_name, remote_url):
   elif s == git_remote.SUCCESS:
     return SUCCESS
   else:
-    raise Exception('Unrecognized ret code {}'.format(s))
+    raise Exception('Unrecognized ret code {0}'.format(s))
 
 
 def info(remote_name):

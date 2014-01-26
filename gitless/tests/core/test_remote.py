@@ -30,7 +30,7 @@ class RemoteStub:
     def stub_show(remote_name):
       if remote_name not in self.remotes:
         return (self.REMOTE_NOT_FOUND, None)
-      return (self.SUCCESS, 'info about {}'.format(remote_name))
+      return (self.SUCCESS, 'info about {0}'.format(remote_name))
     return stub_show
 
   def show_all(self):

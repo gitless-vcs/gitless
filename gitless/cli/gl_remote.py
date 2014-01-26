@@ -50,14 +50,14 @@ def _do_add(args):
         'then gl remote add %s new_url' % (rn, rn, rn))
     success = False
   elif ret == remote_lib.REMOTE_UNREACHABLE:
-    pprint.err('Couldn\'t reach {} to create {}'.format(ru, rn))
+    pprint.err('Couldn\'t reach {0} to create {1}'.format(ru, rn))
     pprint.err_exp('make sure that you are connected to the internet')
     pprint.err_exp(
         'make sure that you have permissions to access the remote')
     success = False
   elif ret == remote_lib.INVALID_NAME:
     pprint.err(
-        'Invalid remote name {}, remote names can\'t have \'/\''.format(ru))
+        'Invalid remote name {0}, remote names can\'t have \'/\''.format(ru))
     success = False
   elif ret is remote_lib.SUCCESS:
     pprint.msg('Remote added successfully')

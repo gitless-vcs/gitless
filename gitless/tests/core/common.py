@@ -5,6 +5,7 @@
 """Common methods used in unit tests."""
 
 
+from functools import wraps
 import logging
 import os
 import shutil
@@ -23,7 +24,7 @@ class TestCore(unittest.TestCase):
     """Creates temporary dir and cds to it."""
     logging.basicConfig(stream=sys.stdout, level=logging.INFO)
     self.path = tempfile.mkdtemp(prefix='gl-core-test')
-    logging.debug('Created temporary directory {}'.format(self.path))
+    logging.debug('Created temporary directory {0}'.format(self.path))
     os.chdir(self.path)
     self._git_call('init')
     self._git_call('config user.name \"test\"')
@@ -32,14 +33,17 @@ class TestCore(unittest.TestCase):
   def tearDown(self):
     """Removes the temporary dir."""
     shutil.rmtree(self.path)
-    logging.debug('Removed dir {}'.format(self.path))
+    logging.debug('Removed dir {0}'.format(self.path))
 
   # Python 2/3 compatibility.
   def assertItemsEqual(self, actual, expected, msg=None):
     try:
       return super(TestCore, self).assertItemsEqual(actual, expected, msg=msg)
     except AttributeError:
-      return super(TestCore, self).assertCountEqual(actual, expected, msg=msg)
+      try:
+        return super(TestCore, self).assertCountEqual(actual, expected, msg=msg)
+      except AttributeError:
+        return self.assertEqual(sorted(actual), sorted(expected), msg=msg)
 
   def _write_file(self, fp, contents='hello'):
     dirs, _ = os.path.split(fp)
@@ -69,14 +73,14 @@ class TestCore(unittest.TestCase):
     Returns:
       a tuple (out, err).
     """
-    logging.debug('Calling git {}'.format(subcmd))
+    logging.debug('Calling git {0}'.format(subcmd))
     p = subprocess.Popen(
-        'git {}'.format(subcmd), stdout=subprocess.PIPE,
+        'git {0}'.format(subcmd), stdout=subprocess.PIPE,
         stderr=subprocess.PIPE, shell=True)
     out, err = p.communicate()
     if p.returncode != expected_ret_code:
       raise Exception(
-          'Git call {} failed (got ret code {})\nout:{} \nerr:{}'.format(
+          'Git call {0} failed (got ret code {1})\nout:{2} \nerr:{3}'.format(
               subcmd, p.returncode, out, err))
     return out, err
 
@@ -160,6 +164,7 @@ def assert_no_side_effects(*fps):
   def decorator(f):
     @assert_contents_unchanged(*fps)
     @assert_status_unchanged(*fps)
+    @wraps(f)
     def wrapper(*args, **kwargs):
       f(*args, **kwargs)
     return wrapper
@@ -171,6 +176,7 @@ def assert_no_side_effects(*fps):
 
 def __assert_decorator(msg, prop, *fps):
   def decorator(f):
+    @wraps(f)
     def wrapper(*args, **kwargs):
       self = args[0]
       # We save up the cwd to chdir to it after the test has run so that the
@@ -183,7 +189,7 @@ def __assert_decorator(msg, prop, *fps):
       for fp, before, after in zip(fps, before_list, after_list):
         self.assertEqual(
             before, after,
-            '{} of file "{}" changed: from "{}" to "{}"'.format(
+            '{0} of file "{1}" changed: from "{2}" to "{3}"'.format(
                 msg, fp, before, after))
     return wrapper
   return decorator

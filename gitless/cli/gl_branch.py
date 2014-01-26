@@ -57,7 +57,7 @@ def main(args):
         pprint.err('Invalid branch name')
         return False
       elif ret == branch_lib.INVALID_DP:
-        pprint.msg('Invalid divergent point {}'.format(args.divergent_point))
+        pprint.msg('Invalid divergent point {0}'.format(args.divergent_point))
         return False
       elif ret is branch_lib.SUCCESS:
         pprint.msg('Created new branch %s' % args.branch)

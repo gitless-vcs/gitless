@@ -22,7 +22,7 @@ def parser(subparsers):
 
 def main(unused_args):
   pprint.msg(
-      'On branch {}, repo-directory /{}'.format(
+      'On branch {0}, repo-directory /{1}'.format(
           branch_lib.current(), repo_lib.cwd()))
 
   in_merge = sync_lib.merge_in_progress()

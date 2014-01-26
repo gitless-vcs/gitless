@@ -30,10 +30,10 @@ def init_from(remote_repo):
   for remote_branch in git_remote.branches('origin'):
     if remote_branch == 'master':
       continue
-    s = branch_lib.create(remote_branch, 'origin/{}'.format(remote_branch))
+    s = branch_lib.create(remote_branch, 'origin/{0}'.format(remote_branch))
     if s != SUCCESS:
       raise Exception(
-          'Unexpected status code {} when creating local branch {}'.format(
+          'Unexpected status code {0} when creating local branch {1}'.format(
               s, remote_branch))
   return SUCCESS
 

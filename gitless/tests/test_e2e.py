@@ -36,21 +36,21 @@ class TestEndToEnd(unittest.TestCase):
     return self.__call('git', cmd, expected_ret_code=expected_ret_code)
 
   def __call(self, cmd, subcmd, expected_ret_code=0):
-    logging.debug('Calling {} {}'.format(cmd, subcmd))
+    logging.debug('Calling {0} {1}'.format(cmd, subcmd))
     p = subprocess.Popen(
-        '{} {}'.format(cmd, subcmd), stdout=subprocess.PIPE,
+        '{0} {1}'.format(cmd, subcmd), stdout=subprocess.PIPE,
         stderr=subprocess.PIPE, shell=True)
     out, err = p.communicate()
     if sys.version > "3":
       out = out.decode('utf-8')
       err = err.decode('utf-8')
-    logging.debug('Out is \n{}'.format(out))
+    logging.debug('Out is \n{0}'.format(out))
     if err:
-      logging.debug('Err is \n{}'.format(err))
+      logging.debug('Err is \n{0}'.format(err))
     if p.returncode != expected_ret_code:
       self.fail(
-          'Obtained ret code {} doesn\'t match the expected {}.\nOut of the'
-          'cmd was:\n{}\nErr of the cmd was:\n{}\n'.format(
+          'Obtained ret code {0} doesn\'t match the expected {1}.\nOut of the'
+          'cmd was:\n{2}\nErr of the cmd was:\n{3}\n'.format(
               p.returncode, expected_ret_code, out, err))
     return out, err
 
@@ -166,7 +166,7 @@ class TestEndToEnd(unittest.TestCase):
 
       self.assertTrue(
           gl_t < git_t*MAX_TOLERANCE,
-          msg='gl_t {}, git_t {}'.format(gl_t, git_t))
+          msg='gl_t {0}, git_t {1}'.format(gl_t, git_t))
 
     FPS_QTY = 10000  # how many files in the test repo.
 

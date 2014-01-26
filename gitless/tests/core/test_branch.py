@@ -30,14 +30,14 @@ class TestBranch(common.TestCore):
 
     # Build up an interesting mock repo.
     self._write_file(TRACKED_FP, contents=TRACKED_FP_CONTENTS_1)
-    self._git_call('add "{}"'.format(TRACKED_FP))
-    self._git_call('commit -m"1" "{}"'.format(TRACKED_FP))
+    self._git_call('add "{0}"'.format(TRACKED_FP))
+    self._git_call('commit -m"1" "{0}"'.format(TRACKED_FP))
     self._write_file(TRACKED_FP, contents=TRACKED_FP_CONTENTS_2)
-    self._git_call('commit -m"2" "{}"'.format(TRACKED_FP))
+    self._git_call('commit -m"2" "{0}"'.format(TRACKED_FP))
     self._write_file(UNTRACKED_FP, contents=UNTRACKED_FP_CONTENTS)
-    self._write_file('.gitignore', contents='{}'.format(IGNORED_FP))
+    self._write_file('.gitignore', contents='{0}'.format(IGNORED_FP))
     self._write_file(IGNORED_FP)
-    self._git_call('branch "{}"'.format(BRANCH))
+    self._git_call('branch "{0}"'.format(BRANCH))
 
 
 class TestCreate(TestBranch):
@@ -105,7 +105,7 @@ class TestSwitch(TestBranch):
 
   def test_switch_contents_still_there_tracked_commit(self):
     self._write_file(TRACKED_FP, contents='commit')
-    self._git_call('commit -m\'comment\' {}'.format(TRACKED_FP))
+    self._git_call('commit -m\'comment\' {0}'.format(TRACKED_FP))
     self.assertEqual(branch_lib.SUCCESS, branch_lib.switch(BRANCH))
     self.assertEqual(TRACKED_FP_CONTENTS_2, self._read_file(TRACKED_FP))
     self.assertEqual(branch_lib.SUCCESS, branch_lib.switch('master'))

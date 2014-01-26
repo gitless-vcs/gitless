@@ -76,4 +76,4 @@ def conf_dialog(msg):
 
 def dir_err_exp(fp, subcmd):
   """Prints the dir error exp to stderr."""
-  err('{} is a directory. Can\'t {} a directory'.format(fp, subcmd))
+  err('{0} is a directory. Can\'t {1} a directory'.format(fp, subcmd))

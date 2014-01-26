@@ -341,7 +341,7 @@ def _build_f_st(s, fp):
     # happen if the user gl tracks a file and then modifies it.
     ret = FileStatus(fp, TRACKED, False, True, True, False, False)
   else:
-    raise Exception('Unrecognized status {}'.format(s))
+    raise Exception('Unrecognized status {0}'.format(s))
   return ret
 
 
@@ -354,4 +354,4 @@ def _resolved_file(fp):
   fp = os.path.relpath(os.path.abspath(fp), git_common.repo_dir())
   fp = fp.replace(os.path.sep, '-')  # this hack will do the trick for now.
   return os.path.join(
-      repo_lib.gl_dir(), 'GL_RESOLVED_{}_{}'.format(branch_lib.current(), fp))
+      repo_lib.gl_dir(), 'GL_RESOLVED_{0}_{1}'.format(branch_lib.current(), fp))

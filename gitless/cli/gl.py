@@ -42,10 +42,10 @@ def main():
   parser.add_argument('--version', action='version', version=GL_VERSION)
   subparsers = parser.add_subparsers(dest='subcmd_name')
 
-  sub_cmds = {
+  sub_cmds = [
       gl_track, gl_untrack, gl_status, gl_diff, gl_commit, gl_branch,
       gl_checkout, gl_merge, gl_resolve, gl_rebase, gl_remote, gl_publish,
-      gl_init, gl_history}
+      gl_init, gl_history]
   for sub_cmd in sub_cmds:
     sub_cmd.parser(subparsers)
 

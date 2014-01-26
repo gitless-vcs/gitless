@@ -60,12 +60,12 @@ class TestFile(common.TestCore):
     self._write_file(
         TRACKED_DIR_DIR_FP_WITH_SPACE, contents=TRACKED_FP_CONTENTS_1)
     self._git_call(
-        'add "{}" "{}" "{}" "{}" "{}" "{}"'.format(
+        'add "{0}" "{1}" "{2}" "{3}" "{4}" "{5}"'.format(
           TRACKED_FP, TRACKED_FP_WITH_SPACE,
           TRACKED_DIR_FP, TRACKED_DIR_FP_WITH_SPACE,
           TRACKED_DIR_DIR_FP, TRACKED_DIR_DIR_FP_WITH_SPACE))
     self._git_call(
-        'commit -m"1" "{}" "{}" "{}" "{}" "{}" "{}"'.format(
+        'commit -m"1" "{0}" "{1}" "{2}" "{3}" "{4}" "{5}"'.format(
           TRACKED_FP, TRACKED_FP_WITH_SPACE,
           TRACKED_DIR_FP, TRACKED_DIR_FP_WITH_SPACE,
           TRACKED_DIR_DIR_FP, TRACKED_DIR_DIR_FP_WITH_SPACE))
@@ -77,7 +77,7 @@ class TestFile(common.TestCore):
     self._write_file(
         TRACKED_DIR_DIR_FP_WITH_SPACE, contents=TRACKED_FP_CONTENTS_2)
     self._git_call(
-        'commit -m"2" "{}" "{}" "{}" "{}" "{}" "{}"'.format(
+        'commit -m"2" "{0}" "{1}" "{2}" "{3}" "{4}" "{5}"'.format(
           TRACKED_FP, TRACKED_FP_WITH_SPACE,
           TRACKED_DIR_FP, TRACKED_DIR_FP_WITH_SPACE,
           TRACKED_DIR_DIR_FP, TRACKED_DIR_DIR_FP_WITH_SPACE))
@@ -88,7 +88,7 @@ class TestFile(common.TestCore):
     self._write_file(UNTRACKED_DIR_DIR_FP)
     self._write_file(UNTRACKED_DIR_DIR_FP_WITH_SPACE)
     self._write_file(
-        '.gitignore', contents='{}\n{}'.format(
+        '.gitignore', contents='{0}\n{1}'.format(
             IGNORED_FP, IGNORED_FP_WITH_SPACE))
     self._write_file(IGNORED_FP)
     self._write_file(IGNORED_FP_WITH_SPACE)
@@ -139,13 +139,13 @@ class TestTrackFile(TestFile):
     t = file_lib.track(fp)
     self.assertEqual(
         file_lib.SUCCESS, t,
-        'Track of fp "{}" failed: expected {}, got {}'.format(
+        'Track of fp "{0}" failed: expected {1}, got {2}'.format(
             fp, file_lib.SUCCESS, t))
     st = file_lib.status(fp)
     self.assertEqual(
         file_lib.TRACKED, st.type,
-        'Track of fp "{}" failed: expected status.type={}, got '
-        'status.type={}'.format(fp, file_lib.TRACKED, st.type))
+        'Track of fp "{0}" failed: expected status.type={1}, got '
+        'status.type={2}'.format(fp, file_lib.TRACKED, st.type))
 
   @common.assert_no_side_effects(TRACKED_FP)
   def test_track_tracked_fp(self):
@@ -262,13 +262,13 @@ class TestUntrackFile(TestFile):
     t = file_lib.untrack(fp)
     self.assertEqual(
         file_lib.SUCCESS, t,
-        'Untrack of fp "{}" failed: expected {}, got {}'.format(
+        'Untrack of fp "{0}" failed: expected {1}, got {2}'.format(
             fp, file_lib.SUCCESS, t))
     st = file_lib.status(fp)
     self.assertEqual(
         file_lib.UNTRACKED, st.type,
-        'Untrack of fp "{}" failed: expected status.type={}, got '
-        'status.type={}'.format(fp, file_lib.UNTRACKED, st.type))
+        'Untrack of fp "{0}" failed: expected status.type={1}, got '
+        'status.type={2}'.format(fp, file_lib.UNTRACKED, st.type))
 
   @common.assert_no_side_effects(UNTRACKED_FP)
   def test_untrack_untracked_fp(self):
@@ -460,7 +460,7 @@ class TestStatus(TestFile):
         self.__assert_field(fp, 'exists_in_lr', False, exists_in_lr)
         self.__assert_field(fp, 'modified', True, modified)
       else:
-        self.fail('Unexpected fp {}'.format(fp))
+        self.fail('Unexpected fp {0}'.format(fp))
       self.__assert_field(fp, 'exists_in_wd', True, exists_in_wd)
       seen.append(fp)
     self.assertItemsEqual(seen, ALL_FPS_IN_WD)
@@ -571,7 +571,7 @@ class TestStatus(TestFile):
         self.__assert_field(fp, 'exists_in_lr', False, exists_in_lr)
         self.__assert_field(fp, 'modified', True, modified)
       else:
-        self.fail('Unexpected fp {}'.format(fp))
+        self.fail('Unexpected fp {0}'.format(fp))
       self.__assert_field(fp, 'exists_in_wd', True, exists_in_wd)
       seen.append(fp)
     self.assertItemsEqual(seen, [rel_to_dir(fp) for fp in ALL_DIR_FPS_IN_WD])
@@ -599,13 +599,13 @@ class TestStatus(TestFile):
   def __assert_type(self, fp, expected, got):
     self.assertEqual(
         expected, got,
-        'Incorrect type for {}: expected {}, got {}'.format(
+        'Incorrect type for {0}: expected {1}, got {2}'.format(
             fp, expected, got))
 
   def __assert_field(self, fp, field, expected, got):
      self.assertEqual(
          expected, got,
-         'Incorrect status for {}: expected {}={}, got {}={}'.format(
+         'Incorrect status for {0}: expected {1}={2}, got {3}={4}'.format(
              fp, field, expected, field, got))
 
 
@@ -725,16 +725,16 @@ class TestResolveFile(TestFile):
     self._git_call('checkout -b branch')
     self._write_file(FP_IN_CONFLICT, contents='branch')
     self._write_file(DIR_FP_IN_CONFLICT, contents='branch')
-    self._git_call('add "{}" "{}"'.format(FP_IN_CONFLICT, DIR_FP_IN_CONFLICT))
+    self._git_call('add "{0}" "{1}"'.format(FP_IN_CONFLICT, DIR_FP_IN_CONFLICT))
     self._git_call(
-        'commit -m"branch" "{}" "{}"'.format(
+        'commit -m"branch" "{0}" "{1}"'.format(
             FP_IN_CONFLICT, DIR_FP_IN_CONFLICT))
     self._git_call('checkout master')
     self._write_file(FP_IN_CONFLICT, contents='master')
     self._write_file(DIR_FP_IN_CONFLICT, contents='master')
-    self._git_call('add "{}" "{}"'.format(FP_IN_CONFLICT, DIR_FP_IN_CONFLICT))
+    self._git_call('add "{0}" "{1}"'.format(FP_IN_CONFLICT, DIR_FP_IN_CONFLICT))
     self._git_call(
-        'commit -m"master" "{}" "{}"'.format(
+        'commit -m"master" "{0}" "{1}"'.format(
             FP_IN_CONFLICT, DIR_FP_IN_CONFLICT))
     self._git_call('merge branch', expected_ret_code=1)
 
