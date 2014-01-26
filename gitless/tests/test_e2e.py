@@ -151,11 +151,12 @@ class TestEndToEnd(unittest.TestCase):
 
   def test_status_performance(self):
     """Assert that gl status is not too slow."""
-    # The test fails if gl status takes more than 100 times
-    # the time git status took.
-    MAX_TOLERANCE = 100
 
     def assert_status_performance():
+      # The test fails if gl status takes more than 100 times
+      # the time git status took.
+      MAX_TOLERANCE = 100
+
       t = time.time()
       self.__gl_call('status')
       gl_t = time.time() - t
@@ -168,15 +169,7 @@ class TestEndToEnd(unittest.TestCase):
           gl_t < git_t*MAX_TOLERANCE,
           msg='gl_t {0}, git_t {1}'.format(gl_t, git_t))
 
-    FPS_QTY = 10000  # how many files in the test repo.
-
-    for i in range(0, FPS_QTY):
-      fp = 'f' + str(i)
-      self.__write_file(fp, fp)
-
-    self.__gl_call('init')
-    self.__set_test_config()
-
+    self.__build_repo()
     # All files are untracked.
     assert_status_performance()
     # Track all files, repeat.
@@ -184,6 +177,45 @@ class TestEndToEnd(unittest.TestCase):
     self.__git_call('add .')
     logging.info('Done')
     assert_status_performance()
+
+  def test_branch_switch_performance(self):
+    """Assert that switching branches is not too slow."""
+    MAX_TOLERANCE = 100
+
+    self.__build_repo()
+    # Temporary hack until we get stuff working smoothly when the repo has no
+    # commits.
+    print 'commit'
+    self.__gl_call('commit -m"commit" f1')
+    print 'done'
+
+    t = time.time()
+    self.__gl_call('branch develop')
+    gl_t = time.time() - t
+    print 'done %s' % gl_t
+
+    # go back to previous state.
+    self.__gl_call('branch master')
+
+    # do the same for git.
+    t = time.time()
+    self.__git_call('branch gitdev')
+    self.__git_call('stash save --all')
+    self.__git_call('checkout gitdev')
+    git_t = time.time() - t
+    print 'done git %s' % git_t
+
+    self.assertTrue(
+        gl_t < git_t*MAX_TOLERANCE,
+        msg='gl_t {0}, git_t {1}'.format(gl_t, git_t))
+
+  def __build_repo(self, fps_qty=10000):
+    for i in range(0, fps_qty):
+      fp = 'f' + str(i)
+      self.__write_file(fp, fp)
+
+    self.__gl_call('init')
+    self.__set_test_config()
 
 
 if __name__ == '__main__':

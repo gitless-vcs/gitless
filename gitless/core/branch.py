@@ -124,7 +124,8 @@ def switch(name):
   Returns:
     BRANCH_IS_CURRENT or SUCCESS.
   """
-  current_b = current()
+  gl_dir = repo_lib.gl_dir()
+  current_b = _current(gl_dir=gl_dir)
   if name == current_b:
     return BRANCH_IS_CURRENT
   # Stash doesn't save assumed unchanged files, so we save which files are
@@ -134,17 +135,13 @@ def switch(name):
   git_stash.all(_stash_msg(current_b))
   git_branch.checkout(name)
   git_stash.pop(_stash_msg(name))
-  _remark_au_files(name)
+  _remark_au_files(name, gl_dir=gl_dir)
   return SUCCESS
 
 
 def current():
   """Get the name of the current branch."""
-  if _rebase_in_progress():
-    # While in a rebase, Git actually moves to a "no-branch" status.
-    # In Gitless, the user is in the branch being re-based.
-    return _rebase_branch()
-  return git_branch.current()
+  return _current()
 
 
 def status(name):
@@ -207,6 +204,20 @@ def status_all():
 # Private methods.
 
 
+def _current(gl_dir=None):
+  """Get the name of the current branch.
+
+  Args:
+    gl_dir: the gl dir (optional arg for speeding up things).
+  """
+  gl_dir = repo_lib.gl_dir() if not gl_dir else gl_dir
+  if _rebase_in_progress(gl_dir=gl_dir):
+    # While in a rebase, Git actually moves to a "no-branch" status.
+    # In Gitless, the user is in the branch being re-based.
+    return _rebase_branch(gl_dir=gl_dir)
+  return git_branch.current()
+
+
 def _stash_msg(name):
   """Computes the stash msg to use for stashing changes in branch name."""
   return '---gl-%s---' % name
@@ -247,13 +258,14 @@ def _unmark_au_files(branch):
       git_file.not_assume_unchanged(os.path.join(repo_dir, fp))
 
 
-def _remark_au_files(branch):
+def _remark_au_files(branch, gl_dir=None):
   """Re-marks files as assumed unchanged.
 
   Args:
     branch: the branch name under which the info is stored.
+    gl_dir: the gl dir (optional arg for speeding up things).
   """
-  gl_dir = repo_lib.gl_dir()
+  gl_dir = repo_lib.gl_dir() if not gl_dir else gl_dir
   au_info_fp = os.path.join(gl_dir, 'GL_AU_%s' % branch)
   if not os.path.exists(au_info_fp):
     return
@@ -268,15 +280,16 @@ def _remark_au_files(branch):
 
 
 # Temporal hack until we refactor the sync module.
-def _rebase_in_progress():
-  return os.path.exists(_rebase_file())
+def _rebase_in_progress(gl_dir=None):
+  return os.path.exists(_rebase_file(gl_dir=gl_dir))
 
 
-def _rebase_branch():
+def _rebase_branch(gl_dir=None):
   """Gets the name of the current branch being rebased."""
-  rf = open(_rebase_file(), 'r')
+  rf = open(_rebase_file(gl_dir=gl_dir), 'r')
   return rf.readline().strip()
 
 
-def _rebase_file():
-  return os.path.join(repo_lib.gl_dir(), 'GL_REBASE')
+def _rebase_file(gl_dir=None):
+  gl_dir = repo_lib.gl_dir() if not gl_dir else gl_dir
+  return os.path.join(gl_dir, 'GL_REBASE')
