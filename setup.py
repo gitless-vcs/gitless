@@ -6,7 +6,8 @@ from setuptools import setup
 
 
 reqs = ['gitpylib>=0.4.3']
-if sys.version_info < (2, 7) or sys.version_info < (3, 3):
+if sys.version_info < (2, 7) or (
+    sys.version_info < (3, 3) and sys.version_info > (3, 0)):
   reqs.append('argparse')
 
 
