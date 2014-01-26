@@ -1,5 +1,6 @@
 language: python
 python:
+  - "2.6"
   - "2.7"
   - "3.3"
 # TODO(sperezde): add other Python versions.
@@ -7,7 +8,10 @@ install:
   - pip install git+git://github.com/sdg-mit/gitpylib@develop#egg=gitpylib
   - pip install .
 script:
-  - python -m unittest discover
+  - nosetests
+# nose doens't like the number on test_e2e so it's not detected by the previous
+# command.
+  - nosetests gitless/tests/test_e2e.py
 branches:
   except:
     - master
