@@ -1,6 +1,9 @@
 Gitless
 =======
 
+[![Build Status](https://travis-ci.org/sdg-mit/gitless.png?branch=develop)](
+    https://travis-ci.org/sdg-mit/gitless)
+
 Gitless is an experimental version control system built on top of Git. Many
 people complain that Git is hard to use. We think the problem lies deeper than
 the user interface, in the concepts underlying Git. Gitless is an experiment to
