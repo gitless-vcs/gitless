@@ -70,16 +70,9 @@ def main(args):
       pprint.msg(
           'Diff of file {0} with its last committed version'.format(fp),
           p=tf.write)
-      pprint.exp(
-          'lines starting with \'-\' are lines that are not in the working '
-          'version but that are present in the last committed version of the '
-          'file', p=tf.write)
-      pprint.exp(
-          'lines starting with \'+\' are lines that are in the working version '
-          'but not in the last committed version of the file', p=tf.write)
       tf.write('\n'.join(_format_diff_output(out, padding)))
       tf.close()
-      subprocess.call('less -r {0}'.format(tf.name), shell=True)
+      subprocess.call('less -r -f {0}'.format(tf.name), shell=True)
       os.remove(tf.name)
     else:
       raise Exception('Unrecognized ret code %s' % ret)
