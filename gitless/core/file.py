@@ -200,14 +200,17 @@ def status(fp):
     fp: the file to status.
 
   Returns:
-    FILE_NOT_FOUND or a named tuple (fp, type, exists_in_lr, exists_in_wd,
-    modified, in_conflict, resolved) where fp is a file path, type is one of
-    TRACKED, UNTRACKED or IGNORED and all the remaining fields are booleans. The
-    modified field is True if the working version of the file differs from its
-    committed version (If there's no committed version, modified is set to
-    True.)
+    None (if the file wasn't found) or a named tuple (fp, type, exists_in_lr,
+    exists_in_wd, modified, in_conflict, resolved) where fp is a file path, type
+    is one of TRACKED, UNTRACKED or IGNORED and all the remaining fields are
+    booleans. The modified field is True if the working version of the file
+    differs from its committed version. (If there's no committed version,
+    modified is set to True.)
   """
-  return _status(fp)[0]
+  st = _status(fp)[0]
+  if st == FILE_NOT_FOUND:
+    return None
+  return st
 
 
 def status_all(include_tracked_unmodified_fps=True):
@@ -275,13 +278,13 @@ def internal_resolved_cleanup():
 
 
 def _status(fp):
-  s = git_status.of_file(fp)
-  if s == git_status.FILE_NOT_FOUND:
-    return (FILE_NOT_FOUND, s)
-  gls = _build_f_st(s, fp)
-  if not gls:
-    return (FILE_NOT_FOUND, s)
-  return (gls, s)
+  git_s = git_status.of_file(fp)
+  if git_s == git_status.FILE_NOT_FOUND:
+    return (FILE_NOT_FOUND, git_s)
+  gl_s = _build_f_st(git_s, fp)
+  if not gl_s:
+    return (FILE_NOT_FOUND, git_s)
+  return (gl_s, git_s)
 
 
 # This namedtuple is only used in _build_f_st, but putting it as a module var

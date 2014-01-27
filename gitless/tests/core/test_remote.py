@@ -12,7 +12,7 @@ from . import common
 import gitless.core.remote as remote_lib
 
 
-class RemoteStub:
+class RemoteStub(object):
 
   SUCCESS = remote_lib.git_remote.SUCCESS
   REMOTE_NOT_FOUND = remote_lib.git_remote.REMOTE_NOT_FOUND

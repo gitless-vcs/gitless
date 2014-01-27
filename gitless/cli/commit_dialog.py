@@ -5,6 +5,7 @@
 """Gitless's commit dialog."""
 
 
+import itertools
 import os
 import subprocess
 
@@ -154,7 +155,7 @@ def _extract_info(exp_lines):
     l = cf.readline()
   # We reached the separator, this marks the end of the commit msg.
   # We exhaust the following lines so that we get to the file list.
-  for i in range(0, exp_lines):
+  for _ in itertools.repeat(None, exp_lines):
     cf.readline()
 
   files = []

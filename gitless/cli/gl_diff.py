@@ -202,10 +202,10 @@ def _highlight(line1, line2):
     and the second tuple indicated the ends.
    """
   start1 = start2 = 0
-  match = re.search('\S', line1)  # ignore leading whitespace.
+  match = re.search(r'\S', line1)  # ignore leading whitespace.
   if match:
     start1 = match.start()
-  match = re.search('\S', line2)
+  match = re.search(r'\S', line2)
   if match:
     start2 = match.start()
   length = min(len(line1), len(line2)) - 1
@@ -215,9 +215,9 @@ def _highlight(line1, line2):
          line1[bold_start1] == line2[bold_start2]):
     bold_start1 += 1
     bold_start2 += 1
-  match = re.search('\s*$', line1)  # ignore trailing whitespace.
+  match = re.search(r'\s*$', line1)  # ignore trailing whitespace.
   bold_end1 = match.start() - 1
-  match = re.search('\s*$', line2)
+  match = re.search(r'\s*$', line2)
   bold_end2 = match.start() - 1
   while (bold_end1 >= bold_start1 and bold_end2 >= bold_start2 and
          line1[bold_end1] == line2[bold_end2]):

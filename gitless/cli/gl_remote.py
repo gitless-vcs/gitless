@@ -88,7 +88,7 @@ def _do_list():
       if rn.downstream != rn.upstream:
         mapping = ' (maps to {0} downstream, {1} upstream)'.format(
             rn.downstream, rn.upstream)
-      pprint.item(rn.name, opt_msg=mapping)
+      pprint.item(rn.name, opt_text=mapping)
   return True
 
 

@@ -14,16 +14,16 @@ def blank(p=sys.stdout.write):
   return p('#\n')
 
 
-def msg(msg, p=sys.stdout.write):
-  return p('# %s\n' % msg)
+def msg(text, p=sys.stdout.write):
+  return p('# %s\n' % text)
 
 
-def exp(msg, p=sys.stdout.write):
-  return p('#   (%s)\n' % msg)
+def exp(text, p=sys.stdout.write):
+  return p('#   (%s)\n' % text)
 
 
-def item(i, opt_msg='', p=sys.stdout.write):
-  return p('#     %s%s\n' % (i, opt_msg))
+def item(i, opt_text='', p=sys.stdout.write):
+  return p('#     %s%s\n' % (i, opt_text))
 
 
 def sep(p=sys.stdout.write):
@@ -34,39 +34,40 @@ def sep(p=sys.stdout.write):
 
 # Err.
 
-def err(msg, p=sys.stderr.write):
-  return p('# %s\n' % msg)
+def err(text, p=sys.stderr.write):
+  return p('# %s\n' % text)
 
 
-def err_exp(msg, p=sys.stderr.write):
-  return p('#   (%s)\n' % msg)
+def err_exp(text, p=sys.stderr.write):
+  return p('#   (%s)\n' % text)
 
 
 def err_blank(p=sys.stderr.write):
   return p('#\n')
 
 
-def err_item(i, opt_msg='', p=sys.stderr.write):
-  return p('#     %s%s\n' % (i, opt_msg))
+def err_item(i, opt_text='', p=sys.stderr.write):
+  return p('#     %s%s\n' % (i, opt_text))
 
 
 # Misc.
 
-def conf_dialog(msg):
+def conf_dialog(text):
   """Gets confirmation from the user.
 
-  Prints a confirmation message to stdout with the given msg and waits for
+  Prints a confirmation message to stdout with the given text and waits for
   user confirmation.
 
   Args:
-    msg: the msg to include in the confirmation.
+    text: the text to include in the confirmation.
 
   Returns:
     True if the user confirmed she wanted to continue or False if otherwise.
   """
-  sys.stdout.write('# %s. Do you wish to continue? (y/N)' % msg)
+  sys.stdout.write('# %s. Do you wish to continue? (y/N)' % text)
   # Python 2/3 compatibility.
   try:
+    # pylint: disable=W0622 (redefined-builtin)
     input = raw_input
   except NameError:
     pass

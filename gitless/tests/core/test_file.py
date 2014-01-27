@@ -142,6 +142,7 @@ class TestTrackFile(TestFile):
         'Track of fp "{0}" failed: expected {1}, got {2}'.format(
             fp, file_lib.SUCCESS, t))
     st = file_lib.status(fp)
+    self.assertTrue(st)
     self.assertEqual(
         file_lib.TRACKED, st.type,
         'Track of fp "{0}" failed: expected status.type={1}, got '
@@ -265,6 +266,7 @@ class TestUntrackFile(TestFile):
         'Untrack of fp "{0}" failed: expected {1}, got {2}'.format(
             fp, file_lib.SUCCESS, t))
     st = file_lib.status(fp)
+    self.assertTrue(st)
     self.assertEqual(
         file_lib.UNTRACKED, st.type,
         'Untrack of fp "{0}" failed: expected status.type={1}, got '
@@ -470,21 +472,25 @@ class TestStatus(TestFile):
         file_lib.status_all(), [file_lib.status(fp) for fp in ALL_FPS_IN_WD])
 
   def test_status_nonexistent_fp(self):
-    self.assertEqual(file_lib.FILE_NOT_FOUND, file_lib.status(NONEXISTENT_FP))
+    self.assertFalse(file_lib.status(NONEXISTENT_FP))
 
   def test_status_nonexistent_fp_with_space(self):
-    self.assertEqual(
-        file_lib.FILE_NOT_FOUND, file_lib.status(NONEXISTENT_FP_WITH_SPACE))
+    self.assertFalse(file_lib.status(NONEXISTENT_FP_WITH_SPACE))
 
   def test_status_modify(self):
     self._write_file(TRACKED_FP, contents='contents')
-    self.assertTrue(file_lib.status(TRACKED_FP).modified)
+    st = file_lib.status(TRACKED_FP)
+    self.assertTrue(st)
+    self.assertTrue(st.modified)
     self._write_file(TRACKED_FP, contents=TRACKED_FP_CONTENTS_2)
-    self.assertFalse(file_lib.status(TRACKED_FP).modified)
+    st = file_lib.status(TRACKED_FP)
+    self.assertTrue(st)
+    self.assertFalse(st.modified)
 
   def test_status_rm(self):
     os.remove(TRACKED_FP)
     st = file_lib.status(TRACKED_FP)
+    self.assertTrue(st)
     self.assertEqual(file_lib.TRACKED, st.type)
     self.assertTrue(st.modified)
     self.assertTrue(st.exists_in_lr)
@@ -492,6 +498,7 @@ class TestStatus(TestFile):
 
     self._write_file(TRACKED_FP, contents=TRACKED_FP_CONTENTS_2)
     st = file_lib.status(TRACKED_FP)
+    self.assertTrue(st)
     self.assertEqual(file_lib.TRACKED, st.type)
     self.assertFalse(st.modified)
     self.assertTrue(st.exists_in_lr)
@@ -500,53 +507,64 @@ class TestStatus(TestFile):
   def test_status_track_rm(self):
     file_lib.track(UNTRACKED_FP)
     st = file_lib.status(UNTRACKED_FP)
+    self.assertTrue(st)
     self.assertEqual(file_lib.TRACKED, st.type)
     self.assertTrue(st.modified)
 
     os.remove(UNTRACKED_FP)
-    self.assertEqual(file_lib.FILE_NOT_FOUND, file_lib.status(UNTRACKED_FP))
+    self.assertFalse(file_lib.status(UNTRACKED_FP))
 
   def test_status_track_untrack(self):
     file_lib.track(UNTRACKED_FP)
     st = file_lib.status(UNTRACKED_FP)
+    self.assertTrue(st)
     self.assertEqual(file_lib.TRACKED, st.type)
     self.assertTrue(st.modified)
 
     file_lib.untrack(UNTRACKED_FP)
     st = file_lib.status(UNTRACKED_FP)
+    self.assertTrue(st)
     self.assertEqual(file_lib.UNTRACKED, st.type)
     self.assertTrue(st.modified)
 
   def test_status_unignore(self):
     self._write_file('.gitignore', contents='')
-    self.assertEqual(file_lib.UNTRACKED, file_lib.status(IGNORED_FP).type)
-    self.assertEqual(
-        file_lib.UNTRACKED, file_lib.status(IGNORED_FP_WITH_SPACE).type)
+    st = file_lib.status(IGNORED_FP)
+    self.assertTrue(st)
+    self.assertEqual(file_lib.UNTRACKED, st.type)
+    st = file_lib.status(IGNORED_FP_WITH_SPACE)
+    self.assertTrue(st)
+    self.assertEqual(file_lib.UNTRACKED, st.type)
 
   def test_status_ignore(self):
     contents = self._read_file('.gitignore') + '\n' + TRACKED_FP
     self._write_file('.gitignore', contents=contents)
     # Tracked files can't be ignored.
-    self.assertEqual(file_lib.TRACKED, file_lib.status(TRACKED_FP).type)
+    st = file_lib.status(TRACKED_FP)
+    self.assertTrue(st)
+    self.assertEqual(file_lib.TRACKED, st.type)
 
   def test_status_untrack_tracked_modify(self):
     file_lib.untrack(TRACKED_FP)
     st = file_lib.status(TRACKED_FP)
+    self.assertTrue(st)
     self.assertEqual(file_lib.UNTRACKED, st.type)
     # self.assertFalse(st.modified)
 
     self._write_file(TRACKED_FP, contents='contents')
     st = file_lib.status(TRACKED_FP)
+    self.assertTrue(st)
     self.assertEqual(file_lib.UNTRACKED, st.type)
     self.assertTrue(st.modified)
 
   def test_status_untrack_tracked_rm(self):
     file_lib.untrack(TRACKED_FP)
     st = file_lib.status(TRACKED_FP)
+    self.assertTrue(st)
     self.assertEqual(file_lib.UNTRACKED, st.type)
 
     os.remove(TRACKED_FP)
-    self.assertEqual(file_lib.FILE_NOT_FOUND, file_lib.status(TRACKED_FP))
+    self.assertFalse(file_lib.status(TRACKED_FP))
 
   def test_status_all_relative(self):
     rel_to_dir = lambda fp: os.path.relpath(fp, DIR)
@@ -555,19 +573,19 @@ class TestStatus(TestFile):
 
     st_all = file_lib.status_all()
     seen = []
-    for fp, type, exists_in_lr, exists_in_wd, modified, _, _ in st_all:
+    for fp, f_type, exists_in_lr, exists_in_wd, modified, _, _ in st_all:
       if (fp == rel_to_dir(TRACKED_DIR_FP) or
           fp == rel_to_dir(TRACKED_DIR_FP_WITH_SPACE) or
           fp == rel_to_dir(TRACKED_DIR_DIR_FP) or
           fp == rel_to_dir(TRACKED_DIR_DIR_FP_WITH_SPACE)):
-        self.__assert_type(fp, file_lib.TRACKED, type)
+        self.__assert_type(fp, file_lib.TRACKED, f_type)
         self.__assert_field(fp, 'exists_in_lr', True, exists_in_lr)
         self.__assert_field(fp, 'modified', False, modified)
       elif (fp == rel_to_dir(UNTRACKED_DIR_FP) or
             fp == rel_to_dir(UNTRACKED_DIR_FP_WITH_SPACE) or
             fp == rel_to_dir(UNTRACKED_DIR_DIR_FP) or
             fp == rel_to_dir(UNTRACKED_DIR_DIR_FP_WITH_SPACE)):
-        self.__assert_type(fp, file_lib.UNTRACKED, type)
+        self.__assert_type(fp, file_lib.UNTRACKED, f_type)
         self.__assert_field(fp, 'exists_in_lr', False, exists_in_lr)
         self.__assert_field(fp, 'modified', True, modified)
       else:
@@ -579,14 +597,16 @@ class TestStatus(TestFile):
   def test_status_ignore_tracked(self):
     """Assert that ignoring a tracked file has no effect."""
     self._append_to_file('.gitignore', contents='\n' + TRACKED_FP + '\n')
-    self.__assert_type(
-        TRACKED_FP, file_lib.TRACKED, file_lib.status(TRACKED_FP).type)
+    st = file_lib.status(TRACKED_FP)
+    self.assertTrue(st)
+    self.__assert_type(TRACKED_FP, file_lib.TRACKED, st.type)
 
   def test_status_ignore_untracked(self):
     """Assert that ignoring a untracked file makes it ignored."""
     self._append_to_file('.gitignore', contents='\n' + UNTRACKED_FP + '\n')
-    self.__assert_type(
-        UNTRACKED_FP, file_lib.IGNORED, file_lib.status(UNTRACKED_FP).type)
+    st = file_lib.status(UNTRACKED_FP)
+    self.assertTrue(st)
+    self.__assert_type(UNTRACKED_FP, file_lib.IGNORED, st.type)
 
   # TODO(sperezde): this test exposes a rough edge that we haven't fixed yet.
   # Uncomment the test once it's fixed.
@@ -603,10 +623,10 @@ class TestStatus(TestFile):
             fp, expected, got))
 
   def __assert_field(self, fp, field, expected, got):
-     self.assertEqual(
-         expected, got,
-         'Incorrect status for {0}: expected {1}={2}, got {3}={4}'.format(
-             fp, field, expected, field, got))
+    self.assertEqual(
+        expected, got,
+        'Incorrect status for {0}: expected {1}={2}, got {3}={4}'.format(
+            fp, field, expected, field, got))
 
 
 class TestDiff(TestFile):
@@ -756,13 +776,17 @@ class TestResolveFile(TestFile):
     self.__assert_resolve_fp(DIR_FP_IN_CONFLICT)
     os.chdir(DIR)
     rel_fp = os.path.relpath(DIR_FP_IN_CONFLICT, DIR)
-    self.assertTrue(file_lib.status(rel_fp).resolved)
+    st = file_lib.status(rel_fp)
+    self.assertTrue(st)
+    self.assertTrue(st.resolved)
     self.assertEqual(file_lib.FILE_ALREADY_RESOLVED, file_lib.resolve(rel_fp))
 
   @common.assert_contents_unchanged(FP_IN_CONFLICT)
   def __assert_resolve_fp(self, fp):
     self.assertEqual(file_lib.SUCCESS, file_lib.resolve(fp))
-    self.assertTrue(file_lib.status(fp).resolved)
+    st = file_lib.status(fp)
+    self.assertTrue(st)
+    self.assertTrue(st.resolved)
 
 
 if __name__ == '__main__':

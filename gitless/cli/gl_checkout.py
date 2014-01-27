@@ -46,12 +46,12 @@ def _checkout_file(fp, cp):
       'You have uncomitted changes in %s that could be overwritten by the '
       'checkout' % fp)
   f = file_lib.status(fp)
-  if f.type == file_lib.TRACKED and f.modified and not pprint.conf_dialog(
+  if f and f.type == file_lib.TRACKED and f.modified and not pprint.conf_dialog(
       conf_msg):
     pprint.err('Checkout aborted')
     return False
 
-  ret, out = file_lib.checkout(fp, cp)
+  ret, _ = file_lib.checkout(fp, cp)
   if ret == file_lib.FILE_NOT_FOUND_AT_CP:
     pprint.err('Checkout aborted')
     pprint.err('There\'s no file %s at %s' % (fp, cp))

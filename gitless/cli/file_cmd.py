@@ -5,8 +5,6 @@
 """Helper module for gl_{track, untrack, resolve}."""
 
 
-import os
-
 from . import pprint
 
 from gitless.core import file as file_lib
@@ -56,8 +54,8 @@ def main(subcmd):
         success = False
       elif ret is file_lib.FILE_ALREADY_RESOLVED:
         pprint.err(
-            'Nothing to resolve. File {0} was already marked as resolved'.format(
-                fp))
+            'Nothing to resolve. File {0} was already marked as '
+            'resolved'.format(fp))
         success = False
       elif ret is file_lib.SUCCESS:
         pprint.msg(

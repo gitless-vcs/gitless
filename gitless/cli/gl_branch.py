@@ -51,18 +51,8 @@ def main(args):
           '-- this will be implemented in the future)')
       return False
 
-    if not b_st.exists:
-      ret = branch_lib.create(args.branch, dp=args.divergent_point)
-      if ret is branch_lib.INVALID_NAME:
-        pprint.err('Invalid branch name')
-        return False
-      elif ret == branch_lib.INVALID_DP:
-        pprint.msg('Invalid divergent point {0}'.format(args.divergent_point))
-        return False
-      elif ret is branch_lib.SUCCESS:
-        pprint.msg('Created new branch %s' % args.branch)
-      else:
-        raise Exception('Unrecognized ret code %s' % ret)
+    if not b_st.exists and not _do_create(args.branch, args.divergent_point):
+      return False
 
     branch_lib.switch(args.branch)
     pprint.msg('Switched to branch %s' % args.branch)
@@ -74,6 +64,23 @@ def main(args):
     _do_list()
 
   return True
+
+
+def _do_create(branch_name, divergent_point):
+  errors_found = False
+
+  ret = branch_lib.create(branch_name, dp=divergent_point)
+  if ret == branch_lib.INVALID_NAME:
+    pprint.err('Invalid branch name')
+    errors_found = True
+  elif ret == branch_lib.INVALID_DP:
+    pprint.msg('Invalid divergent point {0}'.format(divergent_point))
+    errors_found = True
+  elif ret == branch_lib.SUCCESS:
+    pprint.msg('Created new branch %s' % branch_name)
+  else:
+    raise Exception('Unrecognized ret code %s' % ret)
+  return not errors_found
 
 
 def _do_list():

@@ -76,6 +76,7 @@ class TestEndToEnd(unittest.TestCase):
     self.__git_call('config user.email \"test@test.com\"')
 
   # TODO(sperezde): add dialog related tests.
+  # TODO(sperezde): add checkout related tests.
 
   def test_basic_functionality(self):
     self.__success('init')
@@ -105,7 +106,7 @@ class TestEndToEnd(unittest.TestCase):
     self.__success('branch master')
     if 'New' not in self.__read_file('file1'):
       self.fail('Branch not independent!')
-    out, unused_err = self.__success('branch')
+    out, _ = self.__success('branch')
     if '* master' not in out:
       self.fail('Branch status output wrong')
     if 'branch1' not in out:

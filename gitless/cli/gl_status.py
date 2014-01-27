@@ -20,7 +20,7 @@ def parser(subparsers):
   status_parser.set_defaults(func=main)
 
 
-def main(unused_args):
+def main(_):
   pprint.msg(
       'On branch {0}, repo-directory /{1}'.format(
           branch_lib.current(), repo_lib.cwd()))
@@ -74,7 +74,7 @@ def _print_tracked_mod_files(tracked_mod_list):
         exp = ' (with conflicts)'
       elif f.resolved:
         exp = ' (conflicts resolved)'
-      pprint.item(f.fp, opt_msg=exp)
+      pprint.item(f.fp, opt_text=exp)
 
 
 def _print_untracked_files(untracked_list):
@@ -92,7 +92,7 @@ def _print_untracked_files(untracked_list):
           s = ' (exists in local repo)'
         else:
           s = ' (exists in local repo but not in working directory)'
-      pprint.item(f.fp, opt_msg=s)
+      pprint.item(f.fp, opt_text=s)
 
 
 def _print_conflict_exp(t):

@@ -81,7 +81,7 @@ def main(args):
     pprint.err_exp('use gl rebase --abort to abort the current rebase')
     return False
 
-  ret, out = sync_lib.rebase(args.src)
+  ret, _ = sync_lib.rebase(args.src)
   if ret is sync_lib.SRC_NOT_FOUND:
     pprint.err('Branch %s not found' % args.src)
     pprint.err_exp('do gl branch to list all existing branches')

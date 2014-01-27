@@ -85,23 +85,23 @@ class TestCore(unittest.TestCase):
     return out, err
 
 
-def stub(module, stub):
-  """Stub the given module with the given stub.
+def stub(module, fake):
+  """Stub the given module with the given fake.
 
   Each symbol in the module is overrwritten with its matching symbol
-  in the stub.
+  in the fake.
 
   Args:
     module: the module to stub.
-    stub: an instance of a class used for stubbing.
+    fake: an instance of a class used for stubbing.
   """
-  clz = dir(stub)
+  clz = dir(fake)
   for key_mod in dir(module):
     if key_mod in clz:
-      stub_obj = getattr(stub, key_mod)
-      if hasattr(stub_obj, '__call__'):
-        stub_obj = stub_obj()
-      setattr(module, key_mod, stub_obj)
+      fake_obj = getattr(fake, key_mod)
+      if hasattr(fake_obj, '__call__'):
+        fake_obj = fake_obj()
+      setattr(module, key_mod, fake_obj)
 
 
 def assert_contents_unchanged(*fps):

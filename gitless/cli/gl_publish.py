@@ -17,7 +17,7 @@ def parser(subparsers):
   push_parser.set_defaults(func=main)
 
 
-def main(unused_args):
+def main(_):
   ret, out = sync_lib.publish()
   success = True
 

@@ -114,9 +114,13 @@ class TestSwitch(TestBranch):
   def test_switch_file_classification_is_mantained(self):
     file_lib.untrack(TRACKED_FP)
     self.assertEqual(branch_lib.SUCCESS, branch_lib.switch(BRANCH))
-    self.assertEqual(file_lib.TRACKED, file_lib.status(TRACKED_FP).type)
+    st = file_lib.status(TRACKED_FP)
+    self.assertTrue(st)
+    self.assertEqual(file_lib.TRACKED, st.type)
     self.assertEqual(branch_lib.SUCCESS, branch_lib.switch('master'))
-    self.assertEqual(file_lib.UNTRACKED, file_lib.status(TRACKED_FP).type)
+    st = file_lib.status(TRACKED_FP)
+    self.assertTrue(st)
+    self.assertEqual(file_lib.UNTRACKED, st.type)
 
 
 if __name__ == '__main__':

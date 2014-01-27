@@ -106,15 +106,6 @@ def set_upstream(upstream):
   return SUCCESS
 
 
-def detach(name):
-  """Detaches the branch with the given name from its remote.
-
-  Args:
-    name: the name of the branch to detach.
-  """
-  # TBD
-
-
 def switch(name):
   """Switches to the branch with the given name.
 
@@ -180,15 +171,15 @@ def status_all():
 
   rebase_in_progress = _rebase_in_progress()
   if rebase_in_progress:
-    current = _rebase_branch()
+    current_b = _rebase_branch()
 
   ret = []
   for name, is_current, upstream in git_branch.status_all():
     if name == '(no branch)':
       continue
 
-    if rebase_in_progress and name == current:
-      is_current = current
+    if rebase_in_progress and name == current_b:
+      is_current = current_b
 
     upstream_exists = True
     if not upstream:
@@ -226,7 +217,7 @@ def _stash_msg(name):
 def _unpushed_upstream(name):
   """Returns the unpushed upstream or None."""
   for f in os.listdir(repo_lib.gl_dir()):
-    result = re.match('GL_UPSTREAM_%s_(\w+)_(\w+)' % name, f)
+    result = re.match(r'GL_UPSTREAM_%s_(\w+)_(\w+)' % name, f)
     if result:
       return '/'.join([result.group(1), result.group(2)])
   return None
