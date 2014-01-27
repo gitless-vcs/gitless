@@ -31,7 +31,7 @@ def add(remote_name, remote_url):
   """
   if '/' in remote_name:
     return INVALID_NAME
-  if __is_set(remote_name):
+  if is_set(remote_name):
     return REMOTE_ALREADY_SET
   s = git_remote.add(remote_name, remote_url)
   if s == git_remote.REMOTE_UNREACHABLE:
@@ -62,14 +62,11 @@ def info_all():
 
 
 def rm(remote_name):
-  if not __is_set(remote_name):
+  if not is_set(remote_name):
     return REMOTE_NOT_FOUND
   git_remote.rm(remote_name)
   return SUCCESS
 
 
-# Private functions.
-
-
-def __is_set(remote_name):
+def is_set(remote_name):
   return remote_name in git_remote.show_all()
