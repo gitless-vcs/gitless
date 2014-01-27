@@ -5,6 +5,8 @@
 """Gitless's remote lib."""
 
 
+import collections
+
 from gitpylib import remote as git_remote
 
 
@@ -50,8 +52,13 @@ def info(remote_name):
     return (SUCCESS, info)
 
 
+RemoteInfo = collections.namedtuple(
+    'RemoteInfo', ['name', 'downstream', 'upstream'])
+
+
 def info_all():
-  return git_remote.show_all()
+  for ri in git_remote.show_all_v():
+    yield RemoteInfo(ri.name, ri.fetch, ri.push)
 
 
 def rm(remote_name):

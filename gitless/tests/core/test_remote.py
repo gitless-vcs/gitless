@@ -38,6 +38,14 @@ class RemoteStub:
       return list(self.remotes.keys())
     return stub_show_all
 
+  def show_all_v(self):
+    def stub_show_all_v():
+      ret = []
+      for rn, ru in self.remotes.items():
+        ret.append(remote_lib.git_remote.RemoteInfo(rn, ru, ru))
+      return ret
+    return stub_show_all_v
+
   def rm(self):
     def stub_rm(remote_name):
       del self.remotes[remote_name]
@@ -82,7 +90,10 @@ class TestInfoAll(TestRemote):
   def test_info_all(self):
     remote_lib.add('remote1', 'url1')
     remote_lib.add('remote2', 'url2')
-    self.assertItemsEqual(['remote1', 'remote2'], remote_lib.info_all())
+    self.assertItemsEqual(
+        [remote_lib.RemoteInfo('remote1', 'url1', 'url1'),
+         remote_lib.RemoteInfo('remote2', 'url2', 'url2')],
+        remote_lib.info_all())
 
 
 class TestRm(TestRemote):
