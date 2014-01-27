@@ -14,7 +14,7 @@ from . import pprint
 def parser(subparsers):
   """Adds the branch parser to the given subparsers object."""
   branch_parser = subparsers.add_parser(
-      'branch', help='create, edit, delete or switch branches')
+      'branch', help='list, create, edit, delete or switch branches')
   branch_parser.add_argument(
       'branch', nargs='?',
       help='switch to branch (will be created if it doesn\'t exist yet)')
