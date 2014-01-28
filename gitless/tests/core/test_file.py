@@ -9,6 +9,8 @@ import os
 import unittest
 
 import gitless.core.file as file_lib
+import gitless.tests.utils as utils_lib
+
 from . import common
 
 
@@ -52,46 +54,48 @@ class TestFile(common.TestCore):
     super(TestFile, self).setUp()
 
     # Build up an interesting mock repo.
-    self._write_file(TRACKED_FP, contents=TRACKED_FP_CONTENTS_1)
-    self._write_file(TRACKED_FP_WITH_SPACE, contents=TRACKED_FP_CONTENTS_1)
-    self._write_file(TRACKED_DIR_FP, contents=TRACKED_FP_CONTENTS_1)
-    self._write_file(TRACKED_DIR_FP_WITH_SPACE, contents=TRACKED_FP_CONTENTS_1)
-    self._write_file(TRACKED_DIR_DIR_FP, contents=TRACKED_FP_CONTENTS_1)
-    self._write_file(
+    utils_lib.write_file(TRACKED_FP, contents=TRACKED_FP_CONTENTS_1)
+    utils_lib.write_file(TRACKED_FP_WITH_SPACE, contents=TRACKED_FP_CONTENTS_1)
+    utils_lib.write_file(TRACKED_DIR_FP, contents=TRACKED_FP_CONTENTS_1)
+    utils_lib.write_file(
+        TRACKED_DIR_FP_WITH_SPACE, contents=TRACKED_FP_CONTENTS_1)
+    utils_lib.write_file(TRACKED_DIR_DIR_FP, contents=TRACKED_FP_CONTENTS_1)
+    utils_lib.write_file(
         TRACKED_DIR_DIR_FP_WITH_SPACE, contents=TRACKED_FP_CONTENTS_1)
-    self._git_call(
+    utils_lib.git_call(
         'add "{0}" "{1}" "{2}" "{3}" "{4}" "{5}"'.format(
           TRACKED_FP, TRACKED_FP_WITH_SPACE,
           TRACKED_DIR_FP, TRACKED_DIR_FP_WITH_SPACE,
           TRACKED_DIR_DIR_FP, TRACKED_DIR_DIR_FP_WITH_SPACE))
-    self._git_call(
+    utils_lib.git_call(
         'commit -m"1" "{0}" "{1}" "{2}" "{3}" "{4}" "{5}"'.format(
           TRACKED_FP, TRACKED_FP_WITH_SPACE,
           TRACKED_DIR_FP, TRACKED_DIR_FP_WITH_SPACE,
           TRACKED_DIR_DIR_FP, TRACKED_DIR_DIR_FP_WITH_SPACE))
-    self._write_file(TRACKED_FP, contents=TRACKED_FP_CONTENTS_2)
-    self._write_file(TRACKED_FP_WITH_SPACE, contents=TRACKED_FP_CONTENTS_2)
-    self._write_file(TRACKED_DIR_FP, contents=TRACKED_FP_CONTENTS_2)
-    self._write_file(TRACKED_DIR_FP_WITH_SPACE, contents=TRACKED_FP_CONTENTS_2)
-    self._write_file(TRACKED_DIR_DIR_FP, contents=TRACKED_FP_CONTENTS_2)
-    self._write_file(
+    utils_lib.write_file(TRACKED_FP, contents=TRACKED_FP_CONTENTS_2)
+    utils_lib.write_file(TRACKED_FP_WITH_SPACE, contents=TRACKED_FP_CONTENTS_2)
+    utils_lib.write_file(TRACKED_DIR_FP, contents=TRACKED_FP_CONTENTS_2)
+    utils_lib.write_file(
+        TRACKED_DIR_FP_WITH_SPACE, contents=TRACKED_FP_CONTENTS_2)
+    utils_lib.write_file(TRACKED_DIR_DIR_FP, contents=TRACKED_FP_CONTENTS_2)
+    utils_lib.write_file(
         TRACKED_DIR_DIR_FP_WITH_SPACE, contents=TRACKED_FP_CONTENTS_2)
-    self._git_call(
+    utils_lib.git_call(
         'commit -m"2" "{0}" "{1}" "{2}" "{3}" "{4}" "{5}"'.format(
           TRACKED_FP, TRACKED_FP_WITH_SPACE,
           TRACKED_DIR_FP, TRACKED_DIR_FP_WITH_SPACE,
           TRACKED_DIR_DIR_FP, TRACKED_DIR_DIR_FP_WITH_SPACE))
-    self._write_file(UNTRACKED_FP)
-    self._write_file(UNTRACKED_FP_WITH_SPACE)
-    self._write_file(UNTRACKED_DIR_FP)
-    self._write_file(UNTRACKED_DIR_FP_WITH_SPACE)
-    self._write_file(UNTRACKED_DIR_DIR_FP)
-    self._write_file(UNTRACKED_DIR_DIR_FP_WITH_SPACE)
-    self._write_file(
+    utils_lib.write_file(UNTRACKED_FP)
+    utils_lib.write_file(UNTRACKED_FP_WITH_SPACE)
+    utils_lib.write_file(UNTRACKED_DIR_FP)
+    utils_lib.write_file(UNTRACKED_DIR_FP_WITH_SPACE)
+    utils_lib.write_file(UNTRACKED_DIR_DIR_FP)
+    utils_lib.write_file(UNTRACKED_DIR_DIR_FP_WITH_SPACE)
+    utils_lib.write_file(
         '.gitignore', contents='{0}\n{1}'.format(
             IGNORED_FP, IGNORED_FP_WITH_SPACE))
-    self._write_file(IGNORED_FP)
-    self._write_file(IGNORED_FP_WITH_SPACE)
+    utils_lib.write_file(IGNORED_FP)
+    utils_lib.write_file(IGNORED_FP_WITH_SPACE)
 
 
 class TestTrackFile(TestFile):
@@ -423,15 +427,15 @@ class TestCheckoutFile(TestFile):
         os.path.relpath(TRACKED_DIR_DIR_FP_WITH_SPACE, DIR_DIR))
 
   def __assert_checkout_fp_at_head(self, fp):
-    contents = self._read_file(fp)
-    self._write_file(fp, contents='contents')
+    contents = utils_lib.read_file(fp)
+    utils_lib.write_file(fp, contents='contents')
     self.assertEqual(file_lib.SUCCESS, file_lib.checkout(fp)[0])
-    self.assertEqual(contents, self._read_file(fp))
+    self.assertEqual(contents, utils_lib.read_file(fp))
 
   def __assert_checkout_cp_other_than_head(self, fp):
-    self._write_file(fp, contents='contents')
+    utils_lib.write_file(fp, contents='contents')
     self.assertEqual(file_lib.SUCCESS, file_lib.checkout(fp, 'HEAD^1')[0])
-    self.assertEqual(TRACKED_FP_CONTENTS_1, self._read_file(fp))
+    self.assertEqual(TRACKED_FP_CONTENTS_1, utils_lib.read_file(fp))
 
 
 class TestStatus(TestFile):
@@ -439,26 +443,26 @@ class TestStatus(TestFile):
   def test_status_all(self):
     st_all = file_lib.status_all()
     seen = []
-    for fp, type, exists_in_lr, exists_in_wd, modified, _, _ in st_all:
+    for fp, f_type, exists_in_lr, exists_in_wd, modified, _, _ in st_all:
       if (fp == TRACKED_FP or fp == TRACKED_FP_WITH_SPACE or
           fp == TRACKED_DIR_FP or fp == TRACKED_DIR_FP_WITH_SPACE or
           fp == TRACKED_DIR_DIR_FP or fp == TRACKED_DIR_DIR_FP_WITH_SPACE):
-        self.__assert_type(fp, file_lib.TRACKED, type)
+        self.__assert_type(fp, file_lib.TRACKED, f_type)
         self.__assert_field(fp, 'exists_in_lr', True, exists_in_lr)
         self.__assert_field(fp, 'modified', False, modified)
       elif (fp == UNTRACKED_FP or fp == UNTRACKED_FP_WITH_SPACE or
             fp == UNTRACKED_DIR_FP or fp == UNTRACKED_DIR_FP_WITH_SPACE or
             fp == UNTRACKED_DIR_DIR_FP or
             fp == UNTRACKED_DIR_DIR_FP_WITH_SPACE):
-        self.__assert_type(fp, file_lib.UNTRACKED, type)
+        self.__assert_type(fp, file_lib.UNTRACKED, f_type)
         self.__assert_field(fp, 'exists_in_lr', False, exists_in_lr)
         self.__assert_field(fp, 'modified', True, modified)
       elif fp == IGNORED_FP or fp == IGNORED_FP_WITH_SPACE:
-        self.__assert_type(fp, file_lib.IGNORED, type)
+        self.__assert_type(fp, file_lib.IGNORED, f_type)
         self.__assert_field(fp, 'exists_in_lr', False, exists_in_lr)
         self.__assert_field(fp, 'modified', True, modified)
       elif fp == '.gitignore':
-        self.__assert_type(fp, file_lib.UNTRACKED, type)
+        self.__assert_type(fp, file_lib.UNTRACKED, f_type)
         self.__assert_field(fp, 'exists_in_lr', False, exists_in_lr)
         self.__assert_field(fp, 'modified', True, modified)
       else:
@@ -478,11 +482,11 @@ class TestStatus(TestFile):
     self.assertFalse(file_lib.status(NONEXISTENT_FP_WITH_SPACE))
 
   def test_status_modify(self):
-    self._write_file(TRACKED_FP, contents='contents')
+    utils_lib.write_file(TRACKED_FP, contents='contents')
     st = file_lib.status(TRACKED_FP)
     self.assertTrue(st)
     self.assertTrue(st.modified)
-    self._write_file(TRACKED_FP, contents=TRACKED_FP_CONTENTS_2)
+    utils_lib.write_file(TRACKED_FP, contents=TRACKED_FP_CONTENTS_2)
     st = file_lib.status(TRACKED_FP)
     self.assertTrue(st)
     self.assertFalse(st.modified)
@@ -496,7 +500,7 @@ class TestStatus(TestFile):
     self.assertTrue(st.exists_in_lr)
     self.assertFalse(st.exists_in_wd)
 
-    self._write_file(TRACKED_FP, contents=TRACKED_FP_CONTENTS_2)
+    utils_lib.write_file(TRACKED_FP, contents=TRACKED_FP_CONTENTS_2)
     st = file_lib.status(TRACKED_FP)
     self.assertTrue(st)
     self.assertEqual(file_lib.TRACKED, st.type)
@@ -528,7 +532,7 @@ class TestStatus(TestFile):
     self.assertTrue(st.modified)
 
   def test_status_unignore(self):
-    self._write_file('.gitignore', contents='')
+    utils_lib.write_file('.gitignore', contents='')
     st = file_lib.status(IGNORED_FP)
     self.assertTrue(st)
     self.assertEqual(file_lib.UNTRACKED, st.type)
@@ -537,8 +541,8 @@ class TestStatus(TestFile):
     self.assertEqual(file_lib.UNTRACKED, st.type)
 
   def test_status_ignore(self):
-    contents = self._read_file('.gitignore') + '\n' + TRACKED_FP
-    self._write_file('.gitignore', contents=contents)
+    contents = utils_lib.read_file('.gitignore') + '\n' + TRACKED_FP
+    utils_lib.write_file('.gitignore', contents=contents)
     # Tracked files can't be ignored.
     st = file_lib.status(TRACKED_FP)
     self.assertTrue(st)
@@ -551,7 +555,7 @@ class TestStatus(TestFile):
     self.assertEqual(file_lib.UNTRACKED, st.type)
     # self.assertFalse(st.modified)
 
-    self._write_file(TRACKED_FP, contents='contents')
+    utils_lib.write_file(TRACKED_FP, contents='contents')
     st = file_lib.status(TRACKED_FP)
     self.assertTrue(st)
     self.assertEqual(file_lib.UNTRACKED, st.type)
@@ -596,14 +600,14 @@ class TestStatus(TestFile):
 
   def test_status_ignore_tracked(self):
     """Assert that ignoring a tracked file has no effect."""
-    self._append_to_file('.gitignore', contents='\n' + TRACKED_FP + '\n')
+    utils_lib.append_to_file('.gitignore', contents='\n' + TRACKED_FP + '\n')
     st = file_lib.status(TRACKED_FP)
     self.assertTrue(st)
     self.__assert_type(TRACKED_FP, file_lib.TRACKED, st.type)
 
   def test_status_ignore_untracked(self):
     """Assert that ignoring a untracked file makes it ignored."""
-    self._append_to_file('.gitignore', contents='\n' + UNTRACKED_FP + '\n')
+    utils_lib.append_to_file('.gitignore', contents='\n' + UNTRACKED_FP + '\n')
     st = file_lib.status(UNTRACKED_FP)
     self.assertTrue(st)
     self.__assert_type(UNTRACKED_FP, file_lib.IGNORED, st.type)
@@ -612,7 +616,7 @@ class TestStatus(TestFile):
   # Uncomment the test once it's fixed.
   #def test_status_ignore_untracked_tracked(self):
   #  file_lib.untrack(TRACKED_FP)
-  #  self._append_to_file('.gitignore', contents='\n' + TRACKED_FP + '\n')
+  #  utils_lib.append_to_file('.gitignore', contents='\n' + TRACKED_FP + '\n')
   #  self.__assert_type(
   #      TRACKED_FP, file_lib.IGNORED, file_lib.status(TRACKED_FP).type)
 
@@ -668,7 +672,7 @@ class TestDiff(TestFile):
     self.assertEqual([], out)
 
   def test_diff_basic(self):
-    self._write_file(TRACKED_FP, contents='new contents')
+    utils_lib.write_file(TRACKED_FP, contents='new contents')
     ret, (out, _) = file_lib.diff(TRACKED_FP)
 
     self.assertEqual(file_lib.SUCCESS, ret)
@@ -685,7 +689,7 @@ class TestDiff(TestFile):
     self.assertEqual(1, out[2].new_line_number)
 
   def test_diff_append(self):
-    self._append_to_file(TRACKED_FP, contents='new contents')
+    utils_lib.append_to_file(TRACKED_FP, contents='new contents')
     ret, (out, _) = file_lib.diff(TRACKED_FP)
 
     self.assertEqual(file_lib.SUCCESS, ret)
@@ -703,7 +707,7 @@ class TestDiff(TestFile):
 
   def test_diff_new_fp(self):
     fp = 'new'
-    self._write_file(fp, contents=fp + '\n')
+    utils_lib.write_file(fp, contents=fp + '\n')
     file_lib.track(fp)
     ret, (out, _) = file_lib.diff(fp)
 
@@ -715,7 +719,7 @@ class TestDiff(TestFile):
     self.assertEqual(1, out[1].new_line_number)
 
     # Now let's add some change to the file and check that diff notices it.
-    self._append_to_file(fp, contents='new line')
+    utils_lib.append_to_file(fp, contents='new line')
     ret, (out, _) = file_lib.diff(fp)
 
     self.assertEqual(file_lib.SUCCESS, ret)
@@ -742,21 +746,23 @@ class TestResolveFile(TestFile):
     super(TestResolveFile, self).setUp()
 
     # Generate a conflict.
-    self._git_call('checkout -b branch')
-    self._write_file(FP_IN_CONFLICT, contents='branch')
-    self._write_file(DIR_FP_IN_CONFLICT, contents='branch')
-    self._git_call('add "{0}" "{1}"'.format(FP_IN_CONFLICT, DIR_FP_IN_CONFLICT))
-    self._git_call(
+    utils_lib.git_call('checkout -b branch')
+    utils_lib.write_file(FP_IN_CONFLICT, contents='branch')
+    utils_lib.write_file(DIR_FP_IN_CONFLICT, contents='branch')
+    utils_lib.git_call(
+        'add "{0}" "{1}"'.format(FP_IN_CONFLICT, DIR_FP_IN_CONFLICT))
+    utils_lib.git_call(
         'commit -m"branch" "{0}" "{1}"'.format(
             FP_IN_CONFLICT, DIR_FP_IN_CONFLICT))
-    self._git_call('checkout master')
-    self._write_file(FP_IN_CONFLICT, contents='master')
-    self._write_file(DIR_FP_IN_CONFLICT, contents='master')
-    self._git_call('add "{0}" "{1}"'.format(FP_IN_CONFLICT, DIR_FP_IN_CONFLICT))
-    self._git_call(
+    utils_lib.git_call('checkout master')
+    utils_lib.write_file(FP_IN_CONFLICT, contents='master')
+    utils_lib.write_file(DIR_FP_IN_CONFLICT, contents='master')
+    utils_lib.git_call(
+        'add "{0}" "{1}"'.format(FP_IN_CONFLICT, DIR_FP_IN_CONFLICT))
+    utils_lib.git_call(
         'commit -m"master" "{0}" "{1}"'.format(
             FP_IN_CONFLICT, DIR_FP_IN_CONFLICT))
-    self._git_call('merge branch', expected_ret_code=1)
+    utils_lib.git_call('merge branch', expected_ret_code=1)
 
   def test_resolve_dir(self):
     self.assertEqual(file_lib.FILE_IS_DIR, file_lib.resolve(DIR))

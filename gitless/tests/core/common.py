@@ -6,83 +6,19 @@
 
 
 from functools import wraps
-import logging
 import os
-import shutil
-import subprocess
-import sys
-import tempfile
-import unittest
 
 import gitless.core.file as file_lib
+import gitless.tests.utils as utils_lib
 
 
-class TestCore(unittest.TestCase):
+class TestCore(utils_lib.TestBase):
   """Base class for core tests."""
 
   def setUp(self):
-    """Creates temporary dir and cds to it."""
-    logging.basicConfig(stream=sys.stdout, level=logging.INFO)
-    self.path = tempfile.mkdtemp(prefix='gl-core-test')
-    logging.debug('Created temporary directory {0}'.format(self.path))
-    os.chdir(self.path)
-    self._git_call('init')
-    self._git_call('config user.name \"test\"')
-    self._git_call('config user.email \"test@test.com\"')
-
-  def tearDown(self):
-    """Removes the temporary dir."""
-    shutil.rmtree(self.path)
-    logging.debug('Removed dir {0}'.format(self.path))
-
-  # Python 2/3 compatibility.
-  def assertItemsEqual(self, actual, expected, msg=None):
-    try:
-      return super(TestCore, self).assertItemsEqual(actual, expected, msg=msg)
-    except AttributeError:
-      try:
-        return super(TestCore, self).assertCountEqual(actual, expected, msg=msg)
-      except AttributeError:
-        return self.assertEqual(sorted(actual), sorted(expected), msg=msg)
-
-  def _write_file(self, fp, contents='hello'):
-    dirs, _ = os.path.split(fp)
-    if dirs and not os.path.exists(dirs):
-      os.makedirs(dirs)
-    f = open(fp, 'w')
-    f.write(contents)
-    f.close()
-
-  def _append_to_file(self, fp, contents='hello'):
-    f = open(fp, 'a')
-    f.write(contents)
-    f.close()
-
-  def _read_file(self, fp):
-    f = open(fp, 'r')
-    ret = f.read()
-    f.close()
-    return ret
-
-  def _git_call(self, subcmd, expected_ret_code=0):
-    """Issues a git call with the given subcmd.
-
-    Args:
-      subcmd: e.g., 'add f1'.
-
-    Returns:
-      a tuple (out, err).
-    """
-    logging.debug('Calling git {0}'.format(subcmd))
-    p = subprocess.Popen(
-        'git {0}'.format(subcmd), stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE, shell=True)
-    out, err = p.communicate()
-    if p.returncode != expected_ret_code:
-      raise Exception(
-          'Git call {0} failed (got ret code {1})\nout:{2} \nerr:{3}'.format(
-              subcmd, p.returncode, out, err))
-    return out, err
+    super(TestCore, self).setUp('gl-core-test')
+    utils_lib.git_call('init')
+    utils_lib.set_test_config()
 
 
 def stub(module, fake):
@@ -118,8 +54,7 @@ def assert_contents_unchanged(*fps):
   Args:
     fps: the filepath(s) to assert.
   """
-  return __assert_decorator(
-      'Contents', lambda self, fp: self._read_file(fp), *fps)
+  return __assert_decorator('Contents', utils_lib.read_file, *fps)
 
 
 def assert_status_unchanged(*fps):
@@ -136,8 +71,7 @@ def assert_status_unchanged(*fps):
   Args:
     fps: the filepath(s) to assert.
   """
-  return __assert_decorator(
-      'Status', lambda unused_self, fp: file_lib.status(fp), *fps)
+  return __assert_decorator('Status', file_lib.status, *fps)
 
 
 def assert_no_side_effects(*fps):
@@ -182,10 +116,10 @@ def __assert_decorator(msg, prop, *fps):
       # We save up the cwd to chdir to it after the test has run so that the
       # the given fps still "work" even if the test changed the cwd.
       cwd_before = os.getcwd()
-      before_list = [prop(self, fp) for fp in fps]
+      before_list = [prop(fp) for fp in fps]
       f(*args, **kwargs)
       os.chdir(cwd_before)
-      after_list = [prop(self, fp) for fp in fps]
+      after_list = [prop(fp) for fp in fps]
       for fp, before, after in zip(fps, before_list, after_list):
         self.assertEqual(
             before, after,
