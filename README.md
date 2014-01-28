@@ -62,7 +62,7 @@ We follow (to some extent) the [Google Python Style Guide](
 Before submitting code, take a few seconds to look at the style guide and the
 Gitless's code so that your edits are consistent with the codebase.
 
-Alo, if you don't want @ [Travis](
+Also, if you don't want @ [Travis](
     https://travis-ci.org/sdg-mit/gitless "Travis") to
 be mad at you check that the tests pass in python 2.6, 2.7, 3.2 and 3.3 and that
 you don't have any pylint errors.
