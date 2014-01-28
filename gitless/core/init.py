@@ -5,8 +5,6 @@
 """Gitless's init lib."""
 
 
-import os
-
 from . import branch as branch_lib
 from . import repo as repo_lib
 

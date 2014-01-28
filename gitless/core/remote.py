@@ -43,13 +43,13 @@ def add(remote_name, remote_url):
 
 
 def info(remote_name):
-  ret, info = git_remote.show(remote_name)
+  ret, remote_info = git_remote.show(remote_name)
   if ret == git_remote.REMOTE_NOT_FOUND:
     return (REMOTE_NOT_FOUND, None)
   elif ret == git_remote.REMOTE_UNREACHABLE:
     return (REMOTE_UNREACHABLE, None)
   elif ret == git_remote.SUCCESS:
-    return (SUCCESS, info)
+    return (SUCCESS, remote_info)
 
 
 RemoteInfo = collections.namedtuple(

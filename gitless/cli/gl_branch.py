@@ -31,6 +31,7 @@ def parser(subparsers):
 
 
 def main(args):
+  ret = True
   if args.branch:
     b_st = branch_lib.status(args.branch)
     if b_st.exists and b_st.is_current:
@@ -44,8 +45,7 @@ def main(args):
           'You can\'t switch branches when a rebase is in progress (yet '
           '-- this will be implemented in the future)')
       return False
-
-    if sync_lib.merge_in_progress():
+    elif sync_lib.merge_in_progress():
       pprint.err(
           'You can\'t switch branches when merge is in progress (yet '
           '-- this will be implemented in the future)')
@@ -57,13 +57,13 @@ def main(args):
     branch_lib.switch(args.branch)
     pprint.msg('Switched to branch %s' % args.branch)
   elif args.delete_b:
-    return _do_delete(args.delete_b)
+    ret = _do_delete(args.delete_b)
   elif args.upstream_b:
-    return _do_set_upstream(args.upstream_b)
+    ret = _do_set_upstream(args.upstream_b)
   else:
     _do_list()
 
-  return True
+  return ret
 
 
 def _do_create(branch_name, divergent_point):
