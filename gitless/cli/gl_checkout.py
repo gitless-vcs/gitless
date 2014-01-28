@@ -57,7 +57,7 @@ def _checkout_file(fp, cp):
     pprint.err('There\'s no file %s at %s' % (fp, cp))
     return False
   elif ret == file_lib.FILE_IS_DIR:
-    pprint.dir_err_exp(fp, subcmd)
+    pprint.dir_err_exp(fp, 'checkout')
     return False
   elif ret == file_lib.SUCCESS:
     pprint.msg('File %s checked out sucessfully to its state at %s' % (fp, cp))
