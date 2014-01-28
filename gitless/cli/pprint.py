@@ -67,7 +67,8 @@ def conf_dialog(text):
   sys.stdout.write('# %s. Do you wish to continue? (y/N)' % text)
   # Python 2/3 compatibility.
   try:
-    # pylint: disable=W0622 (redefined-builtin)
+    # Eliminate pylint's redefined-builtin warning.
+    # pylint: disable=W0622
     input = raw_input
   except NameError:
     pass
