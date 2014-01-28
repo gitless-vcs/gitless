@@ -22,6 +22,9 @@ def main(_):
   success = True
 
   if ret == sync_lib.SUCCESS:
+    # Disable pylint's superflous-parens warning (they are not superflous
+    # in this case -- python 2/3 compatibility).
+    # pylint: disable=C0325
     print(out)
   elif ret == sync_lib.UPSTREAM_NOT_SET:
     pprint.err('Current branch has no upstream set')

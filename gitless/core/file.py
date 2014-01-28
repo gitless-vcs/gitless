@@ -303,6 +303,8 @@ FileStatus = collections.namedtuple(
 
 def _build_f_st(s, fp):
   # TODO(sperezde): refactor this.
+  # Temporarily disable pylint's too-many-branches warning.
+  # pylint: disable=R0912
   ret = None
   if s == git_status.UNTRACKED:
     ret = FileStatus(fp, UNTRACKED, False, True, True, False, False)

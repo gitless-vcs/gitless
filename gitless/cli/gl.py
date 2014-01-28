@@ -61,6 +61,9 @@ def main():
     return SUCCESS if args.func(args) else ERRORS_FOUND
   except KeyboardInterrupt:
     # The user pressed Crl-c.
+    # Disable pylint's superflous-parens warning (they are not superflous
+    # in this case -- python 2/3 compatibility).
+    # pylint: disable=C0325
     print('\n')
     pprint.msg('Keyboard interrupt detected, operation aborted')
     return SUCCESS
