@@ -90,7 +90,11 @@ def _call(cmd, subcmd, expected_ret_code=0):
       '{0} {1}'.format(cmd, subcmd), stdout=subprocess.PIPE,
       stderr=subprocess.PIPE, shell=True)
   out, err = p.communicate()
+  # Python 2/3 compatibility.
   if sys.version > "3":
+    # Disable pylint's no-member error. 'str' has no 'decode' member in
+    # python 3.
+    # pylint: disable=E1101
     out = out.decode('utf-8')
     err = err.decode('utf-8')
   logging.debug('Out is \n{0}'.format(out))
