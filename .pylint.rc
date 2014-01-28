@@ -1,0 +1,14 @@
+[FORMAT]
+
+indent-string='  '
+
+
+[MESSAGES CONTROL]
+
+# W0511 = fixme
+# C0111 = missing docstring
+# C0103 = invalid name
+# I0011 = locally disabling
+# W0142 = star-args
+
+disable=W0511,C0111,C0103,I0011,W0142
