@@ -61,7 +61,7 @@ def _show(files):
     pprint.item(f, p=cf.write)
   pprint.sep(p=cf.write)
   cf.close()
-  _launch_editor()
+  _launch_editor(cf.name)
   return _extract_info(5)
 
 
@@ -95,7 +95,7 @@ def _show_merge(files):
     pprint.item(f, p=cf.write)
   pprint.sep(p=cf.write)
   cf.close()
-  _launch_editor()
+  _launch_editor(cf.name)
   return _extract_info(5)
 
 
@@ -125,13 +125,13 @@ def _show_rebase(files):
     pprint.item(f, p=cf.write)
   pprint.sep(p=cf.write)
   cf.close()
-  _launch_editor()
+  _launch_editor(cf.name)
   return _extract_info(4)
 
 
-def _launch_editor():
+def _launch_editor(fp):
   editor = repo_lib.editor()
-  if subprocess.call('%s %s' % (editor, _commit_file()), shell=True) != 0:
+  if subprocess.call('%s %s' % (editor, fp), shell=True) != 0:
     raise Exception('Call to editor %s failed' % editor)
 
 
