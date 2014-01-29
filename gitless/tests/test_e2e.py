@@ -118,6 +118,7 @@ class TestCommit(TestEndToEnd):
     utils_lib.write_file(self.UNTRACKED_FP)
     utils_lib.gl_expect_success('track %s' % self.TRACKED_FP)
 
+  # Happy paths.
   def test_commit(self):
     utils_lib.gl_expect_success('commit -m"msg"')
     self.__assert_commit(self.TRACKED_FP)
@@ -125,6 +126,10 @@ class TestCommit(TestEndToEnd):
   def test_commit_only(self):
     utils_lib.gl_expect_success('commit -m"msg" %s' % self.TRACKED_FP)
     self.__assert_commit(self.TRACKED_FP)
+
+  def test_commit_only_untrack(self):
+    utils_lib.gl_expect_success('commit -m"msg" %s' % self.UNTRACKED_FP)
+    self.__assert_commit(self.UNTRACKED_FP)
 
   def test_commit_inc(self):
     utils_lib.gl_expect_success('commit -m"msg" -inc %s' % self.UNTRACKED_FP)
@@ -134,6 +139,17 @@ class TestCommit(TestEndToEnd):
     utils_lib.gl_expect_success(
         'commit -m"msg" -inc %s -exc %s' % (self.UNTRACKED_FP, self.TRACKED_FP))
     self.__assert_commit(self.UNTRACKED_FP)
+
+  # Error paths.
+  def test_commit_no_files(self):
+    utils_lib.gl_expect_error('commit -m"msg" -exc %s' % self.TRACKED_FP)
+    utils_lib.gl_expect_error('commit -m"msg" nonexistentfp')
+    utils_lib.gl_expect_error('commit -m"msg" -exc nonexistentfp')
+    utils_lib.gl_expect_error('commit -m"msg" -inc nonexistentfp')
+
+  def test_commit_dir(self):
+    utils_lib.write_file('dir/f')
+    utils_lib.gl_expect_error('commit -m"msg" dir')
 
   def __assert_commit(self, *expected_committed):
     st = utils_lib.gl_expect_success('status')[0]
