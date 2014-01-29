@@ -16,13 +16,17 @@ class TestEndToEnd(utils_lib.TestBase):
 
   def setUp(self):
     super(TestEndToEnd, self).setUp('gl-e2e-test')
-
-  # TODO(sperezde): add dialog related tests.
-  # TODO(sperezde): add checkout related tests.
-
-  def test_basic_functionality(self):
     utils_lib.gl_expect_success('init')
     utils_lib.set_test_config()
+
+
+# TODO(sperezde): add dialog related tests.
+# TODO(sperezde): add checkout related tests.
+
+
+class TestBasic(TestEndToEnd):
+
+  def test_basic_functionality(self):
     utils_lib.write_file('file1', 'Contents of file1')
     # Track.
     utils_lib.gl_expect_success('track file1')
@@ -83,14 +87,79 @@ class TestEndToEnd(utils_lib.TestBase):
       self.fail()
     if 'file1 (with conflicts)' not in utils_lib.gl_expect_success('status')[0]:
       self.fail()
+
+    # Try aborting.
+    utils_lib.gl_expect_success('rebase --abort')
+    if 'file1' in utils_lib.gl_expect_success('status')[0]:
+      self.fail()
+
+    # Ok, now let's fix the conflicts.
+    if 'conflict' not in utils_lib.gl_expect_error('rebase master')[1]:
+      self.fail()
+    if 'file1 (with conflicts)' not in utils_lib.gl_expect_success('status')[0]:
+      self.fail()
+
     utils_lib.write_file('file1', 'Fixed conflicts!')
     utils_lib.gl_expect_error('commit -m"shouldn\'t work (resolve not called)"')
+    utils_lib.gl_expect_error('resolve nonexistentfile')
     utils_lib.gl_expect_success('resolve file1')
     utils_lib.gl_expect_success('commit -m"fixed conflicts"')
 
-  # TODO(sperezde): add more performance tests to check that we're not dropping
-  # the ball: We should try to keep Gitless's performance reasonably close to
-  # Git's.
+
+class TestCommit(TestEndToEnd):
+
+  TRACKED_FP = 'file1'
+  UNTRACKED_FP = 'file2'
+  FPS = [TRACKED_FP, UNTRACKED_FP]
+
+  def setUp(self):
+    super(TestCommit, self).setUp()
+    utils_lib.write_file(self.TRACKED_FP)
+    utils_lib.write_file(self.UNTRACKED_FP)
+    utils_lib.gl_expect_success('track %s' % self.TRACKED_FP)
+
+  def test_commit(self):
+    utils_lib.gl_expect_success('commit -m"msg"')
+    self.__assert_commit(self.TRACKED_FP)
+
+  def test_commit_only(self):
+    utils_lib.gl_expect_success('commit -m"msg" %s' % self.TRACKED_FP)
+    self.__assert_commit(self.TRACKED_FP)
+
+  def test_commit_inc(self):
+    utils_lib.gl_expect_success('commit -m"msg" -inc %s' % self.UNTRACKED_FP)
+    self.__assert_commit(self.TRACKED_FP, self.UNTRACKED_FP)
+
+  def test_commit_exc_inc(self):
+    utils_lib.gl_expect_success(
+        'commit -m"msg" -inc %s -exc %s' % (self.UNTRACKED_FP, self.TRACKED_FP))
+    self.__assert_commit(self.UNTRACKED_FP)
+
+  def __assert_commit(self, *expected_committed):
+    st = utils_lib.gl_expect_success('status')[0]
+    h = utils_lib.gl_expect_success('history -v')[0]
+    for fp in expected_committed:
+      if fp in st or fp not in h:
+        self.fail('%s was apparently not committed!' % fp)
+    expected_not_committed = [
+        fp for fp in self.FPS if fp not in expected_committed]
+    for fp in expected_not_committed:
+      if fp not in st or fp in h:
+        self.fail('%s was apparently committed!' % fp)
+
+
+# TODO(sperezde): add more performance tests to check that we're not dropping
+# the ball: We should try to keep Gitless's performance reasonably close to
+# Git's.
+class TestPerformance(TestEndToEnd):
+
+  FPS_QTY = 10000
+
+  def setUp(self):
+    super(TestPerformance, self).setUp()
+    for i in range(0, self.FPS_QTY):
+      fp = 'f' + str(i)
+      utils_lib.write_file(fp, fp)
 
   def test_status_performance(self):
     """Assert that gl status is not too slow."""
@@ -112,7 +181,6 @@ class TestEndToEnd(utils_lib.TestBase):
           gl_t < git_t*MAX_TOLERANCE,
           msg='gl_t {0}, git_t {1}'.format(gl_t, git_t))
 
-    self.__build_repo()
     # All files are untracked.
     assert_status_performance()
     # Track all files, repeat.
@@ -125,7 +193,6 @@ class TestEndToEnd(utils_lib.TestBase):
     """Assert that switching branches is not too slow."""
     MAX_TOLERANCE = 100
 
-    self.__build_repo()
     # Temporary hack until we get stuff working smoothly when the repo has no
     # commits.
     utils_lib.gl_call('commit -m"commit" f1')
@@ -147,14 +214,6 @@ class TestEndToEnd(utils_lib.TestBase):
     self.assertTrue(
         gl_t < git_t*MAX_TOLERANCE,
         msg='gl_t {0}, git_t {1}'.format(gl_t, git_t))
-
-  def __build_repo(self, fps_qty=10000):
-    for i in range(0, fps_qty):
-      fp = 'f' + str(i)
-      utils_lib.write_file(fp, fp)
-
-    utils_lib.gl_call('init')
-    utils_lib.set_test_config()
 
 
 if __name__ == '__main__':
