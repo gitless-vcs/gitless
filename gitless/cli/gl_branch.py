@@ -84,11 +84,11 @@ def _do_create(branch_name, divergent_point):
 
 
 def _do_list():
-  pprint.msg('Existing branches:')
-  pprint.exp('use gl branch <b> to create or switch to branch b')
-  pprint.exp('use gl branch -d <b> to delete branch b')
+  pprint.msg('List of branches:')
+  pprint.exp('do gl branch <b> to create or switch to branch b')
+  pprint.exp('do gl branch -d <b> to delete branch b')
   pprint.exp(
-      'use gl branch -su <upstream> to set an upstream for the current branch')
+      'do gl branch -su <upstream> to set an upstream for the current branch')
   pprint.exp('* = current branch')
   pprint.blank()
   for name, is_current, upstream, upstream_exists in branch_lib.status_all():
@@ -107,12 +107,12 @@ def _do_delete(delete_b):
     b_st = branch_lib.status(b)
     if not b_st.exists:
       pprint.err('Can\'t remove non-existent branch %s' % b)
-      pprint.err_exp('to list existing branches do gl branch')
+      pprint.err_exp('do gl branch to list existing branches')
       errors_found = True
     elif b_st.exists and b_st.is_current:
       pprint.err('Can\'t remove current branch %s' % b)
       pprint.err_exp(
-          'use gl branch <b> to create or switch to another branch b and then '
+          'do gl branch <b> to create or switch to another branch b and then '
           'gl branch -d %s to remove branch %s' % (b, b))
       errors_found = True
     elif not pprint.conf_dialog('Branch %s will be removed' % b):
@@ -136,10 +136,10 @@ def _do_set_upstream(upstream):
   upstream_remote, upstream_branch = upstream.split('/')
   if ret is branch_lib.REMOTE_NOT_FOUND:
     pprint.err('Remote %s not found' % upstream_remote)
-    pprint.err_exp('do gl remote show to list all available remotes')
+    pprint.err_exp('do gl remote to list all existing remotes')
     pprint.err_exp(
-        'to add %s as a new remote do gl remote add %s remote_url' % (
-            upstream_remote, upstream_remote))
+        'do gl remote %s <r_url> to add a new remote %s mapping to '
+        'r_url' % (upstream_remote, upstream_remote))
     errors_found = True
   elif ret is branch_lib.SUCCESS:
     pprint.msg('Current branch %s set to track %s/%s' % (

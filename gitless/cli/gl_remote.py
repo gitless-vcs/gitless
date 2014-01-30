@@ -76,8 +76,8 @@ def _do_add(args):
 
 def _do_list():
   pprint.msg('List of remotes:')
-  pprint.exp('to remove a remote do gl remote -d remote_name')
-  pprint.exp('to add a new remote do gl remote remote_name remote_url')
+  pprint.exp('do gl remote <r> <r_url> to add a new remote r mapping to r_url')
+  pprint.exp('do gl remote -d <r> to delete remote r')
   remotes = remote_lib.info_all()
   pprint.blank()
   if not remotes:
