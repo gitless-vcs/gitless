@@ -51,7 +51,7 @@ ASAP.
 - Code: you can browse through the open issues and see if there's something
 there you would like to hack on. Is something missing? feel free to propose it!
 
-After you've contributed you can send us a pull-request adding yourself to the
+After you've contributed you can send us a pull request adding yourself to the
 AUTHORS file if you want to.
 
 If you're planning on submitting code here are some useful things to know:
