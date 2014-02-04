@@ -2,6 +2,16 @@ Gitless's Release Notes
 =======================
 
 
+3rd Feb 2014 - kendall.0.5
+--------------------------
+
+* Now Gitless works with python 2.6, 3.2 and 3.3 (in addition to 2.7).
+* A new (simpler, more consistent) `gl remote`
+* Show error if user tries to `gl init` from an unreachable remote.
+* When initing from a remote create a local equivalent for each remote branch.
+* Bug fixes + tests + performance improvements.
+
+
 16th Jan 2014 - kendall.0.4.4
 -----------------------------
 
