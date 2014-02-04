@@ -35,7 +35,7 @@ INTERNAL_ERROR = 3
 NOT_IN_GL_REPO = 4
 
 GL_VERSION = 'GL Version: ' + pkg_resources.require('gitless')[0].version
-GL_URL = 'http://people.csail.mit.edu/sperezde/gitless'
+GL_URL = 'http://gitless.com'
 
 
 def main():

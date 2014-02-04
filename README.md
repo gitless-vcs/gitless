@@ -16,7 +16,7 @@ back on Git. And of course your coworkers you share a repo with need never know
 that you're not a Git aficionado.
 
 More info, downloads and documentation @ [Gitless's website](
-    http://people.csail.mit.edu/sperezde/gitless "Gitless's website").
+    http://gitless.com "Gitless's website").
 
 
 Install
