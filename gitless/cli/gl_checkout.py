@@ -7,7 +7,7 @@
 
 from gitless.core import file as file_lib
 
-import pprint
+from . import pprint
 
 
 def parser(subparsers):
@@ -46,18 +46,18 @@ def _checkout_file(fp, cp):
       'You have uncomitted changes in %s that could be overwritten by the '
       'checkout' % fp)
   f = file_lib.status(fp)
-  if f.type == file_lib.TRACKED and f.modified and not pprint.conf_dialog(
+  if f and f.type == file_lib.TRACKED and f.modified and not pprint.conf_dialog(
       conf_msg):
     pprint.err('Checkout aborted')
     return False
 
-  ret, out = file_lib.checkout(fp, cp)
+  ret, _ = file_lib.checkout(fp, cp)
   if ret == file_lib.FILE_NOT_FOUND_AT_CP:
     pprint.err('Checkout aborted')
     pprint.err('There\'s no file %s at %s' % (fp, cp))
     return False
   elif ret == file_lib.FILE_IS_DIR:
-    pprint.dir_err_exp(fp, subcmd)
+    pprint.dir_err_exp(fp, 'checkout')
     return False
   elif ret == file_lib.SUCCESS:
     pprint.msg('File %s checked out sucessfully to its state at %s' % (fp, cp))

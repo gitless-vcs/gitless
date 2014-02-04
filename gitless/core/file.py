@@ -12,8 +12,8 @@ from gitpylib import common as git_common
 from gitpylib import file as git_file
 from gitpylib import status as git_status
 
-import repo as repo_lib
-import branch as branch_lib
+from . import repo as repo_lib
+from . import branch as branch_lib
 
 
 # Ret codes of methods.
@@ -53,27 +53,27 @@ def track(fp):
   """
   if os.path.isdir(fp):
     return FILE_IS_DIR
-  f_st, s = _status(fp)
-  if f_st == FILE_NOT_FOUND:
+  gl_st, git_s = _status(fp)
+  if not gl_st:
     return FILE_NOT_FOUND
-  elif f_st.type == TRACKED:
+  elif gl_st.type == TRACKED:
     return FILE_ALREADY_TRACKED
-  elif f_st.type == IGNORED:
+  elif gl_st.type == IGNORED:
     return FILE_IS_IGNORED
 
   # If we reached this point we know that the file to track is a untracked
   # file. This means that in the Git world, the file could be either:
   #   (i)  a new file for Git => add the file.
   #   (ii) an assumed unchanged file => unmark it.
-  if s == git_status.UNTRACKED:
+  if git_s == git_status.UNTRACKED:
     # Case (i).
     git_file.stage(fp)
-  elif (s == git_status.ASSUME_UNCHANGED or
-        s == git_status.DELETED_ASSUME_UNCHANGED):
+  elif (git_s == git_status.ASSUME_UNCHANGED or
+        git_s == git_status.DELETED_ASSUME_UNCHANGED):
     # Case (ii).
     git_file.not_assume_unchanged(fp)
   else:
-    raise Exception("File %s in unkown status %s" % (fp, s))
+    raise Exception("File %s in unkown status %s" % (fp, git_s))
 
   return SUCCESS
 
@@ -90,12 +90,12 @@ def untrack(fp):
   """
   if os.path.isdir(fp):
     return FILE_IS_DIR
-  f_st, s = _status(fp)
-  if f_st == FILE_NOT_FOUND:
+  gl_st, git_s = _status(fp)
+  if not gl_st:
     return FILE_NOT_FOUND
-  elif f_st.type == IGNORED:
+  elif gl_st.type == IGNORED:
     return FILE_IS_IGNORED
-  elif f_st.type == UNTRACKED:
+  elif gl_st.type == UNTRACKED:
     return FILE_ALREADY_UNTRACKED
 
   # If we reached this point we know that the file to untrack is a tracked
@@ -104,18 +104,18 @@ def untrack(fp):
   #        uncomitted file) => reset changes;
   #   (ii) the file is a previously committed file => mark it as assumed
   #        unchanged.
-  if s == git_status.STAGED:
+  if git_s == git_status.STAGED:
     # Case (i).
     git_file.unstage(fp)
-  elif (s == git_status.TRACKED_UNMODIFIED or
-        s == git_status.TRACKED_MODIFIED or
-        s == git_status.DELETED):
+  elif (git_s == git_status.TRACKED_UNMODIFIED or
+        git_s == git_status.TRACKED_MODIFIED or
+        git_s == git_status.DELETED):
     # Case (ii).
     git_file.assume_unchanged(fp)
-  elif s == git_status.IN_CONFLICT:
+  elif git_s == git_status.IN_CONFLICT:
     return FILE_IN_CONFLICT
   else:
-    raise Exception("File %s in unkown status %s" % (fp, s))
+    raise Exception("File %s in unkown status %s" % (fp, git_s))
 
   return SUCCESS
 
@@ -135,21 +135,22 @@ def diff(fp):
   """
   if os.path.isdir(fp):
     return (FILE_IS_DIR, (None, None))
-  f_st, s = _status(fp)
-  if f_st == git_status.FILE_NOT_FOUND:
+  gl_st, git_s = _status(fp)
+  if not gl_st:
     return (FILE_NOT_FOUND, (None, None))
-  elif f_st.type == UNTRACKED:
+  elif gl_st.type == UNTRACKED:
     return (FILE_IS_UNTRACKED, (None, None))
-  elif f_st.type == IGNORED:
+  elif gl_st.type == IGNORED:
     return (FILE_IS_IGNORED, (None, None))
 
   diff_out = None
-  if s == git_status.STAGED:
+  if git_s == git_status.STAGED:
     diff_out = git_file.staged_diff(fp)
-  elif s == git_status.ADDED_MODIFIED or s == git_status.MODIFIED_MODIFIED:
+  elif (git_s == git_status.ADDED_MODIFIED or
+        git_s == git_status.MODIFIED_MODIFIED):
     git_file.stage(fp)
     diff_out = git_file.staged_diff(fp)
-  elif s == git_status.DELETED:
+  elif git_s == git_status.DELETED:
     diff_out = git_file.diff(fp)
   else:
     diff_out = git_file.diff(fp)
@@ -200,12 +201,12 @@ def status(fp):
     fp: the file to status.
 
   Returns:
-    FILE_NOT_FOUND or a named tuple (fp, type, exists_in_lr, exists_in_wd,
-    modified, in_conflict, resolved) where fp is a file path, type is one of
-    TRACKED, UNTRACKED or IGNORED and all the remaining fields are booleans. The
-    modified field is True if the working version of the file differs from its
-    committed version (If there's no committed version, modified is set to
-    True.)
+    None (if the file wasn't found) or a named tuple (fp, type, exists_in_lr,
+    exists_in_wd, modified, in_conflict, resolved) where fp is a file path, type
+    is one of TRACKED, UNTRACKED or IGNORED and all the remaining fields are
+    booleans. The modified field is True if the working version of the file
+    differs from its committed version. (If there's no committed version,
+    modified is set to True.)
   """
   return _status(fp)[0]
 
@@ -245,7 +246,7 @@ def resolve(fp):
   if os.path.isdir(fp):
     return FILE_IS_DIR
   f_st = status(fp)
-  if f_st == FILE_NOT_FOUND:
+  if not f_st:
     return FILE_NOT_FOUND
   if f_st.resolved:
     return FILE_ALREADY_RESOLVED
@@ -275,13 +276,20 @@ def internal_resolved_cleanup():
 
 
 def _status(fp):
-  s = git_status.of_file(fp)
-  if s == git_status.FILE_NOT_FOUND:
-    return (FILE_NOT_FOUND, s)
-  gls = _build_f_st(s, fp)
-  if not gls:
-    return (FILE_NOT_FOUND, s)
-  return (gls, s)
+  """Get the status of the given fp.
+
+  Returns:
+    a tuple (gl_status, git_status) where gl_status is a FileStatus namedtuple
+    representing the status of the file (or None if the file doesn't exist) and
+    git_status is one of git's possible status for the file.
+  """
+  git_s = git_status.of_file(fp)
+  if git_s == git_status.FILE_NOT_FOUND:
+    return (None, git_s)
+  gl_s = _build_f_st(git_s, fp)
+  if not gl_s:
+    return (None, git_s)
+  return (gl_s, git_s)
 
 
 # This namedtuple is only used in _build_f_st, but putting it as a module var
@@ -295,6 +303,8 @@ FileStatus = collections.namedtuple(
 
 def _build_f_st(s, fp):
   # TODO(sperezde): refactor this.
+  # Temporarily disable pylint's too-many-branches warning.
+  # pylint: disable=R0912
   ret = None
   if s == git_status.UNTRACKED:
     ret = FileStatus(fp, UNTRACKED, False, True, True, False, False)
@@ -341,7 +351,7 @@ def _build_f_st(s, fp):
     # happen if the user gl tracks a file and then modifies it.
     ret = FileStatus(fp, TRACKED, False, True, True, False, False)
   else:
-    raise Exception('Unrecognized status {}'.format(s))
+    raise Exception('Unrecognized status {0}'.format(s))
   return ret
 
 
@@ -354,4 +364,4 @@ def _resolved_file(fp):
   fp = os.path.relpath(os.path.abspath(fp), git_common.repo_dir())
   fp = fp.replace(os.path.sep, '-')  # this hack will do the trick for now.
   return os.path.join(
-      repo_lib.gl_dir(), 'GL_RESOLVED_{}_{}'.format(branch_lib.current(), fp))
+      repo_lib.gl_dir(), 'GL_RESOLVED_{0}_{1}'.format(branch_lib.current(), fp))

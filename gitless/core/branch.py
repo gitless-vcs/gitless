@@ -15,9 +15,8 @@ from gitpylib import file as git_file
 from gitpylib import stash as git_stash
 from gitpylib import status as git_status
 
-import sync as sync_lib
-import remote as remote_lib
-import repo as repo_lib
+from . import remote as remote_lib
+from . import repo as repo_lib
 
 
 # Ret codes of methods.
@@ -107,15 +106,6 @@ def set_upstream(upstream):
   return SUCCESS
 
 
-def detach(name):
-  """Detaches the branch with the given name from its remote.
-
-  Args:
-    name: the name of the branch to detach.
-  """
-  # TBD
-
-
 def switch(name):
   """Switches to the branch with the given name.
 
@@ -125,7 +115,8 @@ def switch(name):
   Returns:
     BRANCH_IS_CURRENT or SUCCESS.
   """
-  current_b = current()
+  gl_dir = repo_lib.gl_dir()
+  current_b = _current(gl_dir=gl_dir)
   if name == current_b:
     return BRANCH_IS_CURRENT
   # Stash doesn't save assumed unchanged files, so we save which files are
@@ -135,17 +126,13 @@ def switch(name):
   git_stash.all(_stash_msg(current_b))
   git_branch.checkout(name)
   git_stash.pop(_stash_msg(name))
-  _remark_au_files(name)
+  _remark_au_files(name, gl_dir=gl_dir)
   return SUCCESS
 
 
 def current():
   """Get the name of the current branch."""
-  if sync_lib.rebase_in_progress():
-    # While in a rebase, Git actually moves to a "no-branch" status.
-    # In Gitless, the user is in the branch being re-based.
-    return sync_lib.rebase_info()[0]
-  return git_branch.current()
+  return _current()
 
 
 def status(name):
@@ -182,17 +169,17 @@ def status_all():
   BranchStatus = collections.namedtuple(
       'b_status', ['name', 'is_current', 'upstream', 'upstream_exists'])
 
-  rebase_in_progress = sync_lib.rebase_in_progress()
+  rebase_in_progress = _rebase_in_progress()
   if rebase_in_progress:
-    current = sync_lib.rebase_info()[0]
+    current_b = _rebase_branch()
 
   ret = []
   for name, is_current, upstream in git_branch.status_all():
     if name == '(no branch)':
       continue
 
-    if rebase_in_progress and name == current:
-      is_current = current
+    if rebase_in_progress and name == current_b:
+      is_current = current_b
 
     upstream_exists = True
     if not upstream:
@@ -208,6 +195,20 @@ def status_all():
 # Private methods.
 
 
+def _current(gl_dir=None):
+  """Get the name of the current branch.
+
+  Args:
+    gl_dir: the gl dir (optional arg for speeding up things).
+  """
+  gl_dir = repo_lib.gl_dir() if not gl_dir else gl_dir
+  if _rebase_in_progress(gl_dir=gl_dir):
+    # While in a rebase, Git actually moves to a "no-branch" status.
+    # In Gitless, the user is in the branch being re-based.
+    return _rebase_branch(gl_dir=gl_dir)
+  return git_branch.current()
+
+
 def _stash_msg(name):
   """Computes the stash msg to use for stashing changes in branch name."""
   return '---gl-%s---' % name
@@ -216,7 +217,7 @@ def _stash_msg(name):
 def _unpushed_upstream(name):
   """Returns the unpushed upstream or None."""
   for f in os.listdir(repo_lib.gl_dir()):
-    result = re.match('GL_UPSTREAM_%s_(\w+)_(\w+)' % name, f)
+    result = re.match(r'GL_UPSTREAM_%s_(\w+)_(\w+)' % name, f)
     if result:
       return '/'.join([result.group(1), result.group(2)])
   return None
@@ -241,30 +242,45 @@ def _unmark_au_files(branch):
     return
 
   gl_dir = repo_lib.gl_dir()
-  f = open(os.path.join(gl_dir, 'GL_AU_%s' % branch), 'w')
-
   repo_dir = git_common.repo_dir()
-  for fp in assumed_unchanged_fps:
-    f.write(fp + '\n')
-    git_file.not_assume_unchanged(os.path.join(repo_dir, fp))
+  with open(os.path.join(gl_dir, 'GL_AU_%s' % branch), 'w') as f:
+    for fp in assumed_unchanged_fps:
+      f.write(fp + '\n')
+      git_file.not_assume_unchanged(os.path.join(repo_dir, fp))
 
 
-def _remark_au_files(branch):
+def _remark_au_files(branch, gl_dir=None):
   """Re-marks files as assumed unchanged.
 
   Args:
     branch: the branch name under which the info is stored.
+    gl_dir: the gl dir (optional arg for speeding up things).
   """
-  gl_dir = repo_lib.gl_dir()
+  gl_dir = repo_lib.gl_dir() if not gl_dir else gl_dir
   au_info_fp = os.path.join(gl_dir, 'GL_AU_%s' % branch)
   if not os.path.exists(au_info_fp):
     return
 
-  f = open(au_info_fp, 'r')
-
   repo_dir = git_common.repo_dir()
-  for fp in f:
-    fp = fp.strip()
-    git_file.assume_unchanged(os.path.join(repo_dir, fp))
+  with open(au_info_fp, 'r') as f:
+    for fp in f:
+      fp = fp.strip()
+      git_file.assume_unchanged(os.path.join(repo_dir, fp))
 
   os.remove(au_info_fp)
+
+
+# Temporal hack until we refactor the sync module.
+def _rebase_in_progress(gl_dir=None):
+  return os.path.exists(_rebase_file(gl_dir=gl_dir))
+
+
+def _rebase_branch(gl_dir=None):
+  """Gets the name of the current branch being rebased."""
+  rf = open(_rebase_file(gl_dir=gl_dir), 'r')
+  return rf.readline().strip()
+
+
+def _rebase_file(gl_dir=None):
+  gl_dir = repo_lib.gl_dir() if not gl_dir else gl_dir
+  return os.path.join(gl_dir, 'GL_REBASE')

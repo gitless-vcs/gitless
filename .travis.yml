@@ -1,0 +1,21 @@
+language: python
+python:
+  - "2.6"
+  - "2.7"
+  - "3.2"
+  - "3.3"
+install:
+  - pip install pylint
+  - pip install git+git://github.com/sdg-mit/gitpylib@develop#egg=gitpylib
+  - pip install .
+script:
+# travis won't signal a failure unless pylint reports some error (and at the
+# same time we get the full report in the logs which comes handy).
+  - pylint --rcfile=.pylint.rc gitless; pylint --rcfile=.pylint.rc -E gitless
+  - nosetests
+# nose doens't like the number on test_e2e so it's not detected by the previous
+# command.
+  - nosetests gitless/tests/test_e2e.py
+branches:
+  except:
+    - master

@@ -7,7 +7,7 @@
 
 from gitless.core import sync as sync_lib
 
-import pprint
+from . import pprint
 
 
 def parser(subparsers):
@@ -17,12 +17,15 @@ def parser(subparsers):
   push_parser.set_defaults(func=main)
 
 
-def main(unused_args):
+def main(_):
   ret, out = sync_lib.publish()
   success = True
 
   if ret == sync_lib.SUCCESS:
-    print out
+    # Disable pylint's superflous-parens warning (they are not superflous
+    # in this case -- python 2/3 compatibility).
+    # pylint: disable=C0325
+    print(out)
   elif ret == sync_lib.UPSTREAM_NOT_SET:
     pprint.err('Current branch has no upstream set')
     pprint.err_exp(

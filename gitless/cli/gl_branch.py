@@ -8,13 +8,13 @@
 from gitless.core import branch as branch_lib
 from gitless.core import sync as sync_lib
 
-import pprint
+from . import pprint
 
 
 def parser(subparsers):
   """Adds the branch parser to the given subparsers object."""
   branch_parser = subparsers.add_parser(
-      'branch', help='create, edit, delete or switch branches')
+      'branch', help='list, create, edit, delete or switch branches')
   branch_parser.add_argument(
       'branch', nargs='?',
       help='switch to branch (will be created if it doesn\'t exist yet)')
@@ -31,6 +31,7 @@ def parser(subparsers):
 
 
 def main(args):
+  ret = True
   if args.branch:
     b_st = branch_lib.status(args.branch)
     if b_st.exists and b_st.is_current:
@@ -44,44 +45,50 @@ def main(args):
           'You can\'t switch branches when a rebase is in progress (yet '
           '-- this will be implemented in the future)')
       return False
-
-    if sync_lib.merge_in_progress():
+    elif sync_lib.merge_in_progress():
       pprint.err(
           'You can\'t switch branches when merge is in progress (yet '
           '-- this will be implemented in the future)')
       return False
 
-    if not b_st.exists:
-      ret = branch_lib.create(args.branch, dp=args.divergent_point)
-      if ret is branch_lib.INVALID_NAME:
-        pprint.err('Invalid branch name')
-        return False
-      elif ret == branch_lib.INVALID_DP:
-        pprint.msg('Invalid divergent point {}'.format(args.divergent_point))
-        return False
-      elif ret is branch_lib.SUCCESS:
-        pprint.msg('Created new branch %s' % args.branch)
-      else:
-        raise Exception('Unrecognized ret code %s' % ret)
+    if not b_st.exists and not _do_create(args.branch, args.divergent_point):
+      return False
 
     branch_lib.switch(args.branch)
     pprint.msg('Switched to branch %s' % args.branch)
   elif args.delete_b:
-    return _do_delete(args.delete_b)
+    ret = _do_delete(args.delete_b)
   elif args.upstream_b:
-    return _do_set_upstream(args.upstream_b)
+    ret = _do_set_upstream(args.upstream_b)
   else:
     _do_list()
 
-  return True
+  return ret
+
+
+def _do_create(branch_name, divergent_point):
+  errors_found = False
+
+  ret = branch_lib.create(branch_name, dp=divergent_point)
+  if ret == branch_lib.INVALID_NAME:
+    pprint.err('Invalid branch name')
+    errors_found = True
+  elif ret == branch_lib.INVALID_DP:
+    pprint.msg('Invalid divergent point {0}'.format(divergent_point))
+    errors_found = True
+  elif ret == branch_lib.SUCCESS:
+    pprint.msg('Created new branch %s' % branch_name)
+  else:
+    raise Exception('Unrecognized ret code %s' % ret)
+  return not errors_found
 
 
 def _do_list():
-  pprint.msg('Existing branches:')
-  pprint.exp('use gl branch <b> to create or switch to branch b')
-  pprint.exp('use gl branch -d <b> to delete branch b')
+  pprint.msg('List of branches:')
+  pprint.exp('do gl branch <b> to create or switch to branch b')
+  pprint.exp('do gl branch -d <b> to delete branch b')
   pprint.exp(
-      'use gl branch -su <upstream> to set an upstream for the current branch')
+      'do gl branch -su <upstream> to set an upstream for the current branch')
   pprint.exp('* = current branch')
   pprint.blank()
   for name, is_current, upstream, upstream_exists in branch_lib.status_all():
@@ -100,12 +107,12 @@ def _do_delete(delete_b):
     b_st = branch_lib.status(b)
     if not b_st.exists:
       pprint.err('Can\'t remove non-existent branch %s' % b)
-      pprint.err_exp('to list existing branches do gl branch')
+      pprint.err_exp('do gl branch to list existing branches')
       errors_found = True
     elif b_st.exists and b_st.is_current:
       pprint.err('Can\'t remove current branch %s' % b)
       pprint.err_exp(
-          'use gl branch <b> to create or switch to another branch b and then '
+          'do gl branch <b> to create or switch to another branch b and then '
           'gl branch -d %s to remove branch %s' % (b, b))
       errors_found = True
     elif not pprint.conf_dialog('Branch %s will be removed' % b):
@@ -129,10 +136,10 @@ def _do_set_upstream(upstream):
   upstream_remote, upstream_branch = upstream.split('/')
   if ret is branch_lib.REMOTE_NOT_FOUND:
     pprint.err('Remote %s not found' % upstream_remote)
-    pprint.err_exp('do gl remote show to list all available remotes')
+    pprint.err_exp('do gl remote to list all existing remotes')
     pprint.err_exp(
-        'to add %s as a new remote do gl remote add %s remote_url' % (
-            upstream_remote, upstream_remote))
+        'do gl remote %s <r_url> to add a new remote %s mapping to '
+        'r_url' % (upstream_remote, upstream_remote))
     errors_found = True
   elif ret is branch_lib.SUCCESS:
     pprint.msg('Current branch %s set to track %s/%s' % (

@@ -5,13 +5,14 @@
 """Gitless's commit dialog."""
 
 
+import itertools
 import os
 import subprocess
 
 from gitless.core import repo as repo_lib
 from gitless.core import sync as sync_lib
 
-import pprint
+from . import pprint
 
 
 _COMMIT_FILE = '.GL_COMMIT_EDIT_MSG'
@@ -60,7 +61,7 @@ def _show(files):
     pprint.item(f, p=cf.write)
   pprint.sep(p=cf.write)
   cf.close()
-  _launch_editor()
+  _launch_editor(cf.name)
   return _extract_info(5)
 
 
@@ -94,7 +95,7 @@ def _show_merge(files):
     pprint.item(f, p=cf.write)
   pprint.sep(p=cf.write)
   cf.close()
-  _launch_editor()
+  _launch_editor(cf.name)
   return _extract_info(5)
 
 
@@ -124,13 +125,13 @@ def _show_rebase(files):
     pprint.item(f, p=cf.write)
   pprint.sep(p=cf.write)
   cf.close()
-  _launch_editor()
+  _launch_editor(cf.name)
   return _extract_info(4)
 
 
-def _launch_editor():
+def _launch_editor(fp):
   editor = repo_lib.editor()
-  if subprocess.call('%s %s' % (editor, _commit_file()), shell=True) != 0:
+  if subprocess.call('%s %s' % (editor, fp), shell=True) != 0:
     raise Exception('Call to editor %s failed' % editor)
 
 
@@ -154,7 +155,7 @@ def _extract_info(exp_lines):
     l = cf.readline()
   # We reached the separator, this marks the end of the commit msg.
   # We exhaust the following lines so that we get to the file list.
-  for i in range(0, exp_lines):
+  for _ in itertools.repeat(None, exp_lines):
     cf.readline()
 
   files = []

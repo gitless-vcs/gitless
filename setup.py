@@ -1,18 +1,26 @@
 #!/usr/bin/env python
 
+import sys
+
 from setuptools import setup
+
+
+reqs = ['gitpylib>=0.5']
+if sys.version_info < (2, 7) or (
+    sys.version_info < (3, 3) and sys.version_info > (3, 0)):
+  reqs.append('argparse')
 
 
 setup(
     name='gitless',
-    version='0.4.4',
+    version='0.5',
     description='A version control system built on top of Git',
     long_description=open('README.md').read(),
     author='Santiago Perez De Rosso',
     author_email='sperezde@csail.mit.edu',
-    url='http://github.com/sdg-mit/gitless',
+    url='http://gitless.com',
     packages=['gitless', 'gitless.cli', 'gitless.core'],
-    install_requires=['gitpylib>=0.4.3'],
+    install_requires=reqs,
     license='GPLv2',
     classifiers=(
         'Development Status :: 2 - Pre-Alpha',

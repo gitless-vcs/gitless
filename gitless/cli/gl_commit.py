@@ -8,8 +8,8 @@
 from gitless.core import file as file_lib
 from gitless.core import sync as sync_lib
 
-import commit_dialog
-import pprint
+from . import commit_dialog
+from . import pprint
 
 
 def parser(subparsers):
@@ -133,7 +133,7 @@ def _valid_input(only_files, exc_files, inc_files):
   err = []
   for fp in only_files:
     f = file_lib.status(fp)
-    if f == file_lib.FILE_NOT_FOUND:
+    if not f:
       err.append('File %s doesn\'t exist' % fp)
       ret = False
     elif f.type == file_lib.TRACKED and not f.modified:
@@ -144,7 +144,7 @@ def _valid_input(only_files, exc_files, inc_files):
   for fp in exc_files:
     f = file_lib.status(fp)
     # We check that the files to be excluded are existing tracked files.
-    if f == file_lib.FILE_NOT_FOUND:
+    if not f:
       err.append('File %s doesn\'t exist' % fp)
       ret = False
     elif f.type != file_lib.TRACKED:
@@ -164,7 +164,7 @@ def _valid_input(only_files, exc_files, inc_files):
   for fp in inc_files:
     f = file_lib.status(fp)
     # We check that the files to be included are existing untracked files.
-    if f == file_lib.FILE_NOT_FOUND:
+    if not f:
       err.append('File %s doesn\'t exist' % fp)
       ret = False
     elif f.type != file_lib.UNTRACKED:
@@ -212,5 +212,7 @@ def _auto_track(files):
   """Tracks those untracked files in the list."""
   for fp in files:
     f = file_lib.status(fp)
+    if not f:
+      raise Exception('Expected %s to exist, but it doesn\'t' % fp)
     if f.type == file_lib.UNTRACKED:
       file_lib.track(f.fp)

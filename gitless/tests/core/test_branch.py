@@ -10,7 +10,9 @@ import unittest
 
 import gitless.core.file as file_lib
 import gitless.core.branch as branch_lib
-import common
+import gitless.tests.utils as utils_lib
+
+from . import common
 
 
 TRACKED_FP = 'f1'
@@ -29,16 +31,15 @@ class TestBranch(common.TestCore):
     super(TestBranch, self).setUp()
 
     # Build up an interesting mock repo.
-    self._git_call('init')
-    self._write_file(TRACKED_FP, contents=TRACKED_FP_CONTENTS_1)
-    self._git_call('add "{}"'.format(TRACKED_FP))
-    self._git_call('commit -m"1" "{}"'.format(TRACKED_FP))
-    self._write_file(TRACKED_FP, contents=TRACKED_FP_CONTENTS_2)
-    self._git_call('commit -m"2" "{}"'.format(TRACKED_FP))
-    self._write_file(UNTRACKED_FP, contents=UNTRACKED_FP_CONTENTS)
-    self._write_file('.gitignore', contents='{}'.format(IGNORED_FP))
-    self._write_file(IGNORED_FP)
-    self._git_call('branch "{}"'.format(BRANCH))
+    utils_lib.write_file(TRACKED_FP, contents=TRACKED_FP_CONTENTS_1)
+    utils_lib.git_call('add "{0}"'.format(TRACKED_FP))
+    utils_lib.git_call('commit -m"1" "{0}"'.format(TRACKED_FP))
+    utils_lib.write_file(TRACKED_FP, contents=TRACKED_FP_CONTENTS_2)
+    utils_lib.git_call('commit -m"2" "{0}"'.format(TRACKED_FP))
+    utils_lib.write_file(UNTRACKED_FP, contents=UNTRACKED_FP_CONTENTS)
+    utils_lib.write_file('.gitignore', contents='{0}'.format(IGNORED_FP))
+    utils_lib.write_file(IGNORED_FP)
+    utils_lib.git_call('branch "{0}"'.format(BRANCH))
 
 
 class TestCreate(TestBranch):
@@ -59,7 +60,7 @@ class TestCreate(TestBranch):
     self.assertEqual(branch_lib.SUCCESS, branch_lib.create('branch1'))
     self.assertEqual(branch_lib.SUCCESS, branch_lib.switch('branch1'))
     self.assertTrue(os.path.exists(TRACKED_FP))
-    self.assertEqual(TRACKED_FP_CONTENTS_2, self._read_file(TRACKED_FP))
+    self.assertEqual(TRACKED_FP_CONTENTS_2, utils_lib.read_file(TRACKED_FP))
     self.assertFalse(os.path.exists(UNTRACKED_FP))
     self.assertFalse(os.path.exists(IGNORED_FP))
     self.assertFalse(os.path.exists('.gitignore'))
@@ -69,7 +70,7 @@ class TestCreate(TestBranch):
         branch_lib.SUCCESS, branch_lib.create('branch1', dp='HEAD^'))
     self.assertEqual(branch_lib.SUCCESS, branch_lib.switch('branch1'))
     self.assertTrue(os.path.exists(TRACKED_FP))
-    self.assertEqual(TRACKED_FP_CONTENTS_1, self._read_file(TRACKED_FP))
+    self.assertEqual(TRACKED_FP_CONTENTS_1, utils_lib.read_file(TRACKED_FP))
     self.assertFalse(os.path.exists(UNTRACKED_FP))
     self.assertFalse(os.path.exists(IGNORED_FP))
     self.assertFalse(os.path.exists('.gitignore'))
@@ -90,34 +91,38 @@ class TestSwitch(TestBranch):
 
   def test_switch_contents_still_there_untrack_tracked(self):
     file_lib.untrack(TRACKED_FP)
-    self._write_file(TRACKED_FP, contents='contents')
+    utils_lib.write_file(TRACKED_FP, contents='contents')
     self.assertEqual(branch_lib.SUCCESS, branch_lib.switch(BRANCH))
-    self.assertEqual(TRACKED_FP_CONTENTS_2, self._read_file(TRACKED_FP))
+    self.assertEqual(TRACKED_FP_CONTENTS_2, utils_lib.read_file(TRACKED_FP))
     self.assertEqual(branch_lib.SUCCESS, branch_lib.switch('master'))
-    self.assertEqual('contents', self._read_file(TRACKED_FP))
+    self.assertEqual('contents', utils_lib.read_file(TRACKED_FP))
 
   def test_switch_contents_still_there_untracked(self):
     self.assertEqual(branch_lib.SUCCESS, branch_lib.switch(BRANCH))
-    self._write_file(UNTRACKED_FP, contents='contents')
+    utils_lib.write_file(UNTRACKED_FP, contents='contents')
     self.assertEqual(branch_lib.SUCCESS, branch_lib.switch('master'))
-    self.assertEqual(UNTRACKED_FP_CONTENTS, self._read_file(UNTRACKED_FP))
+    self.assertEqual(UNTRACKED_FP_CONTENTS, utils_lib.read_file(UNTRACKED_FP))
     self.assertEqual(branch_lib.SUCCESS, branch_lib.switch(BRANCH))
-    self.assertEqual('contents', self._read_file(UNTRACKED_FP))
+    self.assertEqual('contents', utils_lib.read_file(UNTRACKED_FP))
 
   def test_switch_contents_still_there_tracked_commit(self):
-    self._write_file(TRACKED_FP, contents='commit')
-    self._git_call('commit -m\'comment\' {}'.format(TRACKED_FP))
+    utils_lib.write_file(TRACKED_FP, contents='commit')
+    utils_lib.git_call('commit -m\'comment\' {0}'.format(TRACKED_FP))
     self.assertEqual(branch_lib.SUCCESS, branch_lib.switch(BRANCH))
-    self.assertEqual(TRACKED_FP_CONTENTS_2, self._read_file(TRACKED_FP))
+    self.assertEqual(TRACKED_FP_CONTENTS_2, utils_lib.read_file(TRACKED_FP))
     self.assertEqual(branch_lib.SUCCESS, branch_lib.switch('master'))
-    self.assertEqual('commit', self._read_file(TRACKED_FP))
+    self.assertEqual('commit', utils_lib.read_file(TRACKED_FP))
 
   def test_switch_file_classification_is_mantained(self):
     file_lib.untrack(TRACKED_FP)
     self.assertEqual(branch_lib.SUCCESS, branch_lib.switch(BRANCH))
-    self.assertEqual(file_lib.TRACKED, file_lib.status(TRACKED_FP).type)
+    st = file_lib.status(TRACKED_FP)
+    self.assertTrue(st)
+    self.assertEqual(file_lib.TRACKED, st.type)
     self.assertEqual(branch_lib.SUCCESS, branch_lib.switch('master'))
-    self.assertEqual(file_lib.UNTRACKED, file_lib.status(TRACKED_FP).type)
+    st = file_lib.status(TRACKED_FP)
+    self.assertTrue(st)
+    self.assertEqual(file_lib.UNTRACKED, st.type)
 
 
 if __name__ == '__main__':

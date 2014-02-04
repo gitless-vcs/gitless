@@ -12,7 +12,7 @@ import tempfile
 
 from gitless.core import file as file_lib
 
-import pprint
+from . import pprint
 
 
 def parser(subparsers):
@@ -42,17 +42,17 @@ def main(args):
     ret, (out, padding) = file_lib.diff(fp)
 
     if ret == file_lib.FILE_NOT_FOUND:
-      pprint.err('Can\'t diff a non-existent file: {}'.format(fp))
+      pprint.err('Can\'t diff a non-existent file: {0}'.format(fp))
       success = False
     elif ret == file_lib.FILE_IS_UNTRACKED:
       pprint.err(
-          'You tried to diff untracked file {}. It\'s probably a mistake. If '
+          'You tried to diff untracked file {0}. It\'s probably a mistake. If '
           'you really care about changes in this file you should start '
-          'tracking changes to it with gl track {}'.format(fp, fp))
+          'tracking changes to it with gl track {1}'.format(fp, fp))
       success = False
     elif ret == file_lib.FILE_IS_IGNORED:
       pprint.err(
-          'You tried to diff ignored file {}. It\'s probably a mistake. If '
+          'You tried to diff ignored file {0}. It\'s probably a mistake. If '
           'you really care about changes in this file you should stop ignoring '
           'it by editing the .gigignore file'.format(fp))
       success = False
@@ -62,24 +62,17 @@ def main(args):
     elif ret == file_lib.SUCCESS:
       if not out:
         pprint.msg(
-            'The working version of file {} is the same as its last '
+            'The working version of file {0} is the same as its last '
             'committed version. No diffs to output'.format(fp))
         continue
 
-      tf = tempfile.NamedTemporaryFile(delete=False)
+      tf = tempfile.NamedTemporaryFile(mode='w', delete=False)
       pprint.msg(
-          'Diff of file {} with its last committed version'.format(fp),
+          'Diff of file {0} with its last committed version'.format(fp),
           p=tf.write)
-      pprint.exp(
-          'lines starting with \'-\' are lines that are not in the working '
-          'version but that are present in the last committed version of the '
-          'file', p=tf.write)
-      pprint.exp(
-          'lines starting with \'+\' are lines that are in the working version '
-          'but not in the last committed version of the file', p=tf.write)
       tf.write('\n'.join(_format_diff_output(out, padding)))
       tf.close()
-      subprocess.call('less -r {}'.format(tf.name), shell=True)
+      subprocess.call('less -r -f {0}'.format(tf.name), shell=True)
       os.remove(tf.name)
     else:
       raise Exception('Unrecognized ret code %s' % ret)
@@ -209,10 +202,10 @@ def _highlight(line1, line2):
     and the second tuple indicated the ends.
    """
   start1 = start2 = 0
-  match = re.search('\S', line1)  # ignore leading whitespace.
+  match = re.search(r'\S', line1)  # ignore leading whitespace.
   if match:
     start1 = match.start()
-  match = re.search('\S', line2)
+  match = re.search(r'\S', line2)
   if match:
     start2 = match.start()
   length = min(len(line1), len(line2)) - 1
@@ -222,9 +215,9 @@ def _highlight(line1, line2):
          line1[bold_start1] == line2[bold_start2]):
     bold_start1 += 1
     bold_start2 += 1
-  match = re.search('\s*$', line1)  # ignore trailing whitespace.
+  match = re.search(r'\s*$', line1)  # ignore trailing whitespace.
   bold_end1 = match.start() - 1
-  match = re.search('\s*$', line2)
+  match = re.search(r'\s*$', line2)
   bold_end2 = match.start() - 1
   while (bold_end1 >= bold_start1 and bold_end2 >= bold_start2 and
          line1[bold_end1] == line2[bold_end2]):

@@ -9,12 +9,6 @@ import os
 
 from gitpylib import common as git_common
 from gitpylib import config as git_config
-from gitpylib import repo as git_repo
-
-
-# Ret codes of methods.
-SUCCESS = 1
-NOTHING_TO_INIT = 2
 
 
 def cwd():
@@ -33,22 +27,6 @@ def gl_dir():
   """
   # We use the same .git directory.
   return git_common.git_dir()
-
-
-def init_from(remote_repo):
-  """Clones the remote_repo into the cwd."""
-  if gl_dir():
-    return NOTHING_TO_INIT
-  git_repo.clone(remote_repo)
-  return SUCCESS
-
-
-def init_dir():
-  """Makes the cwd a Gitless's repository."""
-  if gl_dir():
-    return NOTHING_TO_INIT
-  git_repo.init()
-  return SUCCESS
 
 
 def editor():
