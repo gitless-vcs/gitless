@@ -83,7 +83,7 @@ def set_upstream(upstream):
   """Sets the upstream branch of the current branch.
 
   Args:
-    upstreame: the upstream branch in the form remote/branch.
+    upstream: the upstream branch in the form remote/branch.
 
   Returns:
     REMOTE_NOT_FOUND or SUCCESS.
