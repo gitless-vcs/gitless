@@ -15,8 +15,7 @@ VOWELS = ('a', 'e', 'i', 'o', 'u')
 
 def parser(help_msg, subcmd):
   def f(subparsers):
-    p = subparsers.add_parser(
-        subcmd, help=help_msg)
+    p = subparsers.add_parser(subcmd, help=help_msg)
     p.add_argument(
         'files', nargs='+', help='the file(s) to {0}'.format(subcmd))
     p.set_defaults(func=main(subcmd))
