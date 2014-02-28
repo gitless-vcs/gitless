@@ -34,7 +34,7 @@ def main(args):
   ret = True
   if args.branch:
     b_st = branch_lib.status(args.branch)
-    if b_st.exists and b_st.is_current:
+    if b_st and b_st.is_current:
       pprint.err(
           'You are already in branch %s. No need to switch.' % args.branch)
       pprint.err_exp('to list existing branches do gl branch')
@@ -51,7 +51,7 @@ def main(args):
           '-- this will be implemented in the future)')
       return False
 
-    if not b_st.exists and not _do_create(args.branch, args.divergent_point):
+    if not b_st and not _do_create(args.branch, args.divergent_point):
       return False
 
     branch_lib.switch(args.branch)
@@ -105,11 +105,11 @@ def _do_delete(delete_b):
 
   for b in delete_b:
     b_st = branch_lib.status(b)
-    if not b_st.exists:
+    if not b_st:
       pprint.err('Can\'t remove non-existent branch %s' % b)
       pprint.err_exp('do gl branch to list existing branches')
       errors_found = True
-    elif b_st.exists and b_st.is_current:
+    elif b_st and b_st.is_current:
       pprint.err('Can\'t remove current branch %s' % b)
       pprint.err_exp(
           'do gl branch <b> to create or switch to another branch b and then '

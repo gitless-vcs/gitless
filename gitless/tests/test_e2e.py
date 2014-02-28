@@ -164,6 +164,36 @@ class TestCommit(TestEndToEnd):
         self.fail('%s was apparently committed!' % fp)
 
 
+class TestBranch(TestEndToEnd):
+
+  BRANCH_1 = 'branch1'
+  BRANCH_2 = 'branch2'
+
+  def setUp(self):
+    super(TestBranch, self).setUp()
+    utils_lib.write_file('f')
+    utils_lib.gl_expect_success('commit f -msg"commit"')
+
+  def test_create(self):
+    utils_lib.gl_expect_success('branch %s' % self.BRANCH_1)
+    utils_lib.gl_expect_error('branch %s' % self.BRANCH_1)
+    utils_lib.gl_expect_error('branch evil_named_branch')
+    if self.BRANCH_1 not in utils_lib.gl_expect_success('branch')[0]:
+      self.fail()
+
+  def test_remove(self):
+    utils_lib.gl_expect_success('branch %s' % self.BRANCH_1)
+    utils_lib.gl_expect_error('branch -d %s' % self.BRANCH_1)
+    utils_lib.gl_expect_success('branch %s' % self.BRANCH_2)
+    utils_lib.gl_expect_success(
+        'branch -d %s' % self.BRANCH_1, pre_cmd='echo "n"')
+    utils_lib.gl_expect_success(
+        'branch -d %s' % self.BRANCH_1, pre_cmd='echo "y"')
+    if self.BRANCH_1 in utils_lib.gl_expect_success('branch')[0]:
+      self.fail()
+
+
+
 # TODO(sperezde): add more performance tests to check that we're not dropping
 # the ball: We should try to keep Gitless's performance reasonably close to
 # Git's.

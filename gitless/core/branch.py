@@ -19,6 +19,9 @@ from . import remote as remote_lib
 from . import repo as repo_lib
 
 
+BranchStatus = collections.namedtuple(
+    'BranchStatus', ['name', 'is_current', 'upstream', 'upstream_exists'])
+
 # Ret codes of methods.
 SUCCESS = 1
 REMOTE_NOT_FOUND = 2
@@ -147,16 +150,16 @@ def status(name):
     representing its upstream branch (in the form 'remote_name/remote_branch')
     or None if it has no upstream set.
   """
-  BranchStatus = collections.namedtuple(
-      'BranchStatus', ['exists', 'is_current', 'upstream', 'upstream_exists'])
   exists, is_current, upstream = git_branch.status(name)
+  if not exists:
+    return None
   upstream_exists = True
   if not upstream:
     # We have to check if the branch has an unpushed upstream.
     upstream = _unpushed_upstream(name)
     upstream_exists = False
 
-  return BranchStatus(exists, is_current, upstream, upstream_exists)
+  return BranchStatus(name, is_current, upstream, upstream_exists)
 
 
 def status_all():
@@ -166,9 +169,6 @@ def status_all():
     named tuples of the form (name, is_current, upstream, upstream_exists).
     upstream is in the format 'remote_name/remote_branch'.
   """
-  BranchStatus = collections.namedtuple(
-      'b_status', ['name', 'is_current', 'upstream', 'upstream_exists'])
-
   rebase_in_progress = _rebase_in_progress()
   if rebase_in_progress:
     current_b = _rebase_branch()

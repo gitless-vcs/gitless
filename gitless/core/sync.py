@@ -264,9 +264,9 @@ def _rebase_file():
 
 def _valid_branch(b):
   b_st = branch_lib.status(b)
-  if not b_st.exists:
+  if not b_st:
     return (False, SRC_NOT_FOUND)
-  if b_st.exists and b_st.is_current:
+  if b_st and b_st.is_current:
     return (False, SRC_IS_CURRENT_BRANCH)
   return (True, None)
 

@@ -60,20 +60,20 @@ def read_file(fp):
   return ret
 
 
-def gl_call(cmd, expected_ret_code=0):
-  return _call('gl', cmd, expected_ret_code=expected_ret_code)
+def gl_call(cmd, expected_ret_code=0, pre_cmd=None):
+  return _call('gl', cmd, expected_ret_code=expected_ret_code, pre_cmd=pre_cmd)
 
 
 def git_call(cmd, expected_ret_code=0):
   return _call('git', cmd, expected_ret_code=expected_ret_code)
 
 
-def gl_expect_success(cmd):
-  return gl_call(cmd)
+def gl_expect_success(cmd, pre_cmd=None):
+  return gl_call(cmd, pre_cmd=pre_cmd)
 
 
-def gl_expect_error(cmd):
-  return gl_call(cmd, expected_ret_code=1)
+def gl_expect_error(cmd, pre_cmd=None):
+  return gl_call(cmd, expected_ret_code=1, pre_cmd=pre_cmd)
 
 
 def set_test_config():
@@ -84,10 +84,14 @@ def set_test_config():
 # Private functions.
 
 
-def _call(cmd, subcmd, expected_ret_code=0):
+def _call(cmd, subcmd, expected_ret_code=0, pre_cmd=None):
   logging.debug('Calling {0} {1}'.format(cmd, subcmd))
+  if pre_cmd:
+    pre_cmd = pre_cmd + '|'
+  else:
+    pre_cmd = ''
   p = subprocess.Popen(
-      '{0} {1}'.format(cmd, subcmd), stdout=subprocess.PIPE,
+      '{0} {1} {2}'.format(pre_cmd, cmd, subcmd), stdout=subprocess.PIPE,
       stderr=subprocess.PIPE, shell=True)
   out, err = p.communicate()
   # Python 2/3 compatibility.
