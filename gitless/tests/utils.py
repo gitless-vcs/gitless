@@ -38,19 +38,12 @@ class TestBase(unittest.TestCase):
         return self.assertEqual(sorted(actual), sorted(expected), msg=msg)
 
 
-def write_file(fp, contents='hello'):
-  dirs, _ = os.path.split(fp)
-  if dirs and not os.path.exists(dirs):
-    os.makedirs(dirs)
-  f = open(fp, 'w')
-  f.write(contents)
-  f.close()
+def write_file(fp, contents=None):
+  _x_file('w', fp, contents=contents)
 
 
-def append_to_file(fp, contents='hello'):
-  f = open(fp, 'a')
-  f.write(contents)
-  f.close()
+def append_to_file(fp, contents=None):
+  _x_file('a', fp, contents=contents)
 
 
 def read_file(fp):
@@ -82,6 +75,17 @@ def set_test_config():
 
 
 # Private functions.
+
+
+def _x_file(x, fp, contents=None):
+  if not contents:
+    contents = fp
+  dirs, _ = os.path.split(fp)
+  if dirs and not os.path.exists(dirs):
+    os.makedirs(dirs)
+  f = open(fp, x)
+  f.write(contents)
+  f.close()
 
 
 def _call(cmd, subcmd, expected_ret_code=0, pre_cmd=None):

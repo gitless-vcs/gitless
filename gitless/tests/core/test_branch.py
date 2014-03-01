@@ -105,6 +105,14 @@ class TestSwitch(TestBranch):
     self.assertEqual(branch_lib.SUCCESS, branch_lib.switch(BRANCH))
     self.assertEqual('contents', utils_lib.read_file(UNTRACKED_FP))
 
+  def test_switch_contents_still_there_ignored(self):
+    self.assertEqual(branch_lib.SUCCESS, branch_lib.switch(BRANCH))
+    utils_lib.write_file(IGNORED_FP, contents='contents')
+    self.assertEqual(branch_lib.SUCCESS, branch_lib.switch('master'))
+    self.assertEqual(IGNORED_FP, utils_lib.read_file(IGNORED_FP))
+    self.assertEqual(branch_lib.SUCCESS, branch_lib.switch(BRANCH))
+    self.assertEqual('contents', utils_lib.read_file(IGNORED_FP))
+
   def test_switch_contents_still_there_tracked_commit(self):
     utils_lib.write_file(TRACKED_FP, contents='commit')
     utils_lib.git_call('commit -m\'comment\' {0}'.format(TRACKED_FP))
@@ -123,6 +131,16 @@ class TestSwitch(TestBranch):
     st = file_lib.status(TRACKED_FP)
     self.assertTrue(st)
     self.assertEqual(file_lib.UNTRACKED, st.type)
+
+  def test_switch_with_hidden_files(self):
+    hf = '.file'
+    utils_lib.write_file(hf)
+    self.assertEqual(branch_lib.SUCCESS, branch_lib.switch(BRANCH))
+    utils_lib.write_file(hf, contents='contents')
+    self.assertEqual(branch_lib.SUCCESS, branch_lib.switch('master'))
+    self.assertEqual(hf, utils_lib.read_file(hf))
+    self.assertEqual(branch_lib.SUCCESS, branch_lib.switch(BRANCH))
+    self.assertEqual('contents', utils_lib.read_file(hf))
 
 
 if __name__ == '__main__':
