@@ -131,7 +131,7 @@ def diff(fp):
     FILE_IS_UNTRACKED, FILE_IS_DIR or SUCCESS and out is the output of the diff
     command in a machine-friendly way: it's a tuple of the form
     (list of namedtuples with fields 'line', 'status', 'old_line_number',
-     'new_line_number', line number padding).
+     'new_line_number', line number padding, additions, deletions).
   """
   if os.path.isdir(fp):
     return (FILE_IS_DIR, (None, None))
@@ -143,19 +143,15 @@ def diff(fp):
   elif gl_st.type == IGNORED:
     return (FILE_IS_IGNORED, (None, None))
 
-  diff_out = None
+  do_staged_diff = False
   if git_s == git_status.STAGED:
-    diff_out = git_file.staged_diff(fp)
+    do_staged_diff = True
   elif (git_s == git_status.ADDED_MODIFIED or
         git_s == git_status.MODIFIED_MODIFIED):
     git_file.stage(fp)
-    diff_out = git_file.staged_diff(fp)
-  elif git_s == git_status.DELETED:
-    diff_out = git_file.diff(fp)
-  else:
-    diff_out = git_file.diff(fp)
+    do_staged_diff = True
 
-  return (SUCCESS, diff_out)
+  return (SUCCESS, git_file.diff(fp, staged=do_staged_diff))
 
 
 def checkout(fp, cp='HEAD'):

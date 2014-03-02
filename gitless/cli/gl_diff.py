@@ -39,7 +39,7 @@ def main(args):
 
   success = True
   for fp in files:
-    ret, (out, padding) = file_lib.diff(fp)
+    ret, (out, padding, additions, deletions) = file_lib.diff(fp)
 
     if ret == file_lib.FILE_NOT_FOUND:
       pprint.err('Can\'t diff a non-existent file: {0}'.format(fp))
@@ -70,6 +70,8 @@ def main(args):
       pprint.msg(
           'Diff of file {0} with its last committed version'.format(fp),
           p=tf.write)
+      pprint.msg('{0} lines added'.format(additions), p=tf.write)
+      pprint.msg('{0} lines removed'.format(deletions), p=tf.write)
       tf.write('\n'.join(_format_diff_output(out, padding)))
       tf.close()
       subprocess.call('less -r -f {0}'.format(tf.name), shell=True)
