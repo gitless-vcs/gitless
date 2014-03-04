@@ -29,15 +29,34 @@ def stub(module, fake):
 
   Args:
     module: the module to stub.
-    fake: an instance of a class used for stubbing.
+    fake: an instance of a class or dict used for stubbing.
   """
-  clz = dir(fake)
-  for key_mod in dir(module):
-    if key_mod in clz:
-      fake_obj = getattr(fake, key_mod)
-      if hasattr(fake_obj, '__call__'):
-        fake_obj = fake_obj()
-      setattr(module, key_mod, fake_obj)
+  return Stubber(module, fake)
+
+
+class Stubber(object):
+
+  def __init__(self, module, fake):
+    self.__module = module
+    self.__backup = {}
+    if not isinstance(fake, dict):
+      # We dictionarize (-- is that even a word?) the object.
+      fake = dict(
+          (n, getattr(fake, n)) for n in dir(fake) if not n.startswith('__'))
+
+    for k, v in fake.items():
+      try:
+        self.__backup[k] = getattr(module, k)
+      except AttributeError:
+        pass
+      setattr(module, k, v)
+
+  def __enter__(self):
+    pass
+
+  def __exit__(self, t, value, traceback):
+    for k, v in self.__backup.items():
+      setattr(self.__module, k, v)
 
 
 def assert_contents_unchanged(*fps):

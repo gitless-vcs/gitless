@@ -10,9 +10,11 @@ import unittest
 
 import gitless.core.file as file_lib
 import gitless.core.branch as branch_lib
+import gitless.core.remote as remote_lib
 import gitless.tests.utils as utils_lib
 
 from . import common
+from . import stubs
 
 
 TRACKED_FP = 'f1'
@@ -141,6 +143,41 @@ class TestSwitch(TestBranch):
     self.assertEqual(hf, utils_lib.read_file(hf))
     self.assertEqual(branch_lib.SUCCESS, branch_lib.switch(BRANCH))
     self.assertEqual('contents', utils_lib.read_file(hf))
+
+
+class TestUpstream(TestBranch):
+
+  REMOTE_NAME = 'remote'
+  REMOTE_URL = 'url'
+
+  def setUp(self):
+    super(TestUpstream, self).setUp()
+    common.stub(remote_lib.git_remote, stubs.RemoteLib())
+    remote_lib.add(self.REMOTE_NAME, self.REMOTE_URL)
+
+  def test_set_upstream_no_remote(self):
+    self.assertEqual(
+        branch_lib.REMOTE_NOT_FOUND, branch_lib.set_upstream('r/b'))
+
+  def test_set_upstream(self):
+    self.assertEqual(
+        branch_lib.SUCCESS,
+        branch_lib.set_upstream(self.REMOTE_NAME + '/branch'))
+
+  def test_unset_upstream_no_upstream(self):
+    self.assertEqual(
+        branch_lib.UPSTREAM_NOT_SET, branch_lib.unset_upstream())
+
+  def test_unset_upstream(self):
+    remote_branch = self.REMOTE_NAME + '/branch'
+    with common.stub(
+        branch_lib.git_branch,
+        {'status': lambda b: (True, True, remote_branch),
+         'set_upstream': lambda un, ub: branch_lib.git_branch.SUCCESS,
+         'unset_upstream': lambda b: branch_lib.git_branch.SUCCESS}):
+      branch_lib.set_upstream(remote_branch)
+      self.assertEqual(branch_lib.SUCCESS, branch_lib.unset_upstream())
+
 
 
 if __name__ == '__main__':

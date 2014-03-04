@@ -95,6 +95,7 @@ def rebase(new_base):
     remote, remote_b = _parse_from_remote_branch(new_base)
     ret, out = git_sync.pull_rebase(remote, remote_b)
   else:
+    print 'rebasing with %s' % new_base
     ret, out = git_sync.rebase(new_base)
   if ret == git_sync.SUCCESS:
     return (SUCCESS, out)

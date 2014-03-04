@@ -30,6 +30,7 @@ BRANCH_ALREADY_EXISTS = 4
 NONEXISTENT_BRANCH = 5
 BRANCH_IS_CURRENT = 6
 INVALID_DP = 7
+UPSTREAM_NOT_SET = 8
 
 
 def create(name, dp='HEAD'):
@@ -107,6 +108,21 @@ def set_upstream(upstream):
     # TODO(sperezde): fix the fetch case.
     open(uf, 'a').close()
   return SUCCESS
+
+
+def unset_upstream():
+  """Unsets the upstream branch of the current branch."""
+  current_b_name = current()
+  current_b = status(current_b_name)
+  ret = UPSTREAM_NOT_SET
+  if current_b.upstream:
+    ret = SUCCESS
+    if current_b.upstream_exists:
+      git_branch.unset_upstream(current_b_name)
+    else:
+      uf = _upstream_file(current_b_name, *current_b.upstream.split('/'))
+      os.remove(uf)
+  return ret
 
 
 def switch(name):

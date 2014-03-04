@@ -8,48 +8,10 @@
 import unittest
 
 from . import common
+from . import stubs
 
 import gitless.core.remote as remote_lib
 
-
-class RemoteStub(object):
-
-  SUCCESS = remote_lib.git_remote.SUCCESS
-  REMOTE_NOT_FOUND = remote_lib.git_remote.REMOTE_NOT_FOUND
-
-  def __init__(self):
-    self.remotes = {}
-
-  def add(self):
-    def stub_add(remote_name, remote_url):
-      self.remotes[remote_name] = remote_url
-      return self.SUCCESS
-    return stub_add
-
-  def show(self):
-    def stub_show(remote_name):
-      if remote_name not in self.remotes:
-        return (self.REMOTE_NOT_FOUND, None)
-      return (self.SUCCESS, 'info about {0}'.format(remote_name))
-    return stub_show
-
-  def show_all(self):
-    def stub_show_all():
-      return list(self.remotes.keys())
-    return stub_show_all
-
-  def show_all_v(self):
-    def stub_show_all_v():
-      ret = []
-      for rn, ru in self.remotes.items():
-        ret.append(remote_lib.git_remote.RemoteInfo(rn, ru, ru))
-      return ret
-    return stub_show_all_v
-
-  def rm(self):
-    def stub_rm(remote_name):
-      del self.remotes[remote_name]
-    return stub_rm
 
 
 class TestRemote(common.TestCore):
@@ -57,7 +19,9 @@ class TestRemote(common.TestCore):
 
   def setUp(self):
     super(TestRemote, self).setUp()
-    common.stub(remote_lib.git_remote, RemoteStub())
+    # Re-stub the module with a fresh RemoteLib instance.
+    # This keeps unit tests independent between each other.
+    common.stub(remote_lib.git_remote, stubs.RemoteLib())
 
 
 class TestAdd(TestRemote):
