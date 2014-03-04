@@ -27,6 +27,9 @@ def parser(subparsers):
   branch_parser.add_argument(
       '-su', '--set-upstream', help='set the upstream branch',
       dest='upstream_b')
+  branch_parser.add_argument(
+      '-uu', '--unset-upstream', help='unset the upstream branch',
+      action='store_true')
   branch_parser.set_defaults(func=main)
 
 
@@ -60,6 +63,8 @@ def main(args):
     ret = _do_delete(args.delete_b)
   elif args.upstream_b:
     ret = _do_set_upstream(args.upstream_b)
+  elif args.unset_upstream:
+    ret = _do_unset_upstream()
   else:
     _do_list()
 
@@ -144,5 +149,23 @@ def _do_set_upstream(upstream):
   elif ret is branch_lib.SUCCESS:
     pprint.msg('Current branch %s set to track %s/%s' % (
         branch_lib.current(), upstream_remote, upstream_branch))
+
+  return not errors_found
+
+
+def _do_unset_upstream():
+  ret = branch_lib.unset_upstream()
+
+  errors_found = False
+  if ret is branch_lib.UPSTREAM_NOT_SET:
+    pprint.err('Current branch has no upstream set')
+    pprint.err_exp(
+        'do gl branch to list all existing branches -- if a branch has an '
+        'upstream set it will be shown')
+    pprint.err_exp(
+      'do gl branch -su <upstream> to set an upstream for the current branch')
+    errors_found = True
+  elif ret is branch_lib.SUCCESS:
+    pprint.msg('Upstream unset for current branch')
 
   return not errors_found
