@@ -67,8 +67,13 @@ def conf_dialog(text):
   Returns:
     True if the user confirmed she wanted to continue or False if otherwise.
   """
-  sys.stdout.write('# %s. Do you wish to continue? (y/N)' % text)
-  # Python 2/3 compatibility.
+  msg('{0}. Do you wish to continue? (y/N)'.format(text))
+  user_input = get_user_input()
+  return user_input and user_input[0].lower() == 'y'
+
+
+def get_user_input(text='> '):
+  """Python 2/3 compatible way of getting user input."""
   global input
   try:
     # Disable pylint's redefined-builtin warning and undefined-variable
