@@ -6,7 +6,6 @@
 
 
 import argparse
-import pkg_resources
 import traceback
 
 from gitless.core import repo as repo_lib
@@ -34,20 +33,20 @@ ERRORS_FOUND = 1
 INTERNAL_ERROR = 3
 NOT_IN_GL_REPO = 4
 
-GL_VERSION = 'GL Version: ' + pkg_resources.require('gitless')[0].version
-GL_URL = 'http://gitless.com'
+VERSION = '0.5'
+URL = 'http://gitless.com'
 
 
 def main():
   parser = argparse.ArgumentParser(
       description=(
           'Gitless: a version control system built on top of Git. More info, '
-          'downloads and documentation available at %s' % GL_URL),
+          'downloads and documentation available at %s' % URL),
       formatter_class=argparse.RawDescriptionHelpFormatter)
   parser.add_argument(
       '--version', action='version', version=(
-         '%s\nYou can check if there\'s a new version of Gitless available by '
-         'visiting %s' % (GL_VERSION, GL_URL)))
+         'GL Version: %s\nYou can check if there\'s a new version of Gitless '
+         'available by visiting %s' % (VERSION, URL)))
   subparsers = parser.add_subparsers(dest='subcmd_name')
 
   sub_cmds = [
@@ -80,5 +79,5 @@ def main():
         'Oops...something went wrong (recall that Gitless is in beta). If you '
         'want to help, report the bug at %s/community.html and include the '
         'following in the email:\n\n%s\n\n%s' %
-        (GL_URL, GL_VERSION, traceback.format_exc()))
+        (URL, VERSION, traceback.format_exc()))
     return INTERNAL_ERROR
