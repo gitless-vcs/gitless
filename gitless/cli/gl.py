@@ -78,6 +78,6 @@ def main():
     pprint.err(
         'Oops...something went wrong (recall that Gitless is in beta). If you '
         'want to help, report the bug at %s/community.html and include the '
-        'following in the email:\n\n%s\n\n%s' %
+        'following information:\n\n%s\n\n%s' %
         (URL, VERSION, traceback.format_exc()))
     return INTERNAL_ERROR
