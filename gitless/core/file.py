@@ -151,7 +151,8 @@ def diff(fp):
     git_file.stage(fp)
     do_staged_diff = True
 
-  return (SUCCESS, git_file.diff(fp, staged=do_staged_diff))
+  # Don't include the `git diff` header.
+  return (SUCCESS, git_file.diff(fp, staged=do_staged_diff)[:-1])
 
 
 def checkout(fp, cp='HEAD'):

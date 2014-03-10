@@ -236,7 +236,8 @@ def commit(files, msg, skip_checks=False):
       pc = git_hook.pre_commit()
       if not pc.ok:
         return (PRE_COMMIT_FAILED, pc.err)
-    out = git_sync.commit(files, msg, skip_checks=True, stage_files=True)
+    out = git_sync.commit(
+        files, msg, skip_checks=True, include_staged_files=True)
     file_lib.internal_resolved_cleanup()
     return (SUCCESS, out)
 
