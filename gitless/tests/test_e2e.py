@@ -193,6 +193,31 @@ class TestBranch(TestEndToEnd):
       self.fail()
 
 
+class TestDiff(TestEndToEnd):
+
+  TRACKED_FP = 't_fp'
+  UNTRACKED_FP = 'u_fp'
+
+  def setUp(self):
+    super(TestDiff, self).setUp()
+    utils_lib.write_file(self.TRACKED_FP)
+    utils_lib.gl_expect_success('commit %s -msg"commit"' % self.TRACKED_FP)
+    utils_lib.write_file(self.UNTRACKED_FP)
+
+  def test_empty_diff(self):
+    if 'Nothing to diff' not in utils_lib.gl_expect_success('diff')[0]:
+      self.fail()
+
+  def test_basic_diff(self):
+    utils_lib.write_file(self.TRACKED_FP, contents='contents')
+    out1 = utils_lib.gl_expect_success('diff')[0]
+    if '+contents' not in out1:
+      self.fail()
+    out2 = utils_lib.gl_expect_success('diff %s' % self.TRACKED_FP)[0]
+    if '+contents' not in out2:
+      self.fail()
+    self.assertEqual(out1, out2)
+
 
 # TODO(sperezde): add more performance tests to check that we're not dropping
 # the ball: We should try to keep Gitless's performance reasonably close to
