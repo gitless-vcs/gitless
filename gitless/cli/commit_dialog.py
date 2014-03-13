@@ -44,7 +44,6 @@ def _show(files):
   Returns:
     A tuple (msg, files) with the commit msg and the files to commit.
   """
-  # TODO(sperezde): detect if user exited with q!.
   cf = open(_commit_file(), 'w')
   cf.write('\n')
   pprint.sep(p=cf.write)
