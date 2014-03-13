@@ -18,10 +18,10 @@ that you're not a Git aficionado.
 More info, downloads and documentation @ [Gitless's website](
     http://gitless.com "Gitless's website").
 
-For getting updates and/or questions or comments you can use the @ [Gitless
-users mailing list](
-    https://groups.google.com/forum/#!forum/gl-users
-    "Gitless users mailing list")
+Questions or comments about Gitless can be sent to the [
+  Gitless users mailing list](
+      https://groups.google.com/forum/#!forum/gl-users
+      "Gitless users mailing list").
 
 
 Install
