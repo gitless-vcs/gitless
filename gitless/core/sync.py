@@ -253,10 +253,9 @@ def commit(files, msg, skip_checks=False):
 
 
 def _write_rebase_file(current, new_base):
-  rf = open(_rebase_file(), 'w')
-  rf.write(current + '\n')
-  rf.write(new_base + '\n')
-  rf.close()
+  with open(_rebase_file(), 'w') as rf:
+    rf.write(current + '\n')
+    rf.write(new_base + '\n')
 
 
 def _rebase_file():

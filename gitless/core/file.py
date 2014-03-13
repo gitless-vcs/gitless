@@ -181,9 +181,8 @@ def checkout(fp, cp='HEAD'):
     git_file.unstage(fp)
     unstaged = True
 
-  dst = open(fp, 'w')
-  dst.write(out)
-  dst.close()
+  with open(fp, 'w') as dst:
+    dst.write(out)
 
   if unstaged:
     git_file.stage(fp)
