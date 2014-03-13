@@ -9,6 +9,7 @@ import os
 
 from gitpylib import common as git_common
 from gitpylib import config as git_config
+from gitpylib import log as git_log
 
 
 def cwd():
@@ -40,3 +41,7 @@ def editor():
     return ret
   # We default to Vim.
   return 'vim'
+
+
+def history(include_diffs=False):
+  git_log.log(include_diffs=include_diffs)

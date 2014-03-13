@@ -5,7 +5,7 @@
 """gl history - Show commit history."""
 
 
-from gitless.core import history as history_lib
+from gitless.core import repo as repo_lib
 
 
 def parser(subparsers):
@@ -19,5 +19,5 @@ def parser(subparsers):
 
 
 def main(args):
-  history_lib.show(verbose=args.verbose)
+  repo_lib.history(include_diffs=args.verbose)
   return True
