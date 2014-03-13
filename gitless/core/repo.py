@@ -44,4 +44,4 @@ def editor():
 
 
 def history(include_diffs=False):
-  git_log.log(include_diffs=include_diffs)
+  return git_log.log(include_diffs=include_diffs)
