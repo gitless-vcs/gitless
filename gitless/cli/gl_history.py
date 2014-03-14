@@ -35,7 +35,12 @@ def main(args):
       tf.write('\n'.join('   ' + l for l in ci.msg.splitlines()))
       tf.write('\n\n')
       for diff in ci.diffs:
-        pprint.diff(*diff, p=tf.write)
+        tf.write('Diff of file {0}'.format(diff.fp_before))
+        if diff.fp_before != diff.fp_after:
+          tf.write(' (renamed to {0})'.format(diff.fp_after))
+        tf.write('\n')
+        pprint.diff(*diff.diff, p=tf.write)
+        tf.write('\n')
       tf.write('\n\n')
   subprocess.call('less -r -f {0}'.format(tf.name), shell=True)
   os.remove(tf.name)

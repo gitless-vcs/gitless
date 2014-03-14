@@ -69,8 +69,12 @@ def main(args):
         pprint.msg(
             'Diff of file {0} with its last committed version'.format(fp),
             p=tf.write)
-        pprint.msg('{0} lines added'.format(additions), p=tf.write)
-        pprint.msg('{0} lines removed'.format(deletions), p=tf.write)
+        put_s = lambda num: '' if num == 1 else 's'
+        pprint.msg(
+            '{0} line{1} added'.format(additions, put_s(additions)), p=tf.write)
+        pprint.msg(
+            '{0} line{1} removed'.format(deletions, put_s(deletions)),
+            p=tf.write)
         pprint.diff(out, padding, p=tf.write)
 
       subprocess.call('less -r -f {0}'.format(tf.name), shell=True)
