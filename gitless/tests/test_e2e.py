@@ -208,6 +208,11 @@ class TestDiff(TestEndToEnd):
     if 'Nothing to diff' not in utils_lib.gl_expect_success('diff')[0]:
       self.fail()
 
+  def test_diff_nonexistent_fp(self):
+    _, err = utils_lib.gl_expect_error('diff {0}'.format('file'))
+    if 'non-existent' not in err:
+      self.fail()
+
   def test_basic_diff(self):
     utils_lib.write_file(self.TRACKED_FP, contents='contents')
     out1 = utils_lib.gl_expect_success('diff')[0]

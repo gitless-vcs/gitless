@@ -133,15 +133,16 @@ def diff(fp):
     (list of namedtuples with fields 'line', 'status', 'old_line_number',
      'new_line_number', line number padding, additions, deletions).
   """
+  nil_out = (None, None, None, None)
   if os.path.isdir(fp):
-    return (FILE_IS_DIR, (None, None))
+    return (FILE_IS_DIR, nil_out)
   gl_st, git_s = _status(fp)
   if not gl_st:
-    return (FILE_NOT_FOUND, (None, None))
+    return (FILE_NOT_FOUND, nil_out)
   elif gl_st.type == UNTRACKED:
-    return (FILE_IS_UNTRACKED, (None, None))
+    return (FILE_IS_UNTRACKED, nil_out)
   elif gl_st.type == IGNORED:
-    return (FILE_IS_IGNORED, (None, None))
+    return (FILE_IS_IGNORED, nil_out)
 
   do_staged_diff = False
   if git_s == git_status.STAGED:
