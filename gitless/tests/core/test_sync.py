@@ -37,7 +37,7 @@ class TestPartialCommit(common.TestCore):
         curr_chunk = 'chunk' + str(chunk_count)
         self.__assert_expected_chunk(
             curr_chunk,
-            itertools.ifilter(lambda c: c != curr_chunk, all_chunks),
+            filter(lambda c: c != curr_chunk, all_chunks),
             _textify_diff(chunk.diff[0]))
     self.assertEqual(1, chunked_fp_count)
     self.assertEqual(2, chunk_count)
