@@ -31,6 +31,8 @@ def parser(subparsers):
             'must be untracked files)'),
       dest='inc_files')
   commit_parser.add_argument(
+      '-p', '--partial', help='do a partial commit', action='store_true')
+  commit_parser.add_argument(
       '-sc', '--skip-checks', help='skip pre-commit check', action='store_true',
       default=False, dest='sc')
   commit_parser.add_argument(
@@ -73,7 +75,11 @@ def main(args):
       return False
 
   _auto_track(commit_files)
-  ret, out = sync_lib.commit(commit_files, msg, skip_checks=args.sc)
+  commit = sync_lib.commit if not args.partial else _do_partial_commit
+  ret, out = commit(commit_files, msg, skip_checks=args.sc)
+  if not ret:
+    pprint.msg('Commit aborted')
+    return True
   if ret == sync_lib.SUCCESS:
     if out:
       pprint.msg(out)
@@ -216,3 +222,35 @@ def _auto_track(files):
       raise Exception('Expected %s to exist, but it doesn\'t' % fp)
     if f.type == file_lib.UNTRACKED:
       file_lib.track(f.fp)
+
+
+def _do_partial_commit(files, msg, skip_checks=False):
+  pprint.msg('Entering partial commit mode')
+  pprint.exp(
+      'you can always input "a" or "abort" or "q" or "quit" to abort the '
+      'commit')
+  pc = sync_lib.partial_commit(files)
+  for chunked_fp in pc:
+    print('\n')
+    pprint.msg('Looking at file "{0}"'.format(chunked_fp.fp))
+    for chunk in chunked_fp:
+      while True:
+        pprint.diff(*chunk.diff)
+        print('\n')
+        pprint.msg('Do you want to include this chunk in the commit?')
+        pprint.exp('input "y" or "yes" to include this chunk in the commit')
+        pprint.exp('input "n" or "no" to include this chunk in the commit')
+        pprint.exp(
+            'input "a" or "abort" or "q" or "quit" to abort the commit')
+        user_input = pprint.get_user_input()
+        if user_input in ['y', 'yes']:
+          chunk.include()
+          break
+        elif user_input in ['n', 'no']:
+          break
+        elif user_input in ['a', 'abort', 'q', 'quit']:
+          return None, None
+        else:
+          pprint.msg(
+              'Unrecognized input "{0}", please try again'.format(user_input))
+  return pc.commit(msg, skip_checks=skip_checks)

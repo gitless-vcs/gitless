@@ -5,10 +5,13 @@
 """Gitless's sync lib."""
 
 
+import itertools
 import os
 
+from gitpylib import apply as git_apply
 from gitpylib import file as git_file
 from gitpylib import hook as git_hook
+from gitpylib import status as git_status
 from gitpylib import sync as git_sync
 from gitpylib import remote as git_remote
 
@@ -165,6 +168,77 @@ def publish():
     return (PUSH_FAIL, None)
   else:
     raise Exception('Unrecognized ret code %s' % ret)
+
+
+def partial_commit(files):
+  return PartialCommit(files)
+
+class PartialCommit(object):
+
+  def __init__(self, files):
+    self.__files = files
+    self.__pf = open(os.path.join(repo_lib.gl_dir(), 'GL_PARTIAL_CI'), 'w+')
+
+  def __iter__(self):
+    for fp in self.__files:
+      yield self.ChunkedFile(fp, self.__pf)
+
+  def commit(self, msg, skip_checks=False):
+    def has_staged_version(fp):
+      return git_status.of_file(fp) in [
+          git_status.STAGED, git_status.MODIFIED_MODIFIED,
+          git_status.ADDED_MODIFIED]
+
+    self.__pf.close()
+    git_apply.on_index(self.__pf.name)
+    for fp in self.__files:
+      if not has_staged_version(fp):
+        # Partial commit includes all changes to file.
+        git_file.stage(fp)
+    out = git_sync.commit(
+        None, msg, skip_checks=skip_checks, include_staged_files=True)
+    return SUCCESS, out
+
+  class ChunkedFile(object):
+
+    def __init__(self, fp, pf):
+      self.fp = fp
+      self.__pf = pf
+      self.__diff, self.__padding, _, _, self.__diff_header = git_file.diff(fp)
+      if not self.__diff:
+        raise Exception('There\'s nothing to (partially) commit')
+      self.__diff_len = len(self.__diff)
+      self.__header_printed = False
+      self.__curr_index = 0
+      self.__curr_chunk = None
+
+    def __iter__(self):
+      return self
+
+    # Py 2/3 compatibility.
+    def __next__(self):
+      return self.next()
+
+    def next(self):
+      if self.__curr_index >= self.__diff_len:
+        raise StopIteration
+      self.__curr_chunk = [self.__diff[self.__curr_index]]
+      self.__curr_chunk.extend(
+          itertools.takewhile(
+            lambda ld: ld.status != git_file.DIFF_INFO,
+            itertools.islice(self.__diff, self.__curr_index + 1, None)))
+      self.__curr_index += len(self.__curr_chunk)
+      return self
+
+    @property
+    def diff(self):
+      return self.__curr_chunk, self.__padding
+
+    def include(self):
+      if not self.__header_printed:
+        self.__pf.write('\n'.join(self.__diff_header) + '\n')
+      for line, _, _, _ in self.__curr_chunk:
+        self.__pf.write(line + '\n')
 
 
 def commit(files, msg, skip_checks=False):
