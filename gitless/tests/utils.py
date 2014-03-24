@@ -110,7 +110,7 @@ def _call(cmd, subcmd, expected_ret_code=0, pre_cmd=None):
     logging.debug('Err is \n{0}'.format(err))
   if p.returncode != expected_ret_code:
     raise Exception(
-        'Obtained ret code {0} doesn\'t match the expected {1}.\nOut of the'
+        'Obtained ret code {0} doesn\'t match the expected {1}.\nOut of the '
         'cmd was:\n{2}\nErr of the cmd was:\n{3}\n'.format(
             p.returncode, expected_ret_code, out, err))
   return out, err
