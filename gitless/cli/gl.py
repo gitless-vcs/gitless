@@ -1,6 +1,5 @@
 # Gitless - a version control system built on top of Git.
-# Copyright (c) 2013  Santiago Perez De Rosso.
-# Licensed under GNU GPL, version 2.
+# Licensed under GNU GPL v2.
 
 """gl - Main Gitless's command. Dispatcher to the other cmds."""
 
@@ -41,12 +40,12 @@ def main():
   parser = argparse.ArgumentParser(
       description=(
           'Gitless: a version control system built on top of Git. More info, '
-          'downloads and documentation available at %s' % URL),
+          'downloads and documentation available at {0}'.format(URL)),
       formatter_class=argparse.RawDescriptionHelpFormatter)
   parser.add_argument(
       '--version', action='version', version=(
-         'GL Version: %s\nYou can check if there\'s a new version of Gitless '
-         'available by visiting %s' % (VERSION, URL)))
+         'GL Version: {0}\nYou can check if there\'s a new version of Gitless '
+         'available by visiting {1}'.format(VERSION, URL)))
   subparsers = parser.add_subparsers(dest='subcmd_name')
 
   sub_cmds = [
@@ -77,7 +76,7 @@ def main():
   except:
     pprint.err(
         'Oops...something went wrong (recall that Gitless is in beta). If you '
-        'want to help, report the bug at %s/community.html and include the '
-        'following information:\n\n%s\n\n%s' %
-        (URL, VERSION, traceback.format_exc()))
+        'want to help, report the bug at {0}/community.html and include the '
+        'following information:\n\n{1}\n\n{2}'.format(
+            URL, VERSION, traceback.format_exc()))
     return INTERNAL_ERROR

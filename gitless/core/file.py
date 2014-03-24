@@ -1,6 +1,5 @@
 # Gitless - a version control system built on top of Git.
-# Copyright (c) 2013  Santiago Perez De Rosso.
-# Licensed under GNU GPL, version 2.
+# Licensed under GNU GPL v2.
 
 """Gitless's file lib."""
 
@@ -73,7 +72,7 @@ def track(fp):
     # Case (ii).
     git_file.not_assume_unchanged(fp)
   else:
-    raise Exception("File %s in unkown status %s" % (fp, git_s))
+    raise Exception('File {0} in unkown status {1}'.format(fp, git_s))
 
   return SUCCESS
 
@@ -115,7 +114,7 @@ def untrack(fp):
   elif git_s == git_status.IN_CONFLICT:
     return FILE_IN_CONFLICT
   else:
-    raise Exception("File %s in unkown status %s" % (fp, git_s))
+    raise Exception('File {0} in unkown status {1}'.format(fp, git_s))
 
   return SUCCESS
 

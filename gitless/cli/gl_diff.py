@@ -1,6 +1,5 @@
 # Gitless - a version control system built on top of Git.
-# Copyright (c) 2013  Santiago Perez De Rosso.
-# Licensed under GNU GPL, version 2.
+# Licensed under GNU GPL v2.
 
 """gl diff - Show changes in files."""
 
@@ -80,6 +79,6 @@ def main(args):
       subprocess.call('less -r -f {0}'.format(tf.name), shell=True)
       os.remove(tf.name)
     else:
-      raise Exception('Unrecognized ret code %s' % ret)
+      raise Exception('Unrecognized ret code {0}'.format(ret))
 
   return success

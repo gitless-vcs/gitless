@@ -1,6 +1,5 @@
 # Gitless - a version control system built on top of Git.
-# Copyright (c) 2013  Santiago Perez De Rosso.
-# Licensed under GNU GPL, version 2.
+# Licensed under GNU GPL v2.
 
 """Gitless's branching lib."""
 
@@ -60,7 +59,7 @@ def create(name, dp='HEAD'):
   elif ret == git_branch.INVALID_SP:
     return INVALID_DP
   else:
-    raise Exception('Unrecognized ret code %s' % ret)
+    raise Exception('Unrecognized ret code {0}'.format(ret))
 
 
 def delete(name):
@@ -80,7 +79,7 @@ def delete(name):
     git_stash.drop(_stash_msg(name))
     return SUCCESS
   else:
-    raise Exception('Unrecognized ret code %s' % ret)
+    raise Exception('Unrecognized ret code {0}'.format(ret))
 
 
 def set_upstream(upstream):
@@ -227,20 +226,20 @@ def _current(gl_dir=None):
 
 def _stash_msg(name):
   """Computes the stash msg to use for stashing changes in branch name."""
-  return '---gl-%s---' % name
+  return '---gl-{0}---'.format(name)
 
 
 def _unpushed_upstream(name):
   """Returns the unpushed upstream or None."""
   for f in os.listdir(repo_lib.gl_dir()):
-    result = re.match(r'GL_UPSTREAM_%s_(\w+)_(\w+)' % name, f)
+    result = re.match(r'GL_UPSTREAM_{0}_(\w+)_(\w+)'.format(name), f)
     if result:
       return '/'.join([result.group(1), result.group(2)])
   return None
 
 
 def _upstream_file(branch, upstream_remote, upstream_branch):
-  upstream_fn = 'GL_UPSTREAM_%s_%s_%s' % (
+  upstream_fn = 'GL_UPSTREAM_{0}_{1}_{2}'.format(
       branch, upstream_remote, upstream_branch)
   return os.path.join(repo_lib.gl_dir(), upstream_fn)
 
@@ -259,7 +258,7 @@ def _unmark_au_files(branch):
 
   gl_dir = repo_lib.gl_dir()
   repo_dir = git_common.repo_dir()
-  with open(os.path.join(gl_dir, 'GL_AU_%s' % branch), 'w') as f:
+  with open(os.path.join(gl_dir, 'GL_AU_{0}'.format(branch)), 'w') as f:
     for fp in assumed_unchanged_fps:
       f.write(fp + '\n')
       git_file.not_assume_unchanged(os.path.join(repo_dir, fp))
@@ -273,7 +272,7 @@ def _remark_au_files(branch, gl_dir=None):
     gl_dir: the gl dir (optional arg for speeding up things).
   """
   gl_dir = repo_lib.gl_dir() if not gl_dir else gl_dir
-  au_info_fp = os.path.join(gl_dir, 'GL_AU_%s' % branch)
+  au_info_fp = os.path.join(gl_dir, 'GL_AU_{0}'.format(branch))
   if not os.path.exists(au_info_fp):
     return
 

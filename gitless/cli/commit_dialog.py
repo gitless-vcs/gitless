@@ -1,6 +1,5 @@
 # Gitless - a version control system built on top of Git.
-# Copyright (c) 2013  Santiago Perez De Rosso.
-# Licensed under GNU GPL, version 2.
+# Licensed under GNU GPL v2.
 
 """Gitless's commit dialog."""
 
@@ -130,8 +129,8 @@ def _show_rebase(files):
 
 def _launch_editor(fp):
   editor = repo_lib.editor()
-  if subprocess.call('%s %s' % (editor, fp), shell=True) != 0:
-    raise Exception('Call to editor %s failed' % editor)
+  if subprocess.call('{0} {1}'.format(editor, fp), shell=True) != 0:
+    raise Exception('Call to editor {0} failed'.format(editor))
 
 
 def _extract_info(exp_lines):

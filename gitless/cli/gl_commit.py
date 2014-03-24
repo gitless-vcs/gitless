@@ -1,6 +1,5 @@
 # Gitless - a version control system built on top of Git.
-# Copyright (c) 2013  Santiago Perez De Rosso.
-# Licensed under GNU GPL, version 2.
+# Licensed under GNU GPL v2.
 
 """gl commit - Record changes in the local repository."""
 
@@ -109,7 +108,7 @@ def main(args):
       pprint.err_item(f.fp)
     return False
   else:
-    raise Exception('Unexpected return code %s' % ret)
+    raise Exception('Unexpected return code {0}'.format(ret))
 
   return True
 
@@ -140,28 +139,28 @@ def _valid_input(only_files, exc_files, inc_files):
   for fp in only_files:
     f = file_lib.status(fp)
     if not f:
-      err.append('File %s doesn\'t exist' % fp)
+      err.append('File {0} doesn\'t exist'.format(fp))
       ret = False
     elif f.type == file_lib.TRACKED and not f.modified:
       err.append(
-          'File %s is a tracked file but has no modifications' % fp)
+          'File {0} is a tracked file but has no modifications'.format(fp))
       ret = False
 
   for fp in exc_files:
     f = file_lib.status(fp)
     # We check that the files to be excluded are existing tracked files.
     if not f:
-      err.append('File %s doesn\'t exist' % fp)
+      err.append('File {0} doesn\'t exist'.format(fp))
       ret = False
     elif f.type != file_lib.TRACKED:
       err.append(
-          'File %s, listed to be excluded from commit, is not a tracked file' %
-          fp)
+          'File {0}, listed to be excluded from commit, is not a tracked '
+          'file'.format(fp))
       ret = False
     elif f.type == file_lib.TRACKED and not f.modified:
       err.append(
-          'File %s, listed to be excluded from commit, is a tracked file but '
-          'has no modifications' % fp)
+          'File {0}, listed to be excluded from commit, is a tracked file but '
+          'has no modifications'.format(fp))
       ret = False
     elif f.resolved:
       err.append('You can\'t exclude a file that has been resolved')
@@ -171,12 +170,12 @@ def _valid_input(only_files, exc_files, inc_files):
     f = file_lib.status(fp)
     # We check that the files to be included are existing untracked files.
     if not f:
-      err.append('File %s doesn\'t exist' % fp)
+      err.append('File {0} doesn\'t exist'.format(fp))
       ret = False
     elif f.type != file_lib.UNTRACKED:
       err.append(
-          'File %s, listed to be included in the commit, is not a untracked '
-          'file' % fp)
+          'File {0}, listed to be included in the commit, is not a untracked '
+          'file'.format(fp))
       ret = False
 
   if not ret:
@@ -219,7 +218,7 @@ def _auto_track(files):
   for fp in files:
     f = file_lib.status(fp)
     if not f:
-      raise Exception('Expected %s to exist, but it doesn\'t' % fp)
+      raise Exception('Expected {0} to exist, but it doesn\'t'.format(fp))
     if f.type == file_lib.UNTRACKED:
       file_lib.track(f.fp)
 

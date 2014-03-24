@@ -1,6 +1,5 @@
 # Gitless - a version control system built on top of Git.
-# Copyright (c) 2013  Santiago Perez De Rosso.
-# Licensed under GNU GPL, version 2.
+# Licensed under GNU GPL v2.
 
 """Gitless's sync lib."""
 
@@ -70,7 +69,7 @@ def merge(src):
     return (LOCAL_CHANGES_WOULD_BE_LOST, out)
   elif ret == git_sync.NOTHING_TO_MERGE:
     return (NOTHING_TO_MERGE, out)
-  raise Exception("Unexpected ret code %s" % ret)
+  raise Exception('Unexpected ret code {0}'.format(ret))
 
 
 def merge_in_progress():
@@ -109,7 +108,7 @@ def rebase(new_base):
     return (CONFLICT, out)
   elif ret == git_sync.NOTHING_TO_REBASE:
     return (NOTHING_TO_REBASE, out)
-  raise Exception("Unexpected ret code %s" % ret)
+  raise Exception('Unexpected ret code {0}'.format(ret))
 
 
 def rebase_in_progress():
@@ -142,7 +141,7 @@ def skip_rebase_commit():
   elif s[0] == git_sync.CONFLICT:
     return (SUCCESS, s[1])
   else:
-    raise Exception('Unrecognized ret code %s' % s[0])
+    raise Exception('Unexpected ret code {0}'.format(s[0]))
 
 
 def conclude_rebase():
@@ -167,7 +166,7 @@ def publish():
   elif ret == git_sync.PUSH_FAIL:
     return (PUSH_FAIL, None)
   else:
-    raise Exception('Unrecognized ret code %s' % ret)
+    raise Exception('Unexpected ret code {0}'.format(ret))
 
 
 def partial_commit(files):
@@ -303,7 +302,7 @@ def commit(files, msg, skip_checks=False):
         # conflict.
         return (SUCCESS, s[1])
       else:
-        raise Exception('Unrecognized ret code %s' % s[0])
+        raise Exception('Unexpected ret code {0}'.format(s[0]))
 
     # It's a merge.
     if not skip_checks:

@@ -1,6 +1,5 @@
 # Gitless - a version control system built on top of Git.
-# Copyright (c) 2013  Santiago Perez De Rosso.
-# Licensed under GNU GPL, version 2.
+# Licensed under GNU GPL v2.
 
 """gl branch - Create, edit, delete or switch branches."""
 
@@ -39,7 +38,8 @@ def main(args):
     b_st = branch_lib.status(args.branch)
     if b_st and b_st.is_current:
       pprint.err(
-          'You are already in branch %s. No need to switch.' % args.branch)
+          'You are already in branch {0}. No need to switch.'.format(
+              args.branch))
       pprint.err_exp('to list existing branches do gl branch')
       return False
 
@@ -58,7 +58,7 @@ def main(args):
       return False
 
     branch_lib.switch(args.branch)
-    pprint.msg('Switched to branch %s' % args.branch)
+    pprint.msg('Switched to branch {0}'.format(args.branch))
   elif args.delete_b:
     ret = _do_delete(args.delete_b)
   elif args.upstream_b:
@@ -82,9 +82,9 @@ def _do_create(branch_name, divergent_point):
     pprint.msg('Invalid divergent point {0}'.format(divergent_point))
     errors_found = True
   elif ret == branch_lib.SUCCESS:
-    pprint.msg('Created new branch %s' % branch_name)
+    pprint.msg('Created new branch {0}'.format(branch_name))
   else:
-    raise Exception('Unrecognized ret code %s' % ret)
+    raise Exception('Unrecognized ret code {0}'.format(ret))
   return not errors_found
 
 
@@ -101,8 +101,8 @@ def _do_list():
     upstream_str = ''
     if upstream:
       np_str = ' --not present in remote yet' if not upstream_exists else ''
-      upstream_str = '(upstream is %s%s)' % (upstream, np_str)
-    pprint.item('%s %s %s' % (current_str, name, upstream_str))
+      upstream_str = '(upstream is {0}{1})'.format(upstream, np_str)
+    pprint.item('{0} {1} {2}'.format(current_str, name, upstream_str))
 
 
 def _do_delete(delete_b):
@@ -111,20 +111,20 @@ def _do_delete(delete_b):
   for b in delete_b:
     b_st = branch_lib.status(b)
     if not b_st:
-      pprint.err('Can\'t remove non-existent branch %s' % b)
+      pprint.err('Can\'t remove non-existent branch {0}'.format(b))
       pprint.err_exp('do gl branch to list existing branches')
       errors_found = True
     elif b_st and b_st.is_current:
-      pprint.err('Can\'t remove current branch %s' % b)
+      pprint.err('Can\'t remove current branch {0}'.format(b))
       pprint.err_exp(
           'do gl branch <b> to create or switch to another branch b and then '
-          'gl branch -d %s to remove branch %s' % (b, b))
+          'gl branch -d {0} to remove branch {0}'.format(b))
       errors_found = True
-    elif not pprint.conf_dialog('Branch %s will be removed' % b):
-      pprint.msg('Aborted: removal of branch %s' % b)
+    elif not pprint.conf_dialog('Branch {0} will be removed'.format(b)):
+      pprint.msg('Aborted: removal of branch {0}'.format(b))
     else:
       branch_lib.delete(b)
-      pprint.msg('Branch %s removed successfully' % b)
+      pprint.msg('Branch {0} removed successfully'.format(b))
 
   return not errors_found
 
@@ -140,15 +140,16 @@ def _do_set_upstream(upstream):
   errors_found = False
   upstream_remote, upstream_branch = upstream.split('/')
   if ret is branch_lib.REMOTE_NOT_FOUND:
-    pprint.err('Remote %s not found' % upstream_remote)
+    pprint.err('Remote {0} not found'.format(upstream_remote))
     pprint.err_exp('do gl remote to list all existing remotes')
     pprint.err_exp(
-        'do gl remote %s <r_url> to add a new remote %s mapping to '
-        'r_url' % (upstream_remote, upstream_remote))
+        'do gl remote {0} <r_url> to add a new remote {0} mapping to '
+        'r_url'.format(upstream_remote))
     errors_found = True
   elif ret is branch_lib.SUCCESS:
-    pprint.msg('Current branch %s set to track %s/%s' % (
-        branch_lib.current(), upstream_remote, upstream_branch))
+    pprint.msg(
+        'Current branch {0} set to track {1}/{2}'.format(
+            branch_lib.current(), upstream_remote, upstream_branch))
 
   return not errors_found
 

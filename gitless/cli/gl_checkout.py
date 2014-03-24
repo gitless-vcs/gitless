@@ -1,6 +1,5 @@
 # Gitless - a version control system built on top of Git.
-# Copyright (c) 2013  Santiago Perez De Rosso.
-# Licensed under GNU GPL, version 2.
+# Licensed under GNU GPL v2.
 
 """gl checkout - Checkout committed versions of files."""
 
@@ -43,8 +42,8 @@ def _checkout_file(fp, cp):
     encountered.
   """
   conf_msg = (
-      'You have uncomitted changes in %s that could be overwritten by the '
-      'checkout' % fp)
+      'You have uncomitted changes in {0} that could be overwritten by the '
+      'checkout'.format(fp))
   f = file_lib.status(fp)
   if f and f.type == file_lib.TRACKED and f.modified and not pprint.conf_dialog(
       conf_msg):
@@ -54,13 +53,14 @@ def _checkout_file(fp, cp):
   ret, _ = file_lib.checkout(fp, cp)
   if ret == file_lib.FILE_NOT_FOUND_AT_CP:
     pprint.err('Checkout aborted')
-    pprint.err('There\'s no file %s at %s' % (fp, cp))
+    pprint.err('There\'s no file {0} at {1}'.format(fp, cp))
     return False
   elif ret == file_lib.FILE_IS_DIR:
     pprint.dir_err_exp(fp, 'checkout')
     return False
   elif ret == file_lib.SUCCESS:
-    pprint.msg('File %s checked out sucessfully to its state at %s' % (fp, cp))
+    pprint.msg(
+        'File {0} checked out sucessfully to its state at {1}'.format(fp, cp))
     return True
   else:
-    raise Exception('Unrecognized ret code %s' % ret)
+    raise Exception('Unrecognized ret code {0}'.format(ret))

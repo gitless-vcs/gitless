@@ -1,6 +1,5 @@
 # Gitless - a version control system built on top of Git.
-# Copyright (c) 2013  Santiago Perez De Rosso.
-# Licensed under GNU GPL, version 2.
+# Licensed under GNU GPL v2.
 
 """End-to-end test."""
 
@@ -116,7 +115,7 @@ class TestCommit(TestEndToEnd):
     super(TestCommit, self).setUp()
     utils_lib.write_file(self.TRACKED_FP)
     utils_lib.write_file(self.UNTRACKED_FP)
-    utils_lib.gl_expect_success('track %s' % self.TRACKED_FP)
+    utils_lib.gl_expect_success('track {0}'.format(self.TRACKED_FP))
 
   # Happy paths.
   def test_commit(self):
@@ -124,25 +123,27 @@ class TestCommit(TestEndToEnd):
     self.__assert_commit(self.TRACKED_FP)
 
   def test_commit_only(self):
-    utils_lib.gl_expect_success('commit -m"msg" %s' % self.TRACKED_FP)
+    utils_lib.gl_expect_success('commit -m"msg" {0}'.format(self.TRACKED_FP))
     self.__assert_commit(self.TRACKED_FP)
 
   def test_commit_only_untrack(self):
-    utils_lib.gl_expect_success('commit -m"msg" %s' % self.UNTRACKED_FP)
+    utils_lib.gl_expect_success('commit -m"msg" {0}'.format(self.UNTRACKED_FP))
     self.__assert_commit(self.UNTRACKED_FP)
 
   def test_commit_inc(self):
-    utils_lib.gl_expect_success('commit -m"msg" -inc %s' % self.UNTRACKED_FP)
+    utils_lib.gl_expect_success(
+        'commit -m"msg" -inc {0}'.format(self.UNTRACKED_FP))
     self.__assert_commit(self.TRACKED_FP, self.UNTRACKED_FP)
 
   def test_commit_exc_inc(self):
     utils_lib.gl_expect_success(
-        'commit -m"msg" -inc %s -exc %s' % (self.UNTRACKED_FP, self.TRACKED_FP))
+        'commit -m"msg" -inc {0} -exc {1}'.format(
+            self.UNTRACKED_FP, self.TRACKED_FP))
     self.__assert_commit(self.UNTRACKED_FP)
 
   # Error paths.
   def test_commit_no_files(self):
-    utils_lib.gl_expect_error('commit -m"msg" -exc %s' % self.TRACKED_FP)
+    utils_lib.gl_expect_error('commit -m"msg" -exc {0}'.format(self.TRACKED_FP))
     utils_lib.gl_expect_error('commit -m"msg" nonexistentfp')
     utils_lib.gl_expect_error('commit -m"msg" -exc nonexistentfp')
     utils_lib.gl_expect_error('commit -m"msg" -inc nonexistentfp')
@@ -156,12 +157,12 @@ class TestCommit(TestEndToEnd):
     h = utils_lib.gl_expect_success('history -v')[0]
     for fp in expected_committed:
       if fp in st or fp not in h:
-        self.fail('%s was apparently not committed!' % fp)
+        self.fail('{0} was apparently not committed!'.format(fp))
     expected_not_committed = [
         fp for fp in self.FPS if fp not in expected_committed]
     for fp in expected_not_committed:
       if fp not in st or fp in h:
-        self.fail('%s was apparently committed!' % fp)
+        self.fail('{0} was apparently committed!'.format(fp))
 
 
 class TestBranch(TestEndToEnd):
@@ -175,20 +176,20 @@ class TestBranch(TestEndToEnd):
     utils_lib.gl_expect_success('commit f -msg"commit"')
 
   def test_create(self):
-    utils_lib.gl_expect_success('branch %s' % self.BRANCH_1)
-    utils_lib.gl_expect_error('branch %s' % self.BRANCH_1)
+    utils_lib.gl_expect_success('branch {0}'.format(self.BRANCH_1))
+    utils_lib.gl_expect_error('branch {0}'.format(self.BRANCH_1))
     utils_lib.gl_expect_error('branch evil_named_branch')
     if self.BRANCH_1 not in utils_lib.gl_expect_success('branch')[0]:
       self.fail()
 
   def test_remove(self):
-    utils_lib.gl_expect_success('branch %s' % self.BRANCH_1)
-    utils_lib.gl_expect_error('branch -d %s' % self.BRANCH_1)
-    utils_lib.gl_expect_success('branch %s' % self.BRANCH_2)
+    utils_lib.gl_expect_success('branch {0}'.format(self.BRANCH_1))
+    utils_lib.gl_expect_error('branch -d {0}'.format(self.BRANCH_1))
+    utils_lib.gl_expect_success('branch {0}'.format(self.BRANCH_2))
     utils_lib.gl_expect_success(
-        'branch -d %s' % self.BRANCH_1, pre_cmd='echo "n"')
+        'branch -d {0}'.format(self.BRANCH_1), pre_cmd='echo "n"')
     utils_lib.gl_expect_success(
-        'branch -d %s' % self.BRANCH_1, pre_cmd='echo "y"')
+        'branch -d {0}'.format(self.BRANCH_1), pre_cmd='echo "y"')
     if self.BRANCH_1 in utils_lib.gl_expect_success('branch')[0]:
       self.fail()
 
@@ -201,7 +202,8 @@ class TestDiff(TestEndToEnd):
   def setUp(self):
     super(TestDiff, self).setUp()
     utils_lib.write_file(self.TRACKED_FP)
-    utils_lib.gl_expect_success('commit %s -msg"commit"' % self.TRACKED_FP)
+    utils_lib.gl_expect_success(
+        'commit {0} -msg"commit"'.format(self.TRACKED_FP))
     utils_lib.write_file(self.UNTRACKED_FP)
 
   def test_empty_diff(self):
@@ -218,7 +220,7 @@ class TestDiff(TestEndToEnd):
     out1 = utils_lib.gl_expect_success('diff')[0]
     if '+contents' not in out1:
       self.fail()
-    out2 = utils_lib.gl_expect_success('diff %s' % self.TRACKED_FP)[0]
+    out2 = utils_lib.gl_expect_success('diff {0}'.format(self.TRACKED_FP))[0]
     if '+contents' not in out2:
       self.fail()
     self.assertEqual(out1, out2)
