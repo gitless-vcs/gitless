@@ -12,6 +12,10 @@ import sys
 from gitless.core import file as file_lib
 
 
+SEP = (
+    '##########################################################################'
+    '######')
+
 # Stdout.
 
 def blank(p=sys.stdout.write):
@@ -31,9 +35,7 @@ def item(i, opt_text='', p=sys.stdout.write):
 
 
 def sep(p=sys.stdout.write):
-  puts(
-      '########################################################################'
-      '########', stream=p)
+  puts(SEP, stream=p)
 
 
 # Err.

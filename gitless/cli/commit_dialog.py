@@ -144,11 +144,10 @@ def _extract_info(exp_lines):
     A tuple (msg, files) where msg is the commit msg and files are the files to
     commit provided by the user in the editor.
   """
-  cf = open(_commit_file(), "r")
-  sep = pprint.sep(lambda x: x)
+  cf = open(_commit_file(), 'r')
   msg = ''
   l = cf.readline()
-  while l != sep:
+  while l != pprint.SEP:
     msg += l
     l = cf.readline()
   # We reached the separator, this marks the end of the commit msg.
@@ -158,7 +157,7 @@ def _extract_info(exp_lines):
 
   files = []
   l = cf.readline()
-  while l != sep:
+  while l != pprint.SEP:
     files.append(l[1:].strip())
     l = cf.readline()
 
