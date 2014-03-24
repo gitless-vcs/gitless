@@ -145,9 +145,10 @@ def _extract_info(exp_lines):
     commit provided by the user in the editor.
   """
   cf = open(_commit_file(), 'r')
+  sep = pprint.SEP + '\n'
   msg = ''
   l = cf.readline()
-  while l != pprint.SEP:
+  while l != sep:
     msg += l
     l = cf.readline()
   # We reached the separator, this marks the end of the commit msg.
@@ -157,7 +158,7 @@ def _extract_info(exp_lines):
 
   files = []
   l = cf.readline()
-  while l != pprint.SEP:
+  while l != sep:
     files.append(l[1:].strip())
     l = cf.readline()
 
