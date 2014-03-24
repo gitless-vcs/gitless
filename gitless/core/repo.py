@@ -42,5 +42,12 @@ def editor():
   return 'vim'
 
 
+def color_output():
+  ret = git_config.get('color.ui')
+  if ret.lower() in ['true', 'always']:
+    return True
+  return False
+
+
 def history(include_diffs=False):
   return git_log.log(include_diffs=include_diffs)

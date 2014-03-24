@@ -7,6 +7,9 @@
 import argparse
 import traceback
 
+
+from clint.textui import colored
+
 from gitless.core import repo as repo_lib
 
 from . import gl_track
@@ -34,6 +37,9 @@ NOT_IN_GL_REPO = 4
 
 VERSION = '0.5'
 URL = 'http://gitless.com'
+
+
+colored.DISABLE_COLOR = not repo_lib.color_output()
 
 
 def main():
