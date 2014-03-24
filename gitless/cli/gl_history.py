@@ -8,7 +8,7 @@ import os
 import subprocess
 import tempfile
 
-from clint.textui import colored
+from clint.textui import colored, indent, puts
 
 from gitless.core import repo as repo_lib
 
@@ -28,26 +28,32 @@ def parser(subparsers):
 def main(args):
   with tempfile.NamedTemporaryFile(mode='w', delete=False) as tf:
     for ci in repo_lib.history(include_diffs=args.verbose):
-      tf.write(colored.yellow('Commit Id: {0}\n'.format(ci.id)).color_str)
-      tf.write(colored.yellow(
-        'Author:    {0} <{1}>\n'.format(
-            ci.author.name, ci.author.email)).color_str)
-      tf.write(colored.yellow(
-          'Date:      {0} ({1})\n'.format(
-              ci.author.date, ci.author.date_relative)).color_str)
-      tf.write('\n')
-      tf.write('\n'.join('   ' + l for l in ci.msg.splitlines()))
-      tf.write('\n\n')
+      puts(colored.yellow('Commit Id: {0}'.format(ci.id)), stream=tf.write)
+      puts(colored.yellow(
+        'Author:    {0} <{1}>'.format(ci.author.name, ci.author.email)),
+        stream=tf.write)
+      puts(colored.yellow(
+        'Date:      {0} ({1})'.format(ci.author.date, ci.author.date_relative)),
+        stream=tf.write)
+      puts(stream=tf.write)
+      with indent(4):
+        for l in ci.msg.splitlines():
+          puts(l, stream=tf.write)
+      puts(stream=tf.write)
+      puts(stream=tf.write)
       for diff in ci.diffs:
-        tf.write(
-            colored.cyan('Diff of file {0}'.format(diff.fp_before)).color_str)
+        puts(
+            colored.cyan('Diff of file {0}'.format(diff.fp_before)),
+            stream=tf.write)
         if diff.fp_before != diff.fp_after:
-          tf.write(colored.cyan(
-            ' (renamed to {0})'.format(diff.fp_after)).color_str)
-        tf.write('\n')
+          puts(colored.cyan(
+              ' (renamed to {0})'.format(diff.fp_after)), stream=tf.write)
+        puts(stream=tf.write)
+        puts(stream=tf.write)
         pprint.diff(*diff.diff, p=tf.write)
-        tf.write('\n')
-      tf.write('\n\n')
+        puts(stream=tf.write)
+        puts(stream=tf.write)
+      puts(stream=tf.write)
   subprocess.call('less -r -f {0}'.format(tf.name), shell=True)
   os.remove(tf.name)
   return True
