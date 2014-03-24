@@ -4,6 +4,8 @@
 """Module for pretty printing Gitless output."""
 
 
+from clint.textui import puts
+
 import re
 import sys
 
@@ -13,43 +15,43 @@ from gitless.core import file as file_lib
 # Stdout.
 
 def blank(p=sys.stdout.write):
-  return p('#\n')
+  puts('#', stream=p)
 
 
 def msg(text, p=sys.stdout.write):
-  return p('# %s\n' % text)
+  puts('# {0}'.format(text), stream=p)
 
 
 def exp(text, p=sys.stdout.write):
-  return p('#   (%s)\n' % text)
+  puts('#   ({0})'.format(text), stream=p)
 
 
 def item(i, opt_text='', p=sys.stdout.write):
-  return p('#     %s%s\n' % (i, opt_text))
+  puts('#     {0}{1}'.format(i, opt_text), stream=p)
 
 
 def sep(p=sys.stdout.write):
-  return p(
+  puts(
       '########################################################################'
-      '########\n')
+      '########', stream=p)
 
 
 # Err.
 
-def err(text, p=sys.stderr.write):
-  return p('# %s\n' % text)
+def err(text):
+  msg(text, p=sys.stderr.write)
 
 
-def err_exp(text, p=sys.stderr.write):
-  return p('#   (%s)\n' % text)
+def err_exp(text):
+  exp(text, p=sys.stderr.write)
 
 
-def err_blank(p=sys.stderr.write):
-  return p('#\n')
+def err_blank():
+  blank(p=sys.stderr.write)
 
 
 def err_item(i, opt_text='', p=sys.stderr.write):
-  return p('#     %s%s\n' % (i, opt_text))
+  item(i, opt_text, p=sys.stderr.write)
 
 
 # Misc.
