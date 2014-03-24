@@ -8,6 +8,8 @@ import os
 import subprocess
 import tempfile
 
+from clint.textui import colored
+
 from gitless.core import repo as repo_lib
 
 from . import pprint
@@ -26,17 +28,22 @@ def parser(subparsers):
 def main(args):
   with tempfile.NamedTemporaryFile(mode='w', delete=False) as tf:
     for ci in repo_lib.history(include_diffs=args.verbose):
-      tf.write('Commit Id: {0}\n'.format(ci.id))
-      tf.write('Author:    {0} <{1}>\n'.format(ci.author.name, ci.author.email))
-      tf.write('Date:      {0} ({1})\n'.format(
-          ci.author.date, ci.author.date_relative))
+      tf.write(colored.yellow('Commit Id: {0}\n'.format(ci.id)).color_str)
+      tf.write(colored.yellow(
+        'Author:    {0} <{1}>\n'.format(
+            ci.author.name, ci.author.email)).color_str)
+      tf.write(colored.yellow(
+          'Date:      {0} ({1})\n'.format(
+              ci.author.date, ci.author.date_relative)).color_str)
       tf.write('\n')
       tf.write('\n'.join('   ' + l for l in ci.msg.splitlines()))
       tf.write('\n\n')
       for diff in ci.diffs:
-        tf.write('Diff of file {0}'.format(diff.fp_before))
+        tf.write(
+            colored.cyan('Diff of file {0}'.format(diff.fp_before)).color_str)
         if diff.fp_before != diff.fp_after:
-          tf.write(' (renamed to {0})'.format(diff.fp_after))
+          tf.write(colored.cyan(
+            ' (renamed to {0})'.format(diff.fp_after)).color_str)
         tf.write('\n')
         pprint.diff(*diff.diff, p=tf.write)
         tf.write('\n')
