@@ -22,10 +22,14 @@ def parser(subparsers):
 
 
 def main(_):
-  pprint.msg(
+  curr_b = branch_lib.current()
+  repo_dir = '/' + repo_lib.cwd()
+  if not curr_b:
+    pprint.msg('Repo-directory {0}'.format(colored.green(repo_dir)))
+  else:
+    pprint.msg(
       'On branch {0}, repo-directory {1}'.format(
-          colored.green(branch_lib.current()),
-          colored.green('/' + repo_lib.cwd())))
+          colored.green(curr_b), colored.green(repo_dir)))
 
   in_merge = sync_lib.merge_in_progress()
   in_rebase = sync_lib.rebase_in_progress()
