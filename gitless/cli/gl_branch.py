@@ -4,6 +4,8 @@
 """gl branch - Create, edit, delete or switch branches."""
 
 
+from clint.textui import colored
+
 from gitless.core import branch as branch_lib
 from gitless.core import sync as sync_lib
 
@@ -39,7 +41,7 @@ def main(args):
     if b_st and b_st.is_current:
       pprint.err(
           'You are already in branch {0}. No need to switch.'.format(
-              args.branch))
+              colored.green(args.branch)))
       pprint.err_exp('to list existing branches do gl branch')
       return False
 
@@ -58,7 +60,7 @@ def main(args):
       return False
 
     branch_lib.switch(args.branch)
-    pprint.msg('Switched to branch {0}'.format(args.branch))
+    pprint.msg('Switched to branch {0}'.format(colored.green(args.branch)))
   elif args.delete_b:
     ret = _do_delete(args.delete_b)
   elif args.upstream_b:
@@ -102,7 +104,8 @@ def _do_list():
     if upstream:
       np_str = ' --not present in remote yet' if not upstream_exists else ''
       upstream_str = '(upstream is {0}{1})'.format(upstream, np_str)
-    pprint.item('{0} {1} {2}'.format(current_str, name, upstream_str))
+    color = colored.green if is_current else colored.yellow
+    pprint.item('{0} {1} {2}'.format(current_str, color(name), upstream_str))
 
 
 def _do_delete(delete_b):
@@ -110,21 +113,22 @@ def _do_delete(delete_b):
 
   for b in delete_b:
     b_st = branch_lib.status(b)
+    cb = colored.green(b)
     if not b_st:
-      pprint.err('Can\'t remove non-existent branch {0}'.format(b))
+      pprint.err('Can\'t remove non-existent branch {0}'.format(cb))
       pprint.err_exp('do gl branch to list existing branches')
       errors_found = True
     elif b_st and b_st.is_current:
-      pprint.err('Can\'t remove current branch {0}'.format(b))
+      pprint.err('Can\'t remove current branch {0}'.format(cb))
       pprint.err_exp(
           'do gl branch <b> to create or switch to another branch b and then '
-          'gl branch -d {0} to remove branch {0}'.format(b))
+          'gl branch -d {0} to remove branch {0}'.format(cb))
       errors_found = True
-    elif not pprint.conf_dialog('Branch {0} will be removed'.format(b)):
-      pprint.msg('Aborted: removal of branch {0}'.format(b))
+    elif not pprint.conf_dialog('Branch {0} will be removed'.format(cb)):
+      pprint.msg('Aborted: removal of branch {0}'.format(cb))
     else:
       branch_lib.delete(b)
-      pprint.msg('Branch {0} removed successfully'.format(b))
+      pprint.msg('Branch {0} removed successfully'.format(cb))
 
   return not errors_found
 
@@ -149,7 +153,8 @@ def _do_set_upstream(upstream):
   elif ret is branch_lib.SUCCESS:
     pprint.msg(
         'Current branch {0} set to track {1}/{2}'.format(
-            branch_lib.current(), upstream_remote, upstream_branch))
+            colored.green(branch_lib.current()), upstream_remote,
+            upstream_branch))
 
   return not errors_found
 
