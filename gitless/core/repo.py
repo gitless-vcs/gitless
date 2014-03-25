@@ -44,7 +44,7 @@ def editor():
 
 def color_output():
   ret = git_config.get('color.ui')
-  if ret.lower() in ['true', 'always']:
+  if ret and ret.lower() in ['true', 'always']:
     return True
   return False
 
