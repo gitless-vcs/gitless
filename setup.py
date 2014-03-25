@@ -4,8 +4,6 @@ import sys
 
 from setuptools import setup
 
-import gitless.cli.gl as gl
-
 
 reqs = ['gitpylib==0.6', 'clint==0.3.6']
 if sys.version_info < (2, 7) or (
@@ -32,12 +30,12 @@ mailing list <https://groups.google.com/forum/#!forum/gl-users>`__.
 
 setup(
     name='gitless',
-    version=gl.VERSION,
+    version='0.6.1',
     description='A version control system built on top of Git',
     long_description=ld,
     author='Santiago Perez De Rosso',
     author_email='sperezde@csail.mit.edu',
-    url=gl.URL,
+    url='http://gitless.com',
     packages=['gitless', 'gitless.cli', 'gitless.core'],
     install_requires=reqs,
     license='GPLv2',
