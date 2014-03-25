@@ -2,6 +2,16 @@ Gitless's Release Notes
 =======================
 
 
+25th Mar 2014 - kendall.0.6
+---------------------------
+
+* Added stats to `gl diff` (# of additions and deletions).
+* Unset upstream support (`gl branch -uu`).
+* Better `gl history`.
+* Colored output.
+* Bug fixes.
+
+
 3rd Feb 2014 - kendall.0.5
 --------------------------
 

@@ -7,7 +7,7 @@ from setuptools import setup
 import gitless.cli.gl as gl
 
 
-reqs = ['gitpylib>=0.5', 'clint==0.3.6']
+reqs = ['gitpylib==0.6', 'clint==0.3.6']
 if sys.version_info < (2, 7) or (
     sys.version_info < (3, 3) and sys.version_info > (3, 0)):
   reqs.append('argparse')
@@ -47,6 +47,12 @@ setup(
         'License :: OSI Approved :: GNU General Public License v2 (GPLv2)',
         'Natural Language :: English',
         'Programming Language :: Python',
+        'Programming Language :: Python :: 2',
+        'Programming Language :: Python :: 2.6',
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.2',
+        'Programming Language :: Python :: 3.3',
         'Topic :: Software Development :: Version Control'),
     entry_points={
         'console_scripts': [
