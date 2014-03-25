@@ -1,14 +1,16 @@
 # Gitless - a version control system built on top of Git.
-# Copyright (c) 2013  Santiago Perez De Rosso.
-# Licensed under GNU GPL, version 2.
+# Licensed under GNU GPL v2.
 
 """Gitless's sync lib."""
 
 
+import itertools
 import os
 
+from gitpylib import apply as git_apply
 from gitpylib import file as git_file
 from gitpylib import hook as git_hook
+from gitpylib import status as git_status
 from gitpylib import sync as git_sync
 from gitpylib import remote as git_remote
 
@@ -67,7 +69,7 @@ def merge(src):
     return (LOCAL_CHANGES_WOULD_BE_LOST, out)
   elif ret == git_sync.NOTHING_TO_MERGE:
     return (NOTHING_TO_MERGE, out)
-  raise Exception("Unexpected ret code %s" % ret)
+  raise Exception('Unexpected ret code {0}'.format(ret))
 
 
 def merge_in_progress():
@@ -106,7 +108,7 @@ def rebase(new_base):
     return (CONFLICT, out)
   elif ret == git_sync.NOTHING_TO_REBASE:
     return (NOTHING_TO_REBASE, out)
-  raise Exception("Unexpected ret code %s" % ret)
+  raise Exception('Unexpected ret code {0}'.format(ret))
 
 
 def rebase_in_progress():
@@ -139,7 +141,7 @@ def skip_rebase_commit():
   elif s[0] == git_sync.CONFLICT:
     return (SUCCESS, s[1])
   else:
-    raise Exception('Unrecognized ret code %s' % s[0])
+    raise Exception('Unexpected ret code {0}'.format(s[0]))
 
 
 def conclude_rebase():
@@ -164,7 +166,78 @@ def publish():
   elif ret == git_sync.PUSH_FAIL:
     return (PUSH_FAIL, None)
   else:
-    raise Exception('Unrecognized ret code %s' % ret)
+    raise Exception('Unexpected ret code {0}'.format(ret))
+
+
+def partial_commit(files):
+  return PartialCommit(files)
+
+class PartialCommit(object):
+
+  def __init__(self, files):
+    self.__files = files
+    self.__pf = open(os.path.join(repo_lib.gl_dir(), 'GL_PARTIAL_CI'), 'w+')
+
+  def __iter__(self):
+    for fp in self.__files:
+      yield self.ChunkedFile(fp, self.__pf)
+
+  def commit(self, msg, skip_checks=False):
+    def has_staged_version(fp):
+      return git_status.of_file(fp) in [
+          git_status.STAGED, git_status.MODIFIED_MODIFIED,
+          git_status.ADDED_MODIFIED]
+
+    self.__pf.close()
+    git_apply.on_index(self.__pf.name)
+    for fp in self.__files:
+      if not has_staged_version(fp):
+        # Partial commit includes all changes to file.
+        git_file.stage(fp)
+    out = git_sync.commit(
+        None, msg, skip_checks=skip_checks, include_staged_files=True)
+    return SUCCESS, out
+
+  class ChunkedFile(object):
+
+    def __init__(self, fp, pf):
+      self.fp = fp
+      self.__pf = pf
+      self.__diff, self.__padding, _, _, self.__diff_header = git_file.diff(fp)
+      if not self.__diff:
+        raise Exception('There\'s nothing to (partially) commit')
+      self.__diff_len = len(self.__diff)
+      self.__header_printed = False
+      self.__curr_index = 0
+      self.__curr_chunk = None
+
+    def __iter__(self):
+      return self
+
+    # Py 2/3 compatibility.
+    def __next__(self):
+      return self.next()
+
+    def next(self):
+      if self.__curr_index >= self.__diff_len:
+        raise StopIteration
+      self.__curr_chunk = [self.__diff[self.__curr_index]]
+      self.__curr_chunk.extend(
+          itertools.takewhile(
+            lambda ld: ld.status != git_file.DIFF_INFO,
+            itertools.islice(self.__diff, self.__curr_index + 1, None)))
+      self.__curr_index += len(self.__curr_chunk)
+      return self
+
+    @property
+    def diff(self):
+      return self.__curr_chunk, self.__padding
+
+    def include(self):
+      if not self.__header_printed:
+        self.__pf.write('\n'.join(self.__diff_header) + '\n')
+      for line, _, _, _ in self.__curr_chunk:
+        self.__pf.write(line + '\n')
 
 
 def commit(files, msg, skip_checks=False):
@@ -229,14 +302,15 @@ def commit(files, msg, skip_checks=False):
         # conflict.
         return (SUCCESS, s[1])
       else:
-        raise Exception('Unrecognized ret code %s' % s[0])
+        raise Exception('Unexpected ret code {0}'.format(s[0]))
 
     # It's a merge.
     if not skip_checks:
       pc = git_hook.pre_commit()
       if not pc.ok:
         return (PRE_COMMIT_FAILED, pc.err)
-    out = git_sync.commit(files, msg, skip_checks=True, stage_files=True)
+    out = git_sync.commit(
+        files, msg, skip_checks=True, include_staged_files=True)
     file_lib.internal_resolved_cleanup()
     return (SUCCESS, out)
 
@@ -252,10 +326,9 @@ def commit(files, msg, skip_checks=False):
 
 
 def _write_rebase_file(current, new_base):
-  rf = open(_rebase_file(), 'w')
-  rf.write(current + '\n')
-  rf.write(new_base + '\n')
-  rf.close()
+  with open(_rebase_file(), 'w') as rf:
+    rf.write(current + '\n')
+    rf.write(new_base + '\n')
 
 
 def _rebase_file():
@@ -264,9 +337,9 @@ def _rebase_file():
 
 def _valid_branch(b):
   b_st = branch_lib.status(b)
-  if not b_st.exists:
+  if not b_st:
     return (False, SRC_NOT_FOUND)
-  if b_st.exists and b_st.is_current:
+  if b_st and b_st.is_current:
     return (False, SRC_IS_CURRENT_BRANCH)
   return (True, None)
 

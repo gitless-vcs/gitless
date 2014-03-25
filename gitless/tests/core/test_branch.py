@@ -1,6 +1,5 @@
 # Gitless - a version control system built on top of Git.
-# Copyright (c) 2013  Santiago Perez De Rosso.
-# Licensed under GNU GPL, version 2.
+# Licensed under GNU GPL v2.
 
 """Unit tests for branch module."""
 
@@ -10,9 +9,11 @@ import unittest
 
 import gitless.core.file as file_lib
 import gitless.core.branch as branch_lib
+import gitless.core.remote as remote_lib
 import gitless.tests.utils as utils_lib
 
 from . import common
+from . import stubs
 
 
 TRACKED_FP = 'f1'
@@ -105,6 +106,14 @@ class TestSwitch(TestBranch):
     self.assertEqual(branch_lib.SUCCESS, branch_lib.switch(BRANCH))
     self.assertEqual('contents', utils_lib.read_file(UNTRACKED_FP))
 
+  def test_switch_contents_still_there_ignored(self):
+    self.assertEqual(branch_lib.SUCCESS, branch_lib.switch(BRANCH))
+    utils_lib.write_file(IGNORED_FP, contents='contents')
+    self.assertEqual(branch_lib.SUCCESS, branch_lib.switch('master'))
+    self.assertEqual(IGNORED_FP, utils_lib.read_file(IGNORED_FP))
+    self.assertEqual(branch_lib.SUCCESS, branch_lib.switch(BRANCH))
+    self.assertEqual('contents', utils_lib.read_file(IGNORED_FP))
+
   def test_switch_contents_still_there_tracked_commit(self):
     utils_lib.write_file(TRACKED_FP, contents='commit')
     utils_lib.git_call('commit -m\'comment\' {0}'.format(TRACKED_FP))
@@ -123,6 +132,51 @@ class TestSwitch(TestBranch):
     st = file_lib.status(TRACKED_FP)
     self.assertTrue(st)
     self.assertEqual(file_lib.UNTRACKED, st.type)
+
+  def test_switch_with_hidden_files(self):
+    hf = '.file'
+    utils_lib.write_file(hf)
+    self.assertEqual(branch_lib.SUCCESS, branch_lib.switch(BRANCH))
+    utils_lib.write_file(hf, contents='contents')
+    self.assertEqual(branch_lib.SUCCESS, branch_lib.switch('master'))
+    self.assertEqual(hf, utils_lib.read_file(hf))
+    self.assertEqual(branch_lib.SUCCESS, branch_lib.switch(BRANCH))
+    self.assertEqual('contents', utils_lib.read_file(hf))
+
+
+class TestUpstream(TestBranch):
+
+  REMOTE_NAME = 'remote'
+  REMOTE_URL = 'url'
+
+  def setUp(self):
+    super(TestUpstream, self).setUp()
+    common.stub(remote_lib.git_remote, stubs.RemoteLib())
+    remote_lib.add(self.REMOTE_NAME, self.REMOTE_URL)
+
+  def test_set_upstream_no_remote(self):
+    self.assertEqual(
+        branch_lib.REMOTE_NOT_FOUND, branch_lib.set_upstream('r/b'))
+
+  def test_set_upstream(self):
+    self.assertEqual(
+        branch_lib.SUCCESS,
+        branch_lib.set_upstream(self.REMOTE_NAME + '/branch'))
+
+  def test_unset_upstream_no_upstream(self):
+    self.assertEqual(
+        branch_lib.UPSTREAM_NOT_SET, branch_lib.unset_upstream())
+
+  def test_unset_upstream(self):
+    remote_branch = self.REMOTE_NAME + '/branch'
+    with common.stub(
+        branch_lib.git_branch,
+        {'status': lambda b: (True, True, remote_branch),
+         'set_upstream': lambda un, ub: branch_lib.git_branch.SUCCESS,
+         'unset_upstream': lambda b: branch_lib.git_branch.SUCCESS}):
+      branch_lib.set_upstream(remote_branch)
+      self.assertEqual(branch_lib.SUCCESS, branch_lib.unset_upstream())
+
 
 
 if __name__ == '__main__':

@@ -1,6 +1,5 @@
 # Gitless - a version control system built on top of Git.
-# Copyright (c) 2013  Santiago Perez De Rosso.
-# Licensed under GNU GPL, version 2.
+# Licensed under GNU GPL v2.
 
 """Gitless's commit dialog."""
 
@@ -44,7 +43,6 @@ def _show(files):
   Returns:
     A tuple (msg, files) with the commit msg and the files to commit.
   """
-  # TODO(sperezde): detect if user exited with q!.
   cf = open(_commit_file(), 'w')
   cf.write('\n')
   pprint.sep(p=cf.write)
@@ -131,8 +129,8 @@ def _show_rebase(files):
 
 def _launch_editor(fp):
   editor = repo_lib.editor()
-  if subprocess.call('%s %s' % (editor, fp), shell=True) != 0:
-    raise Exception('Call to editor %s failed' % editor)
+  if subprocess.call('{0} {1}'.format(editor, fp), shell=True) != 0:
+    raise Exception('Call to editor {0} failed'.format(editor))
 
 
 def _extract_info(exp_lines):
@@ -146,8 +144,8 @@ def _extract_info(exp_lines):
     A tuple (msg, files) where msg is the commit msg and files are the files to
     commit provided by the user in the editor.
   """
-  cf = open(_commit_file(), "r")
-  sep = pprint.sep(lambda x: x)
+  cf = open(_commit_file(), 'r')
+  sep = pprint.SEP + '\n'
   msg = ''
   l = cf.readline()
   while l != sep:

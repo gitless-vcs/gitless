@@ -1,6 +1,5 @@
 # Gitless - a version control system built on top of Git.
-# Copyright (c) 2013  Santiago Perez De Rosso.
-# Licensed under GNU GPL, version 2.
+# Licensed under GNU GPL v2.
 
 """Gitless's file lib."""
 
@@ -73,7 +72,7 @@ def track(fp):
     # Case (ii).
     git_file.not_assume_unchanged(fp)
   else:
-    raise Exception("File %s in unkown status %s" % (fp, git_s))
+    raise Exception('File {0} in unkown status {1}'.format(fp, git_s))
 
   return SUCCESS
 
@@ -115,7 +114,7 @@ def untrack(fp):
   elif git_s == git_status.IN_CONFLICT:
     return FILE_IN_CONFLICT
   else:
-    raise Exception("File %s in unkown status %s" % (fp, git_s))
+    raise Exception('File {0} in unkown status {1}'.format(fp, git_s))
 
   return SUCCESS
 
@@ -131,31 +130,29 @@ def diff(fp):
     FILE_IS_UNTRACKED, FILE_IS_DIR or SUCCESS and out is the output of the diff
     command in a machine-friendly way: it's a tuple of the form
     (list of namedtuples with fields 'line', 'status', 'old_line_number',
-     'new_line_number', line number padding).
+     'new_line_number', line number padding, additions, deletions).
   """
+  nil_out = (None, None, None, None)
   if os.path.isdir(fp):
-    return (FILE_IS_DIR, (None, None))
+    return (FILE_IS_DIR, nil_out)
   gl_st, git_s = _status(fp)
   if not gl_st:
-    return (FILE_NOT_FOUND, (None, None))
+    return (FILE_NOT_FOUND, nil_out)
   elif gl_st.type == UNTRACKED:
-    return (FILE_IS_UNTRACKED, (None, None))
+    return (FILE_IS_UNTRACKED, nil_out)
   elif gl_st.type == IGNORED:
-    return (FILE_IS_IGNORED, (None, None))
+    return (FILE_IS_IGNORED, nil_out)
 
-  diff_out = None
+  do_staged_diff = False
   if git_s == git_status.STAGED:
-    diff_out = git_file.staged_diff(fp)
+    do_staged_diff = True
   elif (git_s == git_status.ADDED_MODIFIED or
         git_s == git_status.MODIFIED_MODIFIED):
     git_file.stage(fp)
-    diff_out = git_file.staged_diff(fp)
-  elif git_s == git_status.DELETED:
-    diff_out = git_file.diff(fp)
-  else:
-    diff_out = git_file.diff(fp)
+    do_staged_diff = True
 
-  return (SUCCESS, diff_out)
+  # Don't include the `git diff` header.
+  return (SUCCESS, git_file.diff(fp, staged=do_staged_diff)[:-1])
 
 
 def checkout(fp, cp='HEAD'):
@@ -184,9 +181,8 @@ def checkout(fp, cp='HEAD'):
     git_file.unstage(fp)
     unstaged = True
 
-  dst = open(fp, 'w')
-  dst.write(out)
-  dst.close()
+  with open(fp, 'w') as dst:
+    dst.write(out)
 
   if unstaged:
     git_file.stage(fp)

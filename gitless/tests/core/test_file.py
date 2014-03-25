@@ -1,6 +1,5 @@
 # Gitless - a version control system built on top of Git.
-# Copyright (c) 2013  Santiago Perez De Rosso.
-# Licensed under GNU GPL, version 2.
+# Licensed under GNU GPL v2.
 
 """Unit tests for file module."""
 
@@ -249,11 +248,9 @@ class TestUntrackFile(TestFile):
   def test_untrack_tracked_dir_dir_fp_with_space(self):
     self.__assert_untrack_fp(TRACKED_DIR_DIR_FP_WITH_SPACE)
 
-  # TODO(sperezde): change the decorator so that it accepts varargs.
-  @common.assert_contents_unchanged(TRACKED_DIR_FP)
-  @common.assert_contents_unchanged(TRACKED_DIR_FP_WITH_SPACE)
-  @common.assert_contents_unchanged(TRACKED_DIR_DIR_FP)
-  @common.assert_contents_unchanged(TRACKED_DIR_DIR_FP_WITH_SPACE)
+  @common.assert_contents_unchanged(
+      TRACKED_DIR_FP, TRACKED_DIR_FP_WITH_SPACE, TRACKED_DIR_DIR_FP,
+      TRACKED_DIR_DIR_FP_WITH_SPACE)
   def test_untrack_tracked_relative(self):
     os.chdir(DIR)
     self.__assert_untrack_fp(os.path.relpath(TRACKED_DIR_FP, DIR))
@@ -309,11 +306,9 @@ class TestUntrackFile(TestFile):
         file_lib.FILE_ALREADY_UNTRACKED,
         file_lib.untrack(UNTRACKED_DIR_DIR_FP_WITH_SPACE))
 
-  # TODO(sperezde): change the decorator so that it accepts varargs.
-  @common.assert_contents_unchanged(UNTRACKED_DIR_FP)
-  @common.assert_contents_unchanged(UNTRACKED_DIR_FP_WITH_SPACE)
-  @common.assert_contents_unchanged(UNTRACKED_DIR_DIR_FP)
-  @common.assert_contents_unchanged(UNTRACKED_DIR_DIR_FP_WITH_SPACE)
+  @common.assert_contents_unchanged(
+      UNTRACKED_DIR_FP, UNTRACKED_DIR_FP_WITH_SPACE, UNTRACKED_DIR_DIR_FP,
+      UNTRACKED_DIR_DIR_FP_WITH_SPACE)
   def test_untrack_untracked_relative(self):
     os.chdir(DIR)
     self.assertEqual(
@@ -667,13 +662,16 @@ class TestDiff(TestFile):
 
   @common.assert_no_side_effects(TRACKED_FP)
   def test_empty_diff(self):
-    ret, (out, _) = file_lib.diff(TRACKED_FP)
+    ret, (out, _, _, _) = file_lib.diff(TRACKED_FP)
     self.assertEqual(file_lib.SUCCESS, ret)
     self.assertEqual([], out)
 
   def test_diff_basic(self):
     utils_lib.write_file(TRACKED_FP, contents='new contents')
-    ret, (out, _) = file_lib.diff(TRACKED_FP)
+    ret, (out, _, additions, removals) = file_lib.diff(TRACKED_FP)
+
+    self.assertEqual(1, additions)
+    self.assertEqual(1, removals)
 
     self.assertEqual(file_lib.SUCCESS, ret)
     self.assertEqual(3, len(out))
@@ -690,7 +688,10 @@ class TestDiff(TestFile):
 
   def test_diff_append(self):
     utils_lib.append_to_file(TRACKED_FP, contents='new contents')
-    ret, (out, _) = file_lib.diff(TRACKED_FP)
+    ret, (out, _, additions, removals) = file_lib.diff(TRACKED_FP)
+
+    self.assertEqual(1, additions)
+    self.assertEqual(0, removals)
 
     self.assertEqual(file_lib.SUCCESS, ret)
     self.assertEqual(3, len(out))
@@ -709,7 +710,10 @@ class TestDiff(TestFile):
     fp = 'new'
     utils_lib.write_file(fp, contents=fp + '\n')
     file_lib.track(fp)
-    ret, (out, _) = file_lib.diff(fp)
+    ret, (out, _, additions, removals) = file_lib.diff(fp)
+
+    self.assertEqual(1, additions)
+    self.assertEqual(0, removals)
 
     self.assertEqual(file_lib.SUCCESS, ret)
     self.assertEqual(2, len(out))
@@ -720,7 +724,10 @@ class TestDiff(TestFile):
 
     # Now let's add some change to the file and check that diff notices it.
     utils_lib.append_to_file(fp, contents='new line')
-    ret, (out, _) = file_lib.diff(fp)
+    ret, (out, _, additions, removals) = file_lib.diff(fp)
+
+    self.assertEqual(2, additions)
+    self.assertEqual(0, removals)
 
     self.assertEqual(file_lib.SUCCESS, ret)
 

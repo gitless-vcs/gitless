@@ -1,6 +1,5 @@
 # Gitless - a version control system built on top of Git.
-# Copyright (c) 2013  Santiago Perez De Rosso.
-# Licensed under GNU GPL, version 2.
+# Licensed under GNU GPL v2.
 
 """gl publish - Publish commits upstream."""
 
@@ -41,6 +40,6 @@ def main(_):
     pprint.err_exp('use gl rebase or gl merge to converge the upstream changes')
     success = False
   else:
-    raise Exception('Unrecognized ret code %s' % ret)
+    raise Exception('Unrecognized ret code {0}'.format(ret))
 
   return success

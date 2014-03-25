@@ -1,6 +1,5 @@
 # Gitless - a version control system built on top of Git.
-# Copyright (c) 2013  Santiago Perez De Rosso.
-# Licensed under GNU GPL, version 2.
+# Licensed under GNU GPL v2.
 
 """Helper module for gl_{track, untrack, resolve}."""
 
@@ -15,8 +14,7 @@ VOWELS = ('a', 'e', 'i', 'o', 'u')
 
 def parser(help_msg, subcmd):
   def f(subparsers):
-    p = subparsers.add_parser(
-        subcmd, help=help_msg)
+    p = subparsers.add_parser(subcmd, help=help_msg)
     p.add_argument(
         'files', nargs='+', help='the file(s) to {0}'.format(subcmd))
     p.set_defaults(func=main(subcmd))

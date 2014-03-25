@@ -1,9 +1,10 @@
 # Gitless - a version control system built on top of Git.
-# Copyright (c) 2013  Santiago Perez De Rosso.
-# Licensed under GNU GPL, version 2.
+# Licensed under GNU GPL v2.
 
 """gl status - Show the status of files in the repo."""
 
+
+from clint.textui import colored
 
 from gitless.core import branch as branch_lib
 from gitless.core import file as file_lib
@@ -21,9 +22,14 @@ def parser(subparsers):
 
 
 def main(_):
-  pprint.msg(
-      'On branch {0}, repo-directory /{1}'.format(
-          branch_lib.current(), repo_lib.cwd()))
+  curr_b = branch_lib.current()
+  repo_dir = '/' + repo_lib.cwd()
+  if not curr_b:
+    pprint.msg('Repo-directory {0}'.format(colored.green(repo_dir)))
+  else:
+    pprint.msg(
+      'On branch {0}, repo-directory {1}'.format(
+          colored.green(curr_b), colored.green(repo_dir)))
 
   in_merge = sync_lib.merge_in_progress()
   in_rebase = sync_lib.rebase_in_progress()
@@ -65,16 +71,20 @@ def _print_tracked_mod_files(tracked_mod_list):
   else:
     for f in tracked_mod_list:
       exp = ''
+      color = colored.yellow
       # TODO(sperezde): sometimes files don't appear here if they were resolved.
       if not f.exists_in_lr:
         exp = ' (new file)'
+        color = colored.green
       elif not f.exists_in_wd:
         exp = ' (deleted)'
+        color = colored.red
       elif f.in_conflict:
         exp = ' (with conflicts)'
+        color = colored.cyan
       elif f.resolved:
         exp = ' (conflicts resolved)'
-      pprint.item(f.fp, opt_text=exp)
+      pprint.item(color(f.fp), opt_text=exp)
 
 
 def _print_untracked_files(untracked_list):
@@ -87,12 +97,14 @@ def _print_untracked_files(untracked_list):
   else:
     for f in untracked_list:
       s = ''
+      color = colored.blue
       if f.exists_in_lr:
+        color = colored.magenta
         if f.exists_in_wd:
           s = ' (exists in local repo)'
         else:
           s = ' (exists in local repo but not in working directory)'
-      pprint.item(f.fp, opt_text=s)
+      pprint.item(color(f.fp), opt_text=s)
 
 
 def _print_conflict_exp(t):

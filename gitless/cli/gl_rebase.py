@@ -1,6 +1,5 @@
 # Gitless - a version control system built on top of Git.
-# Copyright (c) 2013  Santiago Perez De Rosso.
-# Licensed under GNU GPL, version 2.
+# Licensed under GNU GPL v2.
 
 """gl rebase - Rebase one branch onto another."""
 
@@ -74,7 +73,7 @@ def main(args):
     args.src = b_st.upstream
     pprint.msg(
         'No src branch specified, defaulted to getting changes from upstream '
-        'branch %s' % args.src)
+        'branch {0}'.format(args.src))
 
   if sync_lib.rebase_in_progress():
     pprint.err('You are already in the middle of a rebase')
@@ -83,17 +82,17 @@ def main(args):
 
   ret, _ = sync_lib.rebase(args.src)
   if ret is sync_lib.SRC_NOT_FOUND:
-    pprint.err('Branch %s not found' % args.src)
+    pprint.err('Branch {0} not found'.format(args.src))
     pprint.err_exp('do gl branch to list all existing branches')
     return False
   elif ret is sync_lib.SRC_IS_CURRENT_BRANCH:
-    pprint.err('Branch %s is the current branch' % args.src)
+    pprint.err('Branch {0} is the current branch'.format(args.src))
     pprint.err_exp(
-        'to rebase branch %s onto another branch b, do gl branch b, and gl '
-        'rebase %s from there' % (args.src, args.src))
+        'to rebase branch {0} onto another branch b, do gl branch b, and gl '
+        'rebase {0} from there'.format(args.src))
     return False
   elif ret is sync_lib.REMOTE_NOT_FOUND:
-    pprint.err('The remote of %s doesn\'t exist' % args.src)
+    pprint.err('The remote of {0} doesn\'t exist'.format(args.src))
     pprint.err_exp('to list available remotes do gl remote show')
     pprint.err_exp(
         'to add a new remote use gl remote add remote_name remote_url')
@@ -122,7 +121,7 @@ def main(args):
     return False
   elif ret is sync_lib.NOTHING_TO_REBASE:
     pprint.err(
-        'No divergent changes to rebase from %s' % args.src)
+        'No divergent changes to rebase from {0}'.format(args.src))
   elif ret is sync_lib.LOCAL_CHANGES_WOULD_BE_LOST:
     pprint.err(
         'Rebase was aborted because you have uncommited local changes')
@@ -132,4 +131,4 @@ def main(args):
     pprint.msg('Rebase succeded')
     return True
   else:
-    raise Exception('Unexpected ret code %s' % ret)
+    raise Exception('Unexpected ret code {0}'.format(ret))

@@ -1,6 +1,5 @@
 # Gitless - a version control system built on top of Git.
-# Copyright (c) 2013  Santiago Perez De Rosso.
-# Licensed under GNU GPL, version 2.
+# Licensed under GNU GPL v2.
 
 """gl init - Create an empty repo or make a clone."""
 
@@ -48,4 +47,4 @@ def main(args):
       pprint.msg('Initialized from remote \'{0}\''.format(args.repo))
     return True
   else:
-    raise Exception('Unexpected return code %s' % ret)
+    raise Exception('Unexpected return code {0}'.format(ret))

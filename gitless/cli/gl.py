@@ -1,13 +1,14 @@
 # Gitless - a version control system built on top of Git.
-# Copyright (c) 2013  Santiago Perez De Rosso.
-# Licensed under GNU GPL, version 2.
+# Licensed under GNU GPL v2.
 
 """gl - Main Gitless's command. Dispatcher to the other cmds."""
 
 
 import argparse
-import pkg_resources
 import traceback
+
+
+from clint.textui import colored
 
 from gitless.core import repo as repo_lib
 
@@ -34,20 +35,23 @@ ERRORS_FOUND = 1
 INTERNAL_ERROR = 3
 NOT_IN_GL_REPO = 4
 
-GL_VERSION = 'GL Version: ' + pkg_resources.require('gitless')[0].version
-GL_URL = 'http://gitless.com'
+VERSION = '0.6'
+URL = 'http://gitless.com'
+
+
+colored.DISABLE_COLOR = not repo_lib.color_output()
 
 
 def main():
   parser = argparse.ArgumentParser(
       description=(
           'Gitless: a version control system built on top of Git. More info, '
-          'downloads and documentation available at %s' % GL_URL),
+          'downloads and documentation available at {0}'.format(URL)),
       formatter_class=argparse.RawDescriptionHelpFormatter)
   parser.add_argument(
       '--version', action='version', version=(
-         '%s\nYou can check if there\'s a new version of Gitless available by '
-         'visiting %s' % (GL_VERSION, GL_URL)))
+         'GL Version: {0}\nYou can check if there\'s a new version of Gitless '
+         'available by visiting {1}'.format(VERSION, URL)))
   subparsers = parser.add_subparsers(dest='subcmd_name')
 
   sub_cmds = [
@@ -78,7 +82,7 @@ def main():
   except:
     pprint.err(
         'Oops...something went wrong (recall that Gitless is in beta). If you '
-        'want to help, report the bug at %s/community.html and include the '
-        'following in the email:\n\n%s\n\n%s' %
-        (GL_URL, GL_VERSION, traceback.format_exc()))
+        'want to help, report the bug at {0}/community.html and include the '
+        'following information:\n\n{1}\n\n{2}'.format(
+            URL, VERSION, traceback.format_exc()))
     return INTERNAL_ERROR

@@ -1,6 +1,5 @@
 # Gitless - a version control system built on top of Git.
-# Copyright (c) 2013  Santiago Perez De Rosso.
-# Licensed under GNU GPL, version 2.
+# Licensed under GNU GPL v2.
 
 """Gitless's branching lib."""
 
@@ -19,6 +18,9 @@ from . import remote as remote_lib
 from . import repo as repo_lib
 
 
+BranchStatus = collections.namedtuple(
+    'BranchStatus', ['name', 'is_current', 'upstream', 'upstream_exists'])
+
 # Ret codes of methods.
 SUCCESS = 1
 REMOTE_NOT_FOUND = 2
@@ -27,6 +29,7 @@ BRANCH_ALREADY_EXISTS = 4
 NONEXISTENT_BRANCH = 5
 BRANCH_IS_CURRENT = 6
 INVALID_DP = 7
+UPSTREAM_NOT_SET = 8
 
 
 def create(name, dp='HEAD'):
@@ -56,7 +59,7 @@ def create(name, dp='HEAD'):
   elif ret == git_branch.INVALID_SP:
     return INVALID_DP
   else:
-    raise Exception('Unrecognized ret code %s' % ret)
+    raise Exception('Unrecognized ret code {0}'.format(ret))
 
 
 def delete(name):
@@ -76,14 +79,14 @@ def delete(name):
     git_stash.drop(_stash_msg(name))
     return SUCCESS
   else:
-    raise Exception('Unrecognized ret code %s' % ret)
+    raise Exception('Unrecognized ret code {0}'.format(ret))
 
 
 def set_upstream(upstream):
   """Sets the upstream branch of the current branch.
 
   Args:
-    upstreame: the upstream branch in the form remote/branch.
+    upstream: the upstream branch in the form remote/branch.
 
   Returns:
     REMOTE_NOT_FOUND or SUCCESS.
@@ -104,6 +107,21 @@ def set_upstream(upstream):
     # TODO(sperezde): fix the fetch case.
     open(uf, 'a').close()
   return SUCCESS
+
+
+def unset_upstream():
+  """Unsets the upstream branch of the current branch."""
+  current_b_name = current()
+  current_b = status(current_b_name)
+  ret = UPSTREAM_NOT_SET
+  if current_b.upstream:
+    ret = SUCCESS
+    if current_b.upstream_exists:
+      git_branch.unset_upstream(current_b_name)
+    else:
+      uf = _upstream_file(current_b_name, *current_b.upstream.split('/'))
+      os.remove(uf)
+  return ret
 
 
 def switch(name):
@@ -147,16 +165,16 @@ def status(name):
     representing its upstream branch (in the form 'remote_name/remote_branch')
     or None if it has no upstream set.
   """
-  BranchStatus = collections.namedtuple(
-      'BranchStatus', ['exists', 'is_current', 'upstream', 'upstream_exists'])
   exists, is_current, upstream = git_branch.status(name)
+  if not exists:
+    return None
   upstream_exists = True
   if not upstream:
     # We have to check if the branch has an unpushed upstream.
     upstream = _unpushed_upstream(name)
     upstream_exists = False
 
-  return BranchStatus(exists, is_current, upstream, upstream_exists)
+  return BranchStatus(name, is_current, upstream, upstream_exists)
 
 
 def status_all():
@@ -166,9 +184,6 @@ def status_all():
     named tuples of the form (name, is_current, upstream, upstream_exists).
     upstream is in the format 'remote_name/remote_branch'.
   """
-  BranchStatus = collections.namedtuple(
-      'b_status', ['name', 'is_current', 'upstream', 'upstream_exists'])
-
   rebase_in_progress = _rebase_in_progress()
   if rebase_in_progress:
     current_b = _rebase_branch()
@@ -211,20 +226,20 @@ def _current(gl_dir=None):
 
 def _stash_msg(name):
   """Computes the stash msg to use for stashing changes in branch name."""
-  return '---gl-%s---' % name
+  return '---gl-{0}---'.format(name)
 
 
 def _unpushed_upstream(name):
   """Returns the unpushed upstream or None."""
   for f in os.listdir(repo_lib.gl_dir()):
-    result = re.match(r'GL_UPSTREAM_%s_(\w+)_(\w+)' % name, f)
+    result = re.match(r'GL_UPSTREAM_{0}_(\w+)_(\w+)'.format(name), f)
     if result:
       return '/'.join([result.group(1), result.group(2)])
   return None
 
 
 def _upstream_file(branch, upstream_remote, upstream_branch):
-  upstream_fn = 'GL_UPSTREAM_%s_%s_%s' % (
+  upstream_fn = 'GL_UPSTREAM_{0}_{1}_{2}'.format(
       branch, upstream_remote, upstream_branch)
   return os.path.join(repo_lib.gl_dir(), upstream_fn)
 
@@ -243,7 +258,7 @@ def _unmark_au_files(branch):
 
   gl_dir = repo_lib.gl_dir()
   repo_dir = git_common.repo_dir()
-  with open(os.path.join(gl_dir, 'GL_AU_%s' % branch), 'w') as f:
+  with open(os.path.join(gl_dir, 'GL_AU_{0}'.format(branch)), 'w') as f:
     for fp in assumed_unchanged_fps:
       f.write(fp + '\n')
       git_file.not_assume_unchanged(os.path.join(repo_dir, fp))
@@ -257,7 +272,7 @@ def _remark_au_files(branch, gl_dir=None):
     gl_dir: the gl dir (optional arg for speeding up things).
   """
   gl_dir = repo_lib.gl_dir() if not gl_dir else gl_dir
-  au_info_fp = os.path.join(gl_dir, 'GL_AU_%s' % branch)
+  au_info_fp = os.path.join(gl_dir, 'GL_AU_{0}'.format(branch))
   if not os.path.exists(au_info_fp):
     return
 

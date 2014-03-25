@@ -1,6 +1,5 @@
 # Gitless - a version control system built on top of Git.
-# Copyright (c) 2013  Santiago Perez De Rosso.
-# Licensed under GNU GPL, version 2.
+# Licensed under GNU GPL v2.
 
 """Gitless's repo lib."""
 
@@ -9,6 +8,7 @@ import os
 
 from gitpylib import common as git_common
 from gitpylib import config as git_config
+from gitpylib import log as git_log
 
 
 def cwd():
@@ -40,3 +40,14 @@ def editor():
     return ret
   # We default to Vim.
   return 'vim'
+
+
+def color_output():
+  ret = git_config.get('color.ui')
+  if ret and ret.lower() in ['true', 'always']:
+    return True
+  return False
+
+
+def history(include_diffs=False):
+  return git_log.log(include_diffs=include_diffs)
