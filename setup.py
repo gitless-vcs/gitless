@@ -30,7 +30,7 @@ mailing list <https://groups.google.com/forum/#!forum/gl-users>`__.
 
 setup(
     name='gitless',
-    version='0.6.1',
+    version='0.6.2',
     description='A version control system built on top of Git',
     long_description=ld,
     author='Santiago Perez De Rosso',
