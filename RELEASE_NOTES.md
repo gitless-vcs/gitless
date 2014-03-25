@@ -2,6 +2,12 @@ Gitless's Release Notes
 =======================
 
 
+25th Mar 2014 - kendall.0.6.1
+-----------------------------
+
+* Bug fix in installation.
+
+
 25th Mar 2014 - kendall.0.6
 ---------------------------
 
