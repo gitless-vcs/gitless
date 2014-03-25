@@ -7,7 +7,7 @@ from setuptools import setup
 import gitless.cli.gl as gl
 
 
-reqs = ['gitpylib>=0.5']
+reqs = ['gitpylib>=0.5', 'clint=0.36']
 if sys.version_info < (2, 7) or (
     sys.version_info < (3, 3) and sys.version_info > (3, 0)):
   reqs.append('argparse')
