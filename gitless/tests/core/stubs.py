@@ -21,8 +21,8 @@ class RemoteLib(object):
 
   def show(self, remote_name):
     if remote_name not in self.remotes:
-      return (self.REMOTE_NOT_FOUND, None)
-    return (self.SUCCESS, 'info about {0}'.format(remote_name))
+      return self.REMOTE_NOT_FOUND, None
+    return self.SUCCESS, 'info about {0}'.format(remote_name)
 
   def show_all(self):
     return list(self.remotes.keys())

@@ -134,14 +134,14 @@ def diff(fp):
   """
   nil_out = (None, None, None, None)
   if os.path.isdir(fp):
-    return (FILE_IS_DIR, nil_out)
+    return FILE_IS_DIR, nil_out
   gl_st, git_s = _status(fp)
   if not gl_st:
-    return (FILE_NOT_FOUND, nil_out)
+    return FILE_NOT_FOUND, nil_out
   elif gl_st.type == UNTRACKED:
-    return (FILE_IS_UNTRACKED, nil_out)
+    return FILE_IS_UNTRACKED, nil_out
   elif gl_st.type == IGNORED:
-    return (FILE_IS_IGNORED, nil_out)
+    return FILE_IS_IGNORED, nil_out
 
   do_staged_diff = False
   if git_s == git_status.STAGED:
@@ -152,7 +152,7 @@ def diff(fp):
     do_staged_diff = True
 
   # Don't include the `git diff` header.
-  return (SUCCESS, git_file.diff(fp, staged=do_staged_diff)[:-1])
+  return SUCCESS, git_file.diff(fp, staged=do_staged_diff)[:-1]
 
 
 def checkout(fp, cp='HEAD'):
@@ -167,13 +167,13 @@ def checkout(fp, cp='HEAD'):
     FILE_NOT_FOUND_AT_CP or SUCCESS and out is the content of fp at cp.
   """
   if os.path.isdir(fp):
-    return (FILE_IS_DIR, None)
+    return FILE_IS_DIR, None
   # "show" expects the full path with respect to the repo root.
   rel_fp = os.path.join(repo_lib.cwd(), fp)[1:]
   ret, out = git_file.show(rel_fp, cp)
 
   if ret == git_file.FILE_NOT_FOUND_AT_CP:
-    return (FILE_NOT_FOUND_AT_CP, None)
+    return FILE_NOT_FOUND_AT_CP, None
 
   s = git_status.of_file(fp)
   unstaged = False
@@ -187,7 +187,7 @@ def checkout(fp, cp='HEAD'):
   if unstaged:
     git_file.stage(fp)
 
-  return (SUCCESS, out)
+  return SUCCESS, out
 
 
 def status(fp):
@@ -281,11 +281,11 @@ def _status(fp):
   """
   git_s = git_status.of_file(fp)
   if git_s == git_status.FILE_NOT_FOUND:
-    return (None, git_s)
+    return None, git_s
   gl_s = _build_f_st(git_s, fp)
   if not gl_s:
-    return (None, git_s)
-  return (gl_s, git_s)
+    return None, git_s
+  return gl_s, git_s
 
 
 # This namedtuple is only used in _build_f_st, but putting it as a module var

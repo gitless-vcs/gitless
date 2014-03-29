@@ -53,7 +53,7 @@ def merge(src):
       _valid_remote_branch(src)
       if is_remote_b else _valid_branch(src))
   if not is_valid:
-    return (error, None)
+    return error, None
 
   if is_remote_b:
     remote, remote_b = _parse_from_remote_branch(src)
@@ -62,13 +62,13 @@ def merge(src):
     ret, out = git_sync.merge(src)
 
   if ret == git_sync.SUCCESS:
-    return (SUCCESS, out)
+    return SUCCESS, out
   elif ret == git_sync.CONFLICT:
-    return (CONFLICT, out)
+    return CONFLICT, out
   elif ret == git_sync.LOCAL_CHANGES_WOULD_BE_LOST:
-    return (LOCAL_CHANGES_WOULD_BE_LOST, out)
+    return LOCAL_CHANGES_WOULD_BE_LOST, out
   elif ret == git_sync.NOTHING_TO_MERGE:
-    return (NOTHING_TO_MERGE, out)
+    return NOTHING_TO_MERGE, out
   raise Exception('Unexpected ret code {0}'.format(ret))
 
 
@@ -90,7 +90,7 @@ def rebase(new_base):
       _valid_remote_branch(new_base)
       if is_remote_b else _valid_branch(new_base))
   if not is_valid:
-    return (error, None)
+    return error, None
 
   current = branch_lib.current()
   if is_remote_b:
@@ -99,15 +99,15 @@ def rebase(new_base):
   else:
     ret, out = git_sync.rebase(new_base)
   if ret == git_sync.SUCCESS:
-    return (SUCCESS, out)
+    return SUCCESS, out
   elif ret == git_sync.LOCAL_CHANGES_WOULD_BE_LOST:
-    return (LOCAL_CHANGES_WOULD_BE_LOST, out)
+    return LOCAL_CHANGES_WOULD_BE_LOST, out
   elif ret == git_sync.CONFLICT:
     # We write a file to note the current branch being rebased and the new base.
     _write_rebase_file(current, new_base)
-    return (CONFLICT, out)
+    return CONFLICT, out
   elif ret == git_sync.NOTHING_TO_REBASE:
-    return (NOTHING_TO_REBASE, out)
+    return NOTHING_TO_REBASE, out
   raise Exception('Unexpected ret code {0}'.format(ret))
 
 
@@ -128,7 +128,7 @@ def rebase_info():
   rf = open(_rebase_file(), 'r')
   current = rf.readline().strip()
   new_base = rf.readline().strip()
-  return (current, new_base)
+  return current, new_base
 
 
 def skip_rebase_commit():
@@ -137,9 +137,9 @@ def skip_rebase_commit():
   s = git_sync.skip_rebase_commit()
   if s[0] == git_sync.SUCCESS:
     conclude_rebase()
-    return (SUCCESS, s[1])
+    return SUCCESS, s[1]
   elif s[0] == git_sync.CONFLICT:
-    return (SUCCESS, s[1])
+    return SUCCESS, s[1]
   else:
     raise Exception('Unexpected ret code {0}'.format(s[0]))
 
@@ -154,17 +154,17 @@ def publish():
   current_b = branch_lib.current()
   b_st = branch_lib.status(current_b)
   if not b_st.upstream:
-    return (UPSTREAM_NOT_SET, None)
+    return UPSTREAM_NOT_SET, None
   ret, out = git_sync.push(current_b, *b_st.upstream.split('/'))
   if ret == git_sync.SUCCESS:
     if not b_st.upstream_exists:
       # After the push the upstream exists. So we set it.
       branch_lib.set_upstream(b_st.upstream)
-    return (SUCCESS, out)
+    return SUCCESS, out
   elif ret == git_sync.NOTHING_TO_PUSH:
-    return (NOTHING_TO_PUSH, None)
+    return NOTHING_TO_PUSH, None
   elif ret == git_sync.PUSH_FAIL:
-    return (PUSH_FAIL, None)
+    return PUSH_FAIL, None
   else:
     raise Exception('Unexpected ret code {0}'.format(ret))
 
@@ -275,12 +275,12 @@ def commit(files, msg, skip_checks=False):
         resolved.append(f)
 
     if unresolved:
-      return (UNRESOLVED_CONFLICTS, unresolved)
+      return UNRESOLVED_CONFLICTS, unresolved
     # We know that there are no pending conflicts to be resolved.
     # Let's check that all resolved files are in the commit.
     resolved_not_in_ci = [f for f in resolved if f.fp not in files]
     if resolved_not_in_ci:
-      return (RESOLVED_FILES_NOT_IN_COMMIT, resolved_not_in_ci)
+      return RESOLVED_FILES_NOT_IN_COMMIT, resolved_not_in_ci
 
     # print 'commiting files %s' % files
     out = None
@@ -292,15 +292,15 @@ def commit(files, msg, skip_checks=False):
       if not skip_checks:
         pc = git_hook.pre_commit()
         if not pc.ok:
-          return (PRE_COMMIT_FAILED, pc.err)
+          return PRE_COMMIT_FAILED, pc.err
       s = git_sync.rebase_continue()
       if s[0] == SUCCESS:
         conclude_rebase()
-        return (SUCCESS, s[1])
+        return SUCCESS, s[1]
       elif s[0] == CONFLICT:
         # TODO(sperezde): the next apply could actually result in another
         # conflict.
-        return (SUCCESS, s[1])
+        return SUCCESS, s[1]
       else:
         raise Exception('Unexpected ret code {0}'.format(s[0]))
 
@@ -308,18 +308,18 @@ def commit(files, msg, skip_checks=False):
     if not skip_checks:
       pc = git_hook.pre_commit()
       if not pc.ok:
-        return (PRE_COMMIT_FAILED, pc.err)
+        return PRE_COMMIT_FAILED, pc.err
     out = git_sync.commit(
         files, msg, skip_checks=True, include_staged_files=True)
     file_lib.internal_resolved_cleanup()
-    return (SUCCESS, out)
+    return SUCCESS, out
 
   # It's a regular commit.
   if not skip_checks:
     pc = git_hook.pre_commit()
     if not pc.ok:
-      return (PRE_COMMIT_FAILED, pc.err)
-  return (SUCCESS, git_sync.commit(files, msg, skip_checks=True))
+      return PRE_COMMIT_FAILED, pc.err
+  return SUCCESS, git_sync.commit(files, msg, skip_checks=True)
 
 
 # Private methods.
@@ -338,16 +338,16 @@ def _rebase_file():
 def _valid_branch(b):
   b_st = branch_lib.status(b)
   if not b_st:
-    return (False, SRC_NOT_FOUND)
+    return False, SRC_NOT_FOUND
   if b_st and b_st.is_current:
-    return (False, SRC_IS_CURRENT_BRANCH)
-  return (True, None)
+    return False, SRC_IS_CURRENT_BRANCH
+  return True, None
 
 
 def _valid_remote_branch(b):
   remote_n, remote_b = b.split('/')
   if not remote_lib.is_set(remote_n):
-    return (False, REMOTE_NOT_FOUND)
+    return False, REMOTE_NOT_FOUND
 
   # We know the remote exists, let's see if the branch exists.
   exists, err = git_remote.head_exist(remote_n, remote_b)
@@ -356,9 +356,9 @@ def _valid_remote_branch(b):
       ret_err = REMOTE_UNREACHABLE
     else:
       ret_err = REMOTE_BRANCH_NOT_FOUND
-    return (False, ret_err)
+    return False, ret_err
 
-  return (True, None)
+  return True, None
 
 
 def _is_remote_branch(b):
