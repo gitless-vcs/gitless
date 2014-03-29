@@ -238,7 +238,7 @@ def _do_partial_commit(files, msg, skip_checks=False):
         print('\n')
         pprint.msg('Do you want to include this chunk in the commit?')
         pprint.exp('input "y" or "yes" to include this chunk in the commit')
-        pprint.exp('input "n" or "no" to include this chunk in the commit')
+        pprint.exp('input "n" or "no" to leave this chunk out of the commit')
         pprint.exp(
             'input "a" or "abort" or "q" or "quit" to abort the commit')
         user_input = pprint.get_user_input()
