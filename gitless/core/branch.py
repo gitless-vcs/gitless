@@ -142,7 +142,8 @@ def switch(name):
   # look at this info and re-mark them.
   _unmark_au_files(current_b)
   git_stash.all(_stash_msg(current_b))
-  git_branch.checkout(name)
+  if git_branch.checkout(name) != git_branch.SUCCESS:
+    raise Exception('Unexpected status of branch {0}'.format(name))
   git_stash.pop(_stash_msg(name))
   _remark_au_files(name, gl_dir=gl_dir)
   return SUCCESS
