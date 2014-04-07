@@ -233,7 +233,7 @@ def _stash_msg(name):
 def _unpushed_upstream(name):
   """Returns the unpushed upstream or None."""
   for f in os.listdir(repo_lib.gl_dir()):
-    result = re.match(r'GL_UPSTREAM_{0}_(\w+)_(\w+)'.format(name), f)
+    result = re.match(r'GL_UPSTREAM_{0}_(.+)_(.+)'.format(name), f)
     if result:
       return '/'.join([result.group(1), result.group(2)])
   return None
