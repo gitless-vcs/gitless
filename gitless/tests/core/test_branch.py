@@ -7,9 +7,10 @@
 import os
 import unittest
 
-import gitless.core.file as file_lib
 import gitless.core.branch as branch_lib
+import gitless.core.file as file_lib
 import gitless.core.remote as remote_lib
+import gitless.core.sync as sync_lib
 import gitless.tests.utils as utils_lib
 
 from . import common
@@ -171,12 +172,25 @@ class TestUpstream(TestBranch):
     remote_branch = self.REMOTE_NAME + '/branch'
     with common.stub(
         branch_lib.git_branch,
-        {'status': lambda b: (True, True, remote_branch),
-         'set_upstream': lambda un, ub: branch_lib.git_branch.SUCCESS,
-         'unset_upstream': lambda b: branch_lib.git_branch.SUCCESS}):
+        {'status': lambda _: (True, True, remote_branch),
+         'set_upstream': lambda *_: branch_lib.git_branch.SUCCESS,
+         'unset_upstream': lambda _: branch_lib.git_branch.SUCCESS}):
       branch_lib.set_upstream(remote_branch)
       self.assertEqual(branch_lib.SUCCESS, branch_lib.unset_upstream())
 
+  def test_publish_nonexistent_upstream(self):
+    def on_push(b, rn, rb):
+      self.assertEqual(rb, 'branch-branch')
+      return sync_lib.git_sync.SUCCESS, ''
+    remote_branch = self.REMOTE_NAME + '/branch-branch'
+    with common.stub(
+        branch_lib.git_branch,
+        {'status': lambda _: (True, False, None),
+         'set_upstream': lambda *_: branch_lib.git_branch.UNFETCHED_OBJECT}):
+          with common.stub(branch_lib.remote_lib, {'is_set': lambda _: True}):
+            branch_lib.set_upstream(remote_branch)
+            with common.stub(sync_lib.git_sync, {'push': on_push}):
+              self.assertEqual(branch_lib.SUCCESS, sync_lib.publish()[0])
 
 
 if __name__ == '__main__':
