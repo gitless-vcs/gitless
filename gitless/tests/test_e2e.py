@@ -6,7 +6,6 @@
 
 import logging
 import time
-import unittest
 
 import gitless.tests.utils as utils_lib
 
@@ -292,7 +291,3 @@ class TestPerformance(TestEndToEnd):
     self.assertTrue(
         gl_t < git_t*MAX_TOLERANCE,
         msg='gl_t {0}, git_t {1}'.format(gl_t, git_t))
-
-
-if __name__ == '__main__':
-  unittest.main()

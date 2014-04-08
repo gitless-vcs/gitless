@@ -5,7 +5,6 @@
 
 
 import os
-import unittest
 
 import gitless.core.file as file_lib
 import gitless.tests.utils as utils_lib
@@ -800,7 +799,3 @@ class TestResolveFile(TestFile):
     st = file_lib.status(fp)
     self.assertTrue(st)
     self.assertTrue(st.resolved)
-
-
-if __name__ == '__main__':
-  unittest.main()

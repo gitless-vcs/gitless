@@ -5,7 +5,6 @@
 
 
 import os
-import unittest
 
 import gitless.core.branch as branch_lib
 import gitless.core.file as file_lib
@@ -191,7 +190,3 @@ class TestUpstream(TestBranch):
             branch_lib.set_upstream(remote_branch)
             with common.stub(sync_lib.git_sync, {'push': on_push}):
               self.assertEqual(branch_lib.SUCCESS, sync_lib.publish()[0])
-
-
-if __name__ == '__main__':
-  unittest.main()

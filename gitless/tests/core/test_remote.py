@@ -4,13 +4,10 @@
 """Unit tests for remote module."""
 
 
-import unittest
-
 from . import common
 from . import stubs
 
 import gitless.core.remote as remote_lib
-
 
 
 class TestRemote(common.TestCore):
@@ -70,7 +67,3 @@ class TestRm(TestRemote):
     remote_lib.add('remote', 'url')
     remote_lib.rm('remote')
     self.assertEqual(remote_lib.REMOTE_NOT_FOUND, remote_lib.rm('remote'))
-
-
-if __name__ == '__main__':
-  unittest.main()
