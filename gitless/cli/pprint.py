@@ -52,7 +52,7 @@ def err_blank():
   blank(p=sys.stderr.write)
 
 
-def err_item(i, opt_text='', p=sys.stderr.write):
+def err_item(i, opt_text=''):
   item(i, opt_text, p=sys.stderr.write)
 
 
