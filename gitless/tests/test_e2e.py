@@ -147,9 +147,10 @@ class TestCommit(TestEndToEnd):
     utils_lib.gl_expect_error('commit -m"msg" -exc nonexistentfp')
     utils_lib.gl_expect_error('commit -m"msg" -inc nonexistentfp')
 
-  def test_commit_dir(self):
-    utils_lib.write_file('dir/f')
-    utils_lib.gl_expect_error('commit -m"msg" dir')
+# TODO: uncomment once commit accepts paths instead of only files
+#  def test_commit_dir(self):
+#    utils_lib.write_file('dir/f')
+#    utils_lib.gl_expect_error('commit -m"msg" dir')
 
   def __assert_commit(self, *expected_committed):
     st = utils_lib.gl_expect_success('status')[0]

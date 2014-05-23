@@ -18,10 +18,12 @@ def parser(subparsers):
   """Adds the status parser to the given subparsers object."""
   status_parser = subparsers.add_parser(
       'status', help='show status of the repo')
+  status_parser.add_argument(
+      'paths', nargs='*', help='the specific path(s) to status')
   status_parser.set_defaults(func=main)
 
 
-def main(_):
+def main(args):
   curr_b = branch_lib.current()
   repo_dir = '/' + repo_lib.cwd()
   if not curr_b:
@@ -42,7 +44,7 @@ def main(_):
 
   tracked_mod_list = []
   untracked_list = []
-  for f in file_lib.status_all(include_tracked_unmodified_fps=False):
+  for f in file_lib.status_all(only_paths=args.paths):
     if f.type == file_lib.TRACKED and f.modified:
       tracked_mod_list.append(f)
     elif f.type == file_lib.UNTRACKED:

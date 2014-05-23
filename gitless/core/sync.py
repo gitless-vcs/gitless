@@ -184,9 +184,7 @@ class PartialCommit(object):
 
   def commit(self, msg, skip_checks=False):
     def has_staged_version(fp):
-      return git_status.of_file(fp) in [
-          git_status.STAGED, git_status.MODIFIED_MODIFIED,
-          git_status.ADDED_MODIFIED]
+      return git_status.of_file(fp) in ['A H', 'MMH', 'AMH']
 
     self.__pf.close()
     git_apply.on_index(self.__pf.name)

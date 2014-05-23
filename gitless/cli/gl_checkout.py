@@ -4,6 +4,8 @@
 """gl checkout - Checkout committed versions of files."""
 
 
+import os
+
 from gitless.core import file as file_lib
 
 from . import pprint
@@ -41,6 +43,11 @@ def _checkout_file(fp, cp):
     True if the file was checkouted successfully or False if some error was
     encountered.
   """
+  if os.path.isdir(fp):
+    # TODO: support this.
+    pprint.dir_err_exp(fp, 'checkout')
+    return False
+
   conf_msg = (
       'You have uncomitted changes in {0} that could be overwritten by the '
       'checkout'.format(fp))
@@ -54,9 +61,6 @@ def _checkout_file(fp, cp):
   if ret == file_lib.FILE_NOT_FOUND_AT_CP:
     pprint.err('Checkout aborted')
     pprint.err('There\'s no file {0} at {1}'.format(fp, cp))
-    return False
-  elif ret == file_lib.FILE_IS_DIR:
-    pprint.dir_err_exp(fp, 'checkout')
     return False
   elif ret == file_lib.SUCCESS:
     pprint.msg(

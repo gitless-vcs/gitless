@@ -203,8 +203,8 @@ def _compute_fs(only_files, exc_files, inc_files):
   else:
     # Tracked modified files.
     ret = frozenset(
-        f.fp for f in file_lib.status_all() if f.type == file_lib.TRACKED and
-        f.modified)
+        f.fp for f in file_lib.status_all(relative_paths=True)
+          if f.type == file_lib.TRACKED and f.modified)
     # TODO(sperezde): the following is a mega-hack, do it right.
     from gitpylib import common
     ret = ret.difference(common.real_case(exc_f) for exc_f in exc_files)

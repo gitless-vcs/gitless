@@ -26,8 +26,8 @@ def main(args):
   if not args.files:
     # Tracked modified files.
     files = [
-        f.fp for f in file_lib.status_all() if f.type == file_lib.TRACKED
-        and f.modified]
+        f.fp for f in file_lib.status_all(relative_paths=True)
+          if f.type == file_lib.TRACKED and f.modified]
     if not files:
       pprint.msg(
           'Nothing to diff (there are no tracked files with modifications).')

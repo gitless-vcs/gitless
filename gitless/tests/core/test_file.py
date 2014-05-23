@@ -564,34 +564,6 @@ class TestStatus(TestFile):
     os.remove(TRACKED_FP)
     self.assertFalse(file_lib.status(TRACKED_FP))
 
-  def test_status_all_relative(self):
-    rel_to_dir = lambda fp: os.path.relpath(fp, DIR)
-
-    os.chdir(DIR)
-
-    st_all = file_lib.status_all()
-    seen = []
-    for fp, f_type, exists_in_lr, exists_in_wd, modified, _, _ in st_all:
-      if (fp == rel_to_dir(TRACKED_DIR_FP) or
-          fp == rel_to_dir(TRACKED_DIR_FP_WITH_SPACE) or
-          fp == rel_to_dir(TRACKED_DIR_DIR_FP) or
-          fp == rel_to_dir(TRACKED_DIR_DIR_FP_WITH_SPACE)):
-        self.__assert_type(fp, file_lib.TRACKED, f_type)
-        self.__assert_field(fp, 'exists_in_lr', True, exists_in_lr)
-        self.__assert_field(fp, 'modified', False, modified)
-      elif (fp == rel_to_dir(UNTRACKED_DIR_FP) or
-            fp == rel_to_dir(UNTRACKED_DIR_FP_WITH_SPACE) or
-            fp == rel_to_dir(UNTRACKED_DIR_DIR_FP) or
-            fp == rel_to_dir(UNTRACKED_DIR_DIR_FP_WITH_SPACE)):
-        self.__assert_type(fp, file_lib.UNTRACKED, f_type)
-        self.__assert_field(fp, 'exists_in_lr', False, exists_in_lr)
-        self.__assert_field(fp, 'modified', True, modified)
-      else:
-        self.fail('Unexpected fp {0}'.format(fp))
-      self.__assert_field(fp, 'exists_in_wd', True, exists_in_wd)
-      seen.append(fp)
-    self.assertItemsEqual(seen, [rel_to_dir(fp) for fp in ALL_DIR_FPS_IN_WD])
-
   def test_status_ignore_tracked(self):
     """Assert that ignoring a tracked file has no effect."""
     utils_lib.append_to_file('.gitignore', contents='\n' + TRACKED_FP + '\n')
