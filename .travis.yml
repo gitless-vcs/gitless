@@ -7,7 +7,7 @@ python:
   - "3.4"
   - "pypy"
 install:
-  - pip install pylint
+  - pip install pylint==1.2
   - pip install git+git://github.com/sdg-mit/gitpylib@develop#egg=gitpylib
   - pip install clint
   - pip install .
