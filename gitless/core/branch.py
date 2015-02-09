@@ -124,11 +124,13 @@ def unset_upstream():
   return ret
 
 
-def switch(name):
+def switch(name, move_over=False):
   """Switches to the branch with the given name.
 
   Args:
     name: the name of the destination branch.
+    move_over: if True, then uncommited changes made in the current branch are
+      moved to the destination branch (defaults to False).
 
   Returns:
     BRANCH_IS_CURRENT or SUCCESS.
@@ -141,9 +143,11 @@ def switch(name):
   # marked as assumed unchanged and unmark them. And when switching back we
   # look at this info and re-mark them.
   _unmark_au_files(current_b)
-  git_stash.all(_stash_msg(current_b))
+  if not move_over:
+    git_stash.all(_stash_msg(current_b))
   if git_branch.checkout(name) != git_branch.SUCCESS:
     raise Exception('Unexpected status of branch {0}'.format(name))
+
   git_stash.pop(_stash_msg(name))
   _remark_au_files(name, gl_dir=gl_dir)
   return SUCCESS
@@ -161,21 +165,22 @@ def status(name):
     name: the name of the branch to status.
 
   Returns:
-    a named tuple (exists, is_current, upstream, upstream_exists) where exists,
-    is_current and upstream_exists are boolean values and upstream is a string
-    representing its upstream branch (in the form 'remote_name/remote_branch')
-    or None if it has no upstream set.
+    None if the branch doesn't exist or a named tuple (is_current, upstream,
+    upstream_exists) where is_current and upstream_exists are boolean values
+    and upstream is a string representing its upstream branch (in the form
+    'remote_name/remote_branch') or None if it has no upstream set.
   """
-  exists, is_current, upstream = git_branch.status(name)
-  if not exists:
+  git_st = git_branch.status(name)
+  if not git_st:
     return None
+  upstream = git_st.tracks
   upstream_exists = True
   if not upstream:
     # We have to check if the branch has an unpushed upstream.
     upstream = _unpushed_upstream(name)
     upstream_exists = False
 
-  return BranchStatus(name, is_current, upstream, upstream_exists)
+  return BranchStatus(name, git_st.is_current, upstream, upstream_exists)
 
 
 def status_all():

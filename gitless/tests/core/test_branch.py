@@ -169,9 +169,11 @@ class TestUpstream(TestBranch):
 
   def test_unset_upstream(self):
     remote_branch = self.REMOTE_NAME + '/branch'
+    status = lambda name: branch_lib.git_branch.BranchStatus(
+        name, True, remote_branch)
     with common.stub(
         branch_lib.git_branch,
-        {'status': lambda _: (True, True, remote_branch),
+        {'status': status,
          'set_upstream': lambda *_: branch_lib.git_branch.SUCCESS,
          'unset_upstream': lambda _: branch_lib.git_branch.SUCCESS}):
       branch_lib.set_upstream(remote_branch)
@@ -182,11 +184,12 @@ class TestUpstream(TestBranch):
       self.assertEqual(rb, 'branch-branch')
       return sync_lib.git_sync.SUCCESS, ''
     remote_branch = self.REMOTE_NAME + '/branch-branch'
+    status = lambda name: branch_lib.git_branch.BranchStatus(name, False, None)
     with common.stub(
         branch_lib.git_branch,
-        {'status': lambda _: (True, False, None),
+        {'status': status,
          'set_upstream': lambda *_: branch_lib.git_branch.UNFETCHED_OBJECT}):
-          with common.stub(branch_lib.remote_lib, {'is_set': lambda _: True}):
-            branch_lib.set_upstream(remote_branch)
-            with common.stub(sync_lib.git_sync, {'push': on_push}):
-              self.assertEqual(branch_lib.SUCCESS, sync_lib.publish()[0])
+      with common.stub(branch_lib.remote_lib, {'is_set': lambda _: True}):
+        branch_lib.set_upstream(remote_branch)
+        with common.stub(sync_lib.git_sync, {'push': on_push}):
+          self.assertEqual(branch_lib.SUCCESS, sync_lib.publish()[0])

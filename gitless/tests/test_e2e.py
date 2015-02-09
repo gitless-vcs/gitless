@@ -41,13 +41,14 @@ class TestBasic(TestEndToEnd):
     if 'file1 commit' not in utils_lib.gl_expect_success('history')[0]:
       self.fail('Commit didn\'t appear in history')
     # Branch.
-    # Make some changes in file1 and branch out.
+    # Make some changes to file1 and branch out.
     utils_lib.write_file('file1', 'New contents of file1')
-    utils_lib.gl_expect_success('branch branch1')
+    utils_lib.gl_expect_success('branch -c branch1')
+    utils_lib.gl_expect_success('switch branch1')
     if 'New' in utils_lib.read_file('file1'):
       self.fail('Branch not independent!')
     # Switch back to master branch, check that contents are the same as before.
-    utils_lib.gl_expect_success('branch master')
+    utils_lib.gl_expect_success('switch master')
     if 'New' not in utils_lib.read_file('file1'):
       self.fail('Branch not independent!')
     out, _ = utils_lib.gl_expect_success('branch')
@@ -56,29 +57,27 @@ class TestBasic(TestEndToEnd):
     if 'branch1' not in out:
       self.fail('Branch status output wrong')
 
-    utils_lib.gl_expect_success('branch branch1')
-    utils_lib.gl_expect_success('branch branch2')
-    utils_lib.gl_expect_success('branch branch-conflict1')
-    utils_lib.gl_expect_success('branch branch-conflict2')
-    utils_lib.gl_expect_success('branch master')
+    utils_lib.gl_expect_success('branch -c branch2')
+    utils_lib.gl_expect_success('branch -c branch-conflict1')
+    utils_lib.gl_expect_success('branch -c branch-conflict2')
     utils_lib.gl_expect_success('commit -m"New contents commit"')
 
     # Rebase.
-    utils_lib.gl_expect_success('branch branch1')
+    utils_lib.gl_expect_success('switch branch1')
     utils_lib.gl_expect_error('rebase')  # no upstream set.
     utils_lib.gl_expect_success('rebase master')
     if 'file1 commit' not in utils_lib.gl_expect_success('history')[0]:
       self.fail()
 
     # Merge.
-    utils_lib.gl_expect_success('branch branch2')
+    utils_lib.gl_expect_success('switch branch2')
     utils_lib.gl_expect_error('merge')  # no upstream set.
     utils_lib.gl_expect_success('merge master')
     if 'file1 commit' not in utils_lib.gl_expect_success('history')[0]:
       self.fail()
 
     # Conflicting rebase.
-    utils_lib.gl_expect_success('branch branch-conflict1')
+    utils_lib.gl_expect_success('switch branch-conflict1')
     utils_lib.write_file('file1', 'Conflicting changes to file1')
     utils_lib.gl_expect_success('commit -m"changes in branch-conflict1"')
     if 'conflict' not in utils_lib.gl_expect_error('rebase master')[1]:
@@ -176,16 +175,18 @@ class TestBranch(TestEndToEnd):
     utils_lib.gl_expect_success('commit f -msg"commit"')
 
   def test_create(self):
-    utils_lib.gl_expect_success('branch {0}'.format(self.BRANCH_1))
-    utils_lib.gl_expect_error('branch {0}'.format(self.BRANCH_1))
-    utils_lib.gl_expect_error('branch evil_named_branch')
+    utils_lib.gl_expect_success('branch -c {0}'.format(self.BRANCH_1))
+    utils_lib.gl_expect_error('branch -c {0}'.format(self.BRANCH_1))
+    utils_lib.gl_expect_error('branch -c evil_named_branch')
     if self.BRANCH_1 not in utils_lib.gl_expect_success('branch')[0]:
       self.fail()
 
   def test_remove(self):
-    utils_lib.gl_expect_success('branch {0}'.format(self.BRANCH_1))
+    utils_lib.gl_expect_success('branch -c {0}'.format(self.BRANCH_1))
+    utils_lib.gl_expect_success('switch {0}'.format(self.BRANCH_1))
     utils_lib.gl_expect_error('branch -d {0}'.format(self.BRANCH_1))
-    utils_lib.gl_expect_success('branch {0}'.format(self.BRANCH_2))
+    utils_lib.gl_expect_success('branch -c {0}'.format(self.BRANCH_2))
+    utils_lib.gl_expect_success('switch {0}'.format(self.BRANCH_2))
     utils_lib.gl_expect_success(
         'branch -d {0}'.format(self.BRANCH_1), pre_cmd='echo "n"')
     utils_lib.gl_expect_success(
@@ -226,9 +227,6 @@ class TestDiff(TestEndToEnd):
     self.assertEqual(out1, out2)
 
 
-# TODO(sperezde): add more performance tests to check that we're not dropping
-# the ball: We should try to keep Gitless's performance reasonably close to
-# Git's.
 class TestPerformance(TestEndToEnd):
 
   FPS_QTY = 10000
@@ -276,11 +274,12 @@ class TestPerformance(TestEndToEnd):
     utils_lib.gl_call('commit -m"commit" f1')
 
     t = time.time()
-    utils_lib.gl_call('branch develop')
+    utils_lib.gl_call('branch -c develop')
+    utils_lib.gl_call('switch develop')
     gl_t = time.time() - t
 
     # go back to previous state.
-    utils_lib.gl_call('branch master')
+    utils_lib.gl_call('switch  master')
 
     # do the same for git.
     t = time.time()
