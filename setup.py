@@ -5,7 +5,7 @@ import sys
 from setuptools import setup
 
 
-reqs = ['gitpylib==0.6', 'clint==0.3.6']
+reqs = ['clint==0.3.6']
 if sys.version_info < (2, 7) or (
     sys.version_info < (3, 3) and sys.version_info > (3, 0)):
   reqs.append('argparse')
@@ -36,7 +36,7 @@ setup(
     author='Santiago Perez De Rosso',
     author_email='sperezde@csail.mit.edu',
     url='http://gitless.com',
-    packages=['gitless', 'gitless.cli', 'gitless.core'],
+    packages=['gitless', 'gitless.cli', 'gitless.core', 'gitless.gitpylib'],
     install_requires=reqs,
     license='GPLv2',
     classifiers=(
@@ -51,6 +51,7 @@ setup(
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.2',
         'Programming Language :: Python :: 3.3',
+        'Programming Language :: Python :: 3.4',
         'Topic :: Software Development :: Version Control'),
     entry_points={
         'console_scripts': [

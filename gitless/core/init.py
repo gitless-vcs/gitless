@@ -7,8 +7,8 @@
 from . import branch as branch_lib
 from . import repo as repo_lib
 
-from gitpylib import repo as git_repo
-from gitpylib import remote as git_remote
+from gitless.gitpylib import repo as git_repo
+from gitless.gitpylib import remote as git_remote
 
 
 # Ret codes of methods.

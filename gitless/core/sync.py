@@ -7,12 +7,12 @@
 import itertools
 import os
 
-from gitpylib import apply as git_apply
-from gitpylib import file as git_file
-from gitpylib import hook as git_hook
-from gitpylib import status as git_status
-from gitpylib import sync as git_sync
-from gitpylib import remote as git_remote
+from gitless.gitpylib import apply as git_apply
+from gitless.gitpylib import file as git_file
+from gitless.gitpylib import hook as git_hook
+from gitless.gitpylib import status as git_status
+from gitless.gitpylib import sync as git_sync
+from gitless.gitpylib import remote as git_remote
 
 from . import branch as branch_lib
 from . import file as file_lib

@@ -8,11 +8,11 @@ import collections
 import os
 import re
 
-from gitpylib import branch as git_branch
-from gitpylib import common as git_common
-from gitpylib import file as git_file
-from gitpylib import stash as git_stash
-from gitpylib import status as git_status
+from gitless.gitpylib import branch as git_branch
+from gitless.gitpylib import common as git_common
+from gitless.gitpylib import file as git_file
+from gitless.gitpylib import stash as git_stash
+from gitless.gitpylib import status as git_status
 
 from . import remote as remote_lib
 from . import repo as repo_lib

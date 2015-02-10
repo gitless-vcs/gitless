@@ -4,7 +4,7 @@
 """Stubs."""
 
 
-from gitpylib import remote as git_remote
+from gitless.gitpylib import remote as git_remote
 
 
 class RemoteLib(object):

@@ -6,7 +6,7 @@
 
 import collections
 
-from gitpylib import remote as git_remote
+from gitless.gitpylib import remote as git_remote
 
 
 # Ret codes of functions.

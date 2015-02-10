@@ -6,9 +6,9 @@
 
 import os
 
-from gitpylib import common as git_common
-from gitpylib import config as git_config
-from gitpylib import log as git_log
+from gitless.gitpylib import common as git_common
+from gitless.gitpylib import config as git_config
+from gitless.gitpylib import log as git_log
 
 
 def cwd():

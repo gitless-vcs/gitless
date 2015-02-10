@@ -7,9 +7,9 @@
 import collections
 import os
 
-from gitpylib import common as git_common
-from gitpylib import file as git_file
-from gitpylib import status as git_status
+from gitless.gitpylib import common as git_common
+from gitless.gitpylib import file as git_file
+from gitless.gitpylib import status as git_status
 
 from . import repo as repo_lib
 from . import branch as branch_lib
