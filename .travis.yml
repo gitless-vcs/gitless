@@ -15,5 +15,5 @@ script:
   # previous command.
   - nosetests gitless/tests/test_e2e.py
 branches:
-  except:
-    - master
+  only:
+    - develop
