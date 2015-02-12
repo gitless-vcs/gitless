@@ -6,7 +6,7 @@
 
 import argparse
 import traceback
-
+import pygit2
 
 from clint.textui import colored
 
@@ -63,13 +63,6 @@ def main():
     sub_cmd.parser(subparsers)
 
   args = parser.parse_args()
-  if args.subcmd_name != 'init' and not repo_lib.gl_dir():
-    pprint.err(
-        'You are not in a Gitless repository. To make this directory a '
-        'repository do gl init. For cloning existing repositories do gl init '
-        'repo.')
-    return NOT_IN_GL_REPO
-
   try:
     return SUCCESS if args.func(args) else ERRORS_FOUND
   except KeyboardInterrupt:
@@ -80,6 +73,14 @@ def main():
     print('\n')
     pprint.msg('Keyboard interrupt detected, operation aborted')
     return SUCCESS
+  except repo_lib.NotInRepoError as e:
+    pprint.err(e)
+    pprint.err_exp('do gl init to make this directory a repository')
+    pprint.err_exp('do gl init remote_repo for cloning an existing repository')
+    return NOT_IN_GL_REPO
+  except (ValueError, pygit2.GitError, repo_lib.GlError) as e:
+    pprint.err(e)
+    return ERRORS_FOUND
   except:
     pprint.err(
         'Oops...something went wrong (recall that Gitless is in beta). If you '
