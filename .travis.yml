@@ -11,8 +11,8 @@ install:
   - pip install .
 script:
   - nosetests
-# nose doesn't like the number on test_e2e so it's not detected by the previous
-# command.
+  # nose doesn't like the number on test_e2e so it's not detected by the
+  # previous command.
   - nosetests gitless/tests/test_e2e.py
 branches:
   except:
