@@ -132,44 +132,4 @@ li {
   border-top: 1px solid #aaaaaa;
 }
  
-div.figure img {
-  display: block;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-div.figure .caption {
-  display: block;
-  text-align: center;
-  vertical-align:middle;   
-  font-weight: 600;
-  font-family: 'Droid Sans', Verdana, Arial, Helvetica, sans-serif;
-  letter-spacing:-.03em;
-}
-
-p {
-  margin-left: 0;
-}
-
-span.tool {
-  font-family: 'Droid Sans', Verdana, Helvetica, Arial, sans-serif;
-}
-
-ul.console {
-  font-family: 'Droid Sans Mono', Courier, monospace;
-  list-style-type: none;
-  margin-left: 1em;
-  padding-left: 0em;
-}
-
-ul.console li:before {
-  content: "$ "
-}
-
-ul.notes li {
-  margin-bottom: 1em;
-}
-
-ul.notes li li {
-  margin-bottom: .2em;
-}
+p { margin-left: 0; }
