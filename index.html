@@ -1,0 +1,82 @@
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+  <title>Gitless</title>
+  <link rel="stylesheet" type="text/css" href="css/reset.css"/>
+  <link rel="stylesheet" media="screen" href="css/grid960.css" />
+  <link rel="stylesheet" type="text/css" href="css/type.css" />
+  <link rel="stylesheet" type="text/css" href="css/helpers.css" />
+  <link rel="stylesheet" type="text/css" href="css/custom.css"/>
+  <link href='http://fonts.googleapis.com/css?family=Droid+Serif:400,700,400italic' rel='stylesheet' type='text/css'>
+</head>
+
+<body>
+
+  <div id="container" >
+
+    <div id="header" class="full top_margin_10 bottom_margin_0">
+       <ul>
+         <li><a href="index.html" class="active">about & download</a></li>
+         <li><a href="documentation.html">documentation</a></li>
+         <li><a href="community.html">community</a></li>
+         <li><a href="code.html">code</a></li>
+       </ul>
+       <img src="gitless-banner.png" alt="gitless" width="600px"/>
+    </div>
+
+    <div id="sidebar" class="third news">  
+      <h2><span>Download</span></h2>
+      <div>
+        <p>
+        You need to have Python and Git installed (1.7.12+). The easiest way
+        to download (and install) Gitless is through the
+        <a href="http://pip.readthedocs.org/en/latest/installing.html">
+        Python Package Index (pip)</a>. Once you have <code>pip</code> just do:
+        </p>
+        <pre>
+        pip install gitless
+        </pre>
+        <p>
+        You should now be able to start executing the <code>gl</code> command.
+        The current Gitless version is 0.6.2.
+        </p>
+        <p>
+        (User friendly installer coming soon.)
+        </p>
+      </div>
+    </div>
+    <div id="main" class="twothird">
+      <h2>About Gitless</h2>
+      <p>
+      Gitless is an experimental version control system built on top of Git.
+      Many people complain that Git is hard to use. We think the problem lies
+      deeper than the user interface, in the concepts underlying Git. Gitless
+      is an experiment to see what happens if you put a simple veneer on an app
+      that changes the underlying concepts. Because Gitless is implemented on
+      top of Git (could be considered what Git pros call a 'porcelain' of Git),
+      you can always fall back on Git. And of course your coworkers you share a
+      repo with need never know that you're not a Git aficionado.
+      </p>
+
+      <p>
+      Check out the documentation page to get started. If you are a novice user
+      that never used any version control system the documentation
+      should be enough to get you started. If you are a Git pro looking to see
+      what's different from your beloved Git you'll be able to spot the
+      differences by glancing through the documentation.
+      </p>
+    </div>
+    <div id="footer" class="full top_margin_20">
+      <p>
+      &copy; 2013 Santiago Perez De Rosso, Software Design Group at MIT.
+      </p>
+      <p>
+      Gitless is part of a research project exploring concept design. This
+      research is part of a collaboration between MIT and SUTD (the
+      Singapore University of Technology and Design), and is funded by a grant
+      from SUTD's International Design Center.
+      </p>
+    </div>
+  </div>
+</body>
+</html>
