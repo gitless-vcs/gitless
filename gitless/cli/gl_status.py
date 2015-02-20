@@ -6,10 +6,8 @@
 
 from clint.textui import colored
 
-from gitless.core import branch as branch_lib
+from gitless.core import core
 from gitless.core import file as file_lib
-from gitless.core import repo as repo_lib
-from gitless.core import sync as sync_lib
 
 from . import pprint
 
@@ -24,21 +22,15 @@ def parser(subparsers):
 
 
 def main(args):
-  curr_b = branch_lib.current()
-  repo_dir = '/' + repo_lib.cwd()
-  if not curr_b:
-    pprint.msg('Repo-directory {0}'.format(colored.green(repo_dir)))
-  else:
-    pprint.msg(
-      'On branch {0}, repo-directory {1}'.format(
-          colored.green(curr_b), colored.green(repo_dir)))
+  repo = core.Repository()
+  curr_b = repo.current_branch
+  pprint.msg('On branch {0}, repo-directory {1}'.format(
+    colored.green(curr_b.branch_name), colored.green('//' + repo.cwd)))
 
-  in_merge = sync_lib.merge_in_progress()
-  in_rebase = sync_lib.rebase_in_progress()
-  if in_merge:
+  if curr_b.merge_in_progress:
     pprint.blank()
     _print_conflict_exp('merge')
-  elif in_rebase:
+  elif curr_b.rebase_in_progress:
     pprint.blank()
     _print_conflict_exp('rebase')
 
@@ -109,12 +101,12 @@ def _print_untracked_files(untracked_list):
       pprint.item(color(f.fp), opt_text=s)
 
 
-def _print_conflict_exp(t):
+def _print_conflict_exp(op):
   pprint.msg(
       'You are in the middle of a {0}; all conflicts must be resolved before '
-      'commiting'.format(t))
+      'commiting'.format(op))
   pprint.exp(
-      'use gl {0} --abort to go back to the state before the {0}'.format(t))
+      'use gl {0} --abort to go back to the state before the {0}'.format(op))
   pprint.exp('use gl resolve <f> to mark file f as resolved')
   pprint.exp('once you solved all conflicts do gl commit to continue')
   pprint.blank()

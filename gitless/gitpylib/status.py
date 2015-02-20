@@ -73,8 +73,9 @@ def of(only_paths=None, relative_paths=None):
 
 
 def au_files():
-  """Assumed unchanged files."""
-  out, _ = common.safe_git_call('ls-files -v --full-name')
+  """Assumed unchanged files (relative to the root)."""
+  out, _ = common.safe_git_call(
+      'ls-files -v --full-name {0}'.format(common.repo_dir()))
   for f_out in common.remove_dups(out.splitlines(), lambda x: x[2:]):
     if f_out[0] == 'h':
       yield f_out[2:]

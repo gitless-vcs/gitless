@@ -6,7 +6,7 @@
 
 import os
 
-from gitless.core import init as init_lib
+from gitless.core import core
 
 from . import pprint
 
@@ -27,7 +27,7 @@ def parser(subparsers):
 
 
 def main(args):
-  init_lib.init_from(args.repo) if args.repo else init_lib.init_cwd()
+  core.init_repository(url=args.repo)
   pprint.msg('Local repo created in \'{0}\''.format(os.getcwd()))
   if args.repo:
     pprint.msg('Initialized from remote \'{0}\''.format(args.repo))

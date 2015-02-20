@@ -11,8 +11,7 @@ from gitless.gitpylib import common as git_common
 from gitless.gitpylib import file as git_file
 from gitless.gitpylib import status as git_status
 
-from . import repo as repo_lib
-from . import branch as branch_lib
+from . import core
 
 
 # Ret codes of methods.
@@ -164,8 +163,11 @@ def checkout(fp, cp='HEAD'):
   """
   if os.path.isdir(fp):
     return FILE_IS_DIR, None
-  # "show" expects the full path with respect to the repo root.
-  rel_fp = os.path.join(repo_lib.cwd(), fp)[1:]
+
+  repo = core.Repository()
+
+  # "show" expects the path relative to the repo root
+  rel_fp = os.path.relpath(os.path.abspath(fp), repo.root)
   ret, out = git_file.show(rel_fp, cp)
 
   if ret == git_file.FILE_NOT_FOUND_AT_CP:
@@ -257,9 +259,11 @@ def resolve(fp):
 
 
 def internal_resolved_cleanup():
-  for f in os.listdir(repo_lib.gl_dir()):
+  repo = core.Repository()
+  gl_dir = repo.path
+  for f in os.listdir(gl_dir):
     if f.startswith('GL_RESOLVED'):
-      os.remove(os.path.join(repo_lib.gl_dir(), f))
+      os.remove(os.path.join(gl_dir, f))
       #print 'removed %s' % f
 
 
@@ -338,5 +342,7 @@ def _was_resolved(fp):
 def _resolved_file(fp):
   fp = os.path.relpath(os.path.abspath(fp), git_common.repo_dir())
   fp = fp.replace(os.path.sep, '-')  # this hack will do the trick for now.
+  repo = core.Repository()
   return os.path.join(
-      repo_lib.gl_dir(), 'GL_RESOLVED_{0}_{1}'.format(branch_lib.current(), fp))
+      repo.path,
+      'GL_RESOLVED_{0}_{1}'.format(repo.current_branch.branch_name, fp))

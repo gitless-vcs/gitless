@@ -7,10 +7,12 @@
 import argparse
 import traceback
 import pygit2
+from sh import ErrorReturnCode
 
 from clint.textui import colored
 
 from gitless.core import repo as repo_lib
+from gitless.core import core
 
 from . import gl_track
 from . import gl_untrack
@@ -73,13 +75,16 @@ def main():
     print('\n')
     pprint.msg('Keyboard interrupt detected, operation aborted')
     return SUCCESS
-  except repo_lib.NotInRepoError as e:
+  except core.NotInRepoError as e:
     pprint.err(e)
     pprint.err_exp('do gl init to make this directory a repository')
     pprint.err_exp('do gl init remote_repo for cloning an existing repository')
     return NOT_IN_GL_REPO
-  except (ValueError, pygit2.GitError, repo_lib.GlError) as e:
+  except (ValueError, pygit2.GitError, core.GlError) as e:
     pprint.err(e)
+    return ERRORS_FOUND
+  except ErrorReturnCode as e:
+    pprint.err(e.stderr)
     return ERRORS_FOUND
   except:
     pprint.err(

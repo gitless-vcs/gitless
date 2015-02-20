@@ -32,9 +32,10 @@ class TestBasic(TestEndToEnd):
     utils_lib.gl_expect_error('track non-existent')
     # Untrack.
     utils_lib.gl_expect_success('untrack file1')
-    utils_lib.gl_expect_success('untrack file1')  # file1 is already untracked.
+    utils_lib.gl_expect_error('untrack file1')  # file1 is already untracked.
     utils_lib.gl_expect_error('untrack non-existent')
     # Commit.
+    utils_lib.gl_expect_success('track file1')
     utils_lib.gl_expect_success('commit -m"file1 commit"')
     utils_lib.gl_expect_error('commit -m"nothing to commit"')
     # History.
@@ -172,19 +173,20 @@ class TestBranch(TestEndToEnd):
   def setUp(self):
     super(TestBranch, self).setUp()
     utils_lib.write_file('f')
-    utils_lib.gl_expect_success('commit f -msg"commit"')
+    utils_lib.gl_expect_success('commit f -m"commit"')
 
   def test_create(self):
     utils_lib.gl_expect_success('branch -c {0}'.format(self.BRANCH_1))
     utils_lib.gl_expect_error('branch -c {0}'.format(self.BRANCH_1))
-    utils_lib.gl_expect_error('branch -c evil_named_branch')
+    utils_lib.gl_expect_error('branch -c evil*named*branch')
     if self.BRANCH_1 not in utils_lib.gl_expect_success('branch')[0]:
       self.fail()
 
   def test_remove(self):
     utils_lib.gl_expect_success('branch -c {0}'.format(self.BRANCH_1))
     utils_lib.gl_expect_success('switch {0}'.format(self.BRANCH_1))
-    utils_lib.gl_expect_error('branch -d {0}'.format(self.BRANCH_1))
+    utils_lib.gl_expect_error(
+        'branch -d {0}'.format(self.BRANCH_1), pre_cmd='echo "y"')
     utils_lib.gl_expect_success('branch -c {0}'.format(self.BRANCH_2))
     utils_lib.gl_expect_success('switch {0}'.format(self.BRANCH_2))
     utils_lib.gl_expect_success(
@@ -193,6 +195,11 @@ class TestBranch(TestEndToEnd):
         'branch -d {0}'.format(self.BRANCH_1), pre_cmd='echo "y"')
     if self.BRANCH_1 in utils_lib.gl_expect_success('branch')[0]:
       self.fail()
+
+  def test_upstream(self):
+    utils_lib.gl_expect_error('branch -uu')
+    utils_lib.gl_expect_error('branch -su non_existent')
+    utils_lib.gl_expect_error('branch -su non_existent/non_existent')
 
 
 class TestDiff(TestEndToEnd):

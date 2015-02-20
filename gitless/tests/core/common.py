@@ -7,6 +7,7 @@
 from functools import wraps
 import os
 
+import gitless.core.core as core
 import gitless.core.file as file_lib
 import gitless.tests.utils as utils_lib
 
@@ -18,6 +19,7 @@ class TestCore(utils_lib.TestBase):
     super(TestCore, self).setUp('gl-core-test')
     utils_lib.git_call('init')
     utils_lib.set_test_config()
+    self.repo = core.Repository()
 
 
 def stub(module, fake):
@@ -39,7 +41,7 @@ class Stubber(object):
     self.__module = module
     self.__backup = {}
     if not isinstance(fake, dict):
-      # We dictionarize (-- is that even a word?) the object.
+      # We dictionarize (is that even a word?) the object.
       fake = dict(
           (n, getattr(fake, n)) for n in dir(fake) if not n.startswith('__'))
 

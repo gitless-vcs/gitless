@@ -6,40 +6,9 @@
 
 import os
 
-import pygit2
 
 from gitless.gitpylib import config as git_config
 from gitless.gitpylib import log as git_log
-
-
-class GlError(Exception):
-  pass
-
-class NotInRepoError(GlError):
-
-  def __init__(self):
-    super(NotInRepoError, self).__init__('You are not in a Gitless repository')
-
-
-def cwd():
-  """Gets the Gitless's cwd."""
-  dr = os.path.dirname(gl_dir())
-  cwd = os.getcwd()
-  return '/' if dr == cwd else cwd[len(dr):]
-
-
-def gl_dir():
-  """Gets the path to the gl directory.
-
-  Returns:
-    the absolute path to the gl directory.
-  """
-  # We use the same .git directory.
-  try:
-    # The path is returned with a trailing '/'
-    return pygit2.discover_repository(os.getcwd())[:-1]
-  except Exception:
-    raise NotInRepoError()
 
 
 def editor():
