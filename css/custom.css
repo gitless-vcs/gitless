@@ -1,18 +1,58 @@
-pre.inline { display: inline }
-a:link, a:visited {
-  color: #00aa00;
+pre, code {
+  font-family: Monaco, Menlo, Consolas, "Courier New", Courier, monospace;
+  font-size: 0.9em;
 }
 
-img.bordered {
-  border:1px solid;
+pre.inline { display: inline; }
+
+a:link, a:visited { color: #00aa00; }
+
+h1 {
+  font-size:2em;
+  line-height:1.74em;
+  letter-spacing:-.03em;
+  margin:0px 0px .5em 0px;
 }
 
-h1 {font-size:2em;line-height:1.74em;letter-spacing:-.03em;margin:0px 0px .5em 0px;}
-h2 {color: #333; font-size:1.2em;line-height:2em;letter-spacing:-.03em;margin:0px 0px .5em 0px; }
-h3 {color: #333; font-size:1em;line-height:2.45em;letter-spacing:-.03em;margin:0px 0px .5em 0px;;}
-h4 {color: #333; font-size:1em;line-height:2.45em;letter-spacing:-.03em;margin:0px 0px .5em 0px;}
-h5 {color: #333; font-size:1em;line-height:2.45em;letter-spacing:-.03em;margin:0px 0px .5em 0px;}
-h6 {color: #333; font-size:1em;line-height:2.45em;letter-spacing:-.03em;margin:0px 0px .5em 0px;}
+h2 {
+  color: #333;
+  font-size:1.2em;
+  line-height:2em;
+  letter-spacing:-.03em;
+  margin:0px 0px .5em 0px;
+}
+
+h3 {
+  color: #333;
+  font-size:1em;
+  line-height:2.45em;
+  letter-spacing:-.03em;
+  margin:0px 0px .5em 0px;
+}
+
+h4 {
+  color: #333;
+  font-size:1em;
+  line-height:2.45em;
+  letter-spacing:-.03em;
+  margin:0px 0px .5em 0px;
+}
+
+h5 {
+  color: #333;
+  font-size:1em;
+  line-height:2.45em;
+  letter-spacing:-.03em;
+  margin:0px 0px .5em 0px;
+}
+
+h6 {
+  color: #333;
+  font-size:1em;
+  line-height:2.45em;
+  letter-spacing:-.03em;
+  margin:0px 0px .5em 0px;
+}
 
 #header {
   position: relative;
