@@ -15,7 +15,7 @@
   <div id="container" >
 
     <div id="header" class="full top_margin_20">
-       <img src="gitless-banner.png" alt="gitless" width="600px"/>
+     <img src="gitless-banner.png" alt="gitless" width="600px" />
     </div>
 
     <div id="sidebar" class="third news">  
@@ -48,13 +48,13 @@
       deeper than the user interface, in the concepts underlying Git. Gitless
       is an experiment to see what happens if you put a simple veneer on an app
       that changes the underlying concepts. Because Gitless is implemented on
-      top of Git (could be considered what Git pros call a 'porcelain' of Git),
+      top of Git (could be considered what Git pros call a "porcelain" of Git),
       you can always fall back on Git. And of course your coworkers you share a
       repo with need never know that you're not a Git aficionado.
       </p>
 
       <p>
-      Check out the documentation page to get started. If you are a novice user
+      Check out the documentation to get started. If you are a novice user
       that never used any version control system the documentation
       should be enough to get you started. If you are a Git pro looking to see
       what's different from your beloved Git you'll be able to spot the
@@ -96,12 +96,11 @@
 
       <a name="repository"><h4>Repository</h4></a>
       <p>
-      Say you are in a directory <code>foo</code> and you want create a local
-      repository. You do this with the <code><a name="gl-init">gl init</a></code>
-      command. This will transform the current working directory into an empty
-      Gitless's repository and you are now ready to start recording changes to
-      files in <code>foo</code> and potentially sharing these changes with
-      the rest of the world in the future.
+      Say you are in directory <code>foo</code> and you want turn it into a
+      local repository. You do this with the
+      <code><a name="gl-init">gl init</a></code> command. This will transform
+      the current working directory into an empty Gitless's repository and you
+      are now ready to start recording changes to files in <code>foo</code>.
       </p>
       <pre>
       $ mdkir foo
@@ -112,9 +111,9 @@
       <p>
       In most cases, there's probably already some existing repository that you
       want to start working on instead of creating an empty repository (maybe
-      you just created a Github repo you want to now start using). You can
-      do this with the <code>gl init</code> command as well by specifying the
-      url of the repository. This makes a local clone of the remote repository.
+      you just created a GitHub repo you want to now start using). To make a
+      local clone of a remote repository you can give the url of the repository
+      to the same <code>gl init</code> command. 
       </p>
       <pre>
       $ mkdir experiment
@@ -151,7 +150,7 @@
       even appear in the output of the <code>gl status</code> command.
       </p>
       <p>
-      An example of the output of the status command
+      An example output of the status command
       (<code>foo.py</code> is a tracked file
       with modifications, <code>.gitignore</code> is an unmodified tracked file,
       <code>bar.py</code> is an untracked file and <code>foo.py~</code> is an
@@ -185,11 +184,13 @@
       states?
       </p>
       <p>
-      A file is ignored if it's matched by the ignore specification described by
-      the <code>.gitignore</code> file in its directory or by any
-      <code>.gitignore</code> file of its parent directories. In the example above,
+      A file is ignored if it's matched by the ignore specification described in
+      the <code>.gitignore</code> file (which is usually present in the root of
+      the repository).
+      In the example above,
       there is a <code>.gitignore</code> file whose content is '*~'; since
-      <code>foo.py~</code> is matched by that pattern it's therefore an ignored file.
+      <code>foo.py~</code> is matched by that pattern it's therefore an
+      ignored file.
       </p>
       <p>
       A new file that is not matched by the ignore spec is initially an untracked
@@ -203,9 +204,9 @@
       </p>
       <p>
       As previously said, all tracked and modified files are automatically
-      considered for commit. Which means that doing
+      considered for commit. Doing
       <code><a name="gl-commit">gl commit</a></code> will commit
-      them (once you provide a
+      these changes (once you provide a
       commit message). The commit command accepts a bunch of flags to make
       selecting a subset of files to commit super easy:
       <ul>
@@ -331,7 +332,7 @@
       remembering all those long urls can be annoying. So an easier way is to
       add that repository as a "remote" with the
       <code><a name="gl-remote">gl remote</a></code> command.
-      For example, let's add my Github experiment repository as a remote:
+      For example, let's add my GitHub experiment repository as a remote:
       </p>
       <pre>
       $ gl remote experiment https://github.com/spderosso/experiment.git
@@ -357,7 +358,7 @@
       users mailing list</a> on Google groups. For bug reports or feature
       requests you can
       <a href="http://github.com/sdg-mit/gitless/issues">create an issue
-      on Github</a>.
+      on GitHub</a>.
       </p>
       <p>
       If you would like to contribute to the development of Gitless, you can
@@ -370,7 +371,7 @@
     <!-- Begin Footer -->
     <div id="footer" class="full top_margin_20">
       <p>
-      &copy; 2013 Santiago Perez De Rosso, Software Design Group at MIT.
+      &copy; 2015 Santiago Perez De Rosso, Software Design Group at MIT.
       </p>
       <p>
       Gitless is part of a research project exploring concept design. This
