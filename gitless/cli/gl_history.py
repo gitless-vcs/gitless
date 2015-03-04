@@ -10,8 +10,6 @@ import tempfile
 
 from clint.textui import colored, indent, puts
 
-from gitless.core import repo as repo_lib
-
 from . import pprint
 
 
@@ -25,9 +23,9 @@ def parser(subparsers):
   history_parser.set_defaults(func=main)
 
 
-def main(args):
+def main(args, repo):
   with tempfile.NamedTemporaryFile(mode='w', delete=False) as tf:
-    for ci in repo_lib.history(include_diffs=args.verbose):
+    for ci in repo.current_branch.history(include_diffs=args.verbose):
       puts(colored.yellow('Commit Id: {0}'.format(ci.id)), stream=tf.write)
       puts(colored.yellow(
         'Author:    {0} <{1}>'.format(ci.author.name, ci.author.email)),
@@ -50,7 +48,16 @@ def main(args):
               ' (renamed to {0})'.format(diff.fp_after)), stream=tf.write)
         puts(stream=tf.write)
         puts(stream=tf.write)
-        pprint.diff(*diff.diff, p=tf.write)
+        out, padding, additions, deletions = diff.diff
+        put_s = lambda num: '' if num == 1 else 's'
+        puts(
+            '{0} line{1} added'.format(additions, put_s(additions)),
+            stream=tf.write)
+        puts(
+            '{0} line{1} removed'.format(deletions, put_s(deletions)),
+            stream=tf.write)
+        pprint.diff(out, padding, p=tf.write)
+
         puts(stream=tf.write)
         puts(stream=tf.write)
       puts(stream=tf.write)

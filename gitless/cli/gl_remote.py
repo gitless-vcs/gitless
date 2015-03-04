@@ -4,8 +4,6 @@
 """gl remote - List, create, edit or delete remotes."""
 
 
-from gitless.core import core
-
 from . import pprint
 
 
@@ -23,9 +21,8 @@ def parser(subparsers):
   remote_parser.set_defaults(func=main)
 
 
-def main(args):
+def main(args, repo):
   ret = True
-  repo = core.Repository()
   remotes = repo.remotes
   if args.remote_name:
     if not args.remote_url:

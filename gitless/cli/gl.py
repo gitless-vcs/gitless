@@ -11,7 +11,6 @@ from sh import ErrorReturnCode
 
 from clint.textui import colored
 
-from gitless.core import repo as repo_lib
 from gitless.core import core
 
 from . import gl_track
@@ -42,7 +41,12 @@ VERSION = '0.6.2'
 URL = 'http://gitless.com'
 
 
-colored.DISABLE_COLOR = not repo_lib.color_output()
+repo = None
+try:
+  repo = core.Repository()
+  colored.DISABLE_COLOR = not repo.config.get_bool('color.ui')
+except (core.NotInRepoError, KeyError):
+  pass
 
 
 def main():
@@ -54,7 +58,7 @@ def main():
   parser.add_argument(
       '--version', action='version', version=(
          'GL Version: {0}\nYou can check if there\'s a new version of Gitless '
-         'available by visiting {1}'.format(VERSION, URL)))
+         'available at {1}'.format(VERSION, URL)))
   subparsers = parser.add_subparsers(dest='subcmd_name')
 
   sub_cmds = [
@@ -66,7 +70,7 @@ def main():
 
   args = parser.parse_args()
   try:
-    return SUCCESS if args.func(args) else ERRORS_FOUND
+    return SUCCESS if args.func(args, repo) else ERRORS_FOUND
   except KeyboardInterrupt:
     # The user pressed Crl-c.
     # Disable pylint's superflous-parens warning (they are not superflous
@@ -89,7 +93,7 @@ def main():
   except:
     pprint.err(
         'Oops...something went wrong (recall that Gitless is in beta). If you '
-        'want to help, report the bug at {0}/community.html and include the '
+        'want to help, see {0} for info on how to report bugs and include the '
         'following information:\n\n{1}\n\n{2}'.format(
             URL, VERSION, traceback.format_exc()))
     return INTERNAL_ERROR

@@ -10,14 +10,6 @@ import subprocess
 import sys
 
 
-# Detect if FS is case-sensitive.
-import tempfile
-
-tmp_handle, tmp_path = tempfile.mkstemp()
-with tempfile.NamedTemporaryFile() as f_tmp:
-  FS_CASE_SENSITIVE = not os.path.exists(f_tmp.name.upper())
-
-
 class UnexpectedOutputError(Exception):
 
   def __init__(self, cmd, out, err=None):
@@ -50,58 +42,6 @@ def git_call(cmd):
     out = out.decode('utf-8')
     err = err.decode('utf-8')
   return p.returncode == 0, out, err
-
-
-def real_case(fp):
-  """Returns the same file path with its real casing.
-
-  Args:
-    fp: the file path to get the real-casing for. It should correspond to an
-        existing file.
-
-  Returns:
-    the same file path with its real casing.
-  """
-  if FS_CASE_SENSITIVE:
-    return fp
-
-  cdir = os.getcwd()
-  ret = []
-  for p in fp.split('/'):
-    found = False
-    for f in os.listdir(cdir):
-      if f.lower() == p.lower():
-        cdir = os.path.join(cdir, p)
-        ret.append(f)
-        found = True
-        break
-    if not found:
-      # TODO(sperezde): fix this hack (deal with filenames with special
-      # characters).
-      return fp
-  return os.path.join(*ret)
-
-
-def git_dir():
-  """Gets the path to the .git directory
-
-  Returns:
-    the absolute path to the git directory or None if the current working
-    directory is not a Git repository.
-  """
-  cd = os.getcwd()
-  ret = os.path.join(cd, '.git')
-  while cd != '/':  # TODO(sperezde): windows support
-    if os.path.isdir(ret):
-      return ret
-    cd = os.path.dirname(cd)
-    ret = os.path.join(cd, '.git')
-  return None
-
-
-def repo_dir():
-  """Gets the full path to the Git repo."""
-  return git_dir()[:-4]  # Strip "/.git"
 
 
 def remove_dups(list, key):

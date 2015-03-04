@@ -4,8 +4,6 @@
 """Helper for gl_{merge, rebase}."""
 
 
-from gitless.core import core
-
 from . import helpers
 from . import pprint
 
@@ -27,8 +25,7 @@ def parser(subcmd):
 
 
 def main(subcmd):
-  def f(args):
-    repo = core.Repository()
+  def f(args, repo):
     current_b = repo.current_branch
     if args.abort:
       if subcmd == 'merge':

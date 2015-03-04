@@ -36,9 +36,8 @@ def parser(subparsers):
   branch_parser.set_defaults(func=main)
 
 
-def main(args):
+def main(args, repo):
   ret = True
-  repo = core.Repository()
   if args.create_b:
     ret = _do_create(args.create_b, args.dp, repo)
   elif args.delete_b:

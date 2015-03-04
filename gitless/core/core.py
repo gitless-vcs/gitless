@@ -4,14 +4,16 @@
 """Gitless's library."""
 
 
+import collections
 import os
 import re
 
 import pygit2
 from sh import git, ErrorReturnCode
 
+from gitless.gitpylib import file as git_file
 from gitless.gitpylib import stash as git_stash
-from gitless.gitpylib import status as git_status
+from gitless.gitpylib import log as git_log
 
 
 # Errors
@@ -25,6 +27,20 @@ class BranchIsCurrentError(GlError): pass
 class MergeInProgressError(GlError): pass
 
 class RebaseInProgressError(GlError): pass
+
+
+# File status
+
+GL_STATUS_UNTRACKED = 1
+GL_STATUS_TRACKED = 2
+GL_STATUS_IGNORED = 3
+
+# Possible diff output lines
+
+DIFF_INFO = git_file.DIFF_INFO  # line carrying diff info for new hunk
+DIFF_SAME = git_file.DIFF_SAME  # line that git diff includes for context
+DIFF_ADDED = git_file.DIFF_ADDED
+DIFF_MINUS = git_file.DIFF_MINUS
 
 
 def init_repository(url=None):
@@ -54,14 +70,13 @@ def init_repository(url=None):
     except ErrorReturnCode as e:
       raise GlError(e.stderr)
 
-    repo = pygit2.Repository(cwd)
+    repo = Repository()
     # We get all remote branches as well and create local equivalents.
-    for rb_name in repo.remotes['origin'].listall_branches():
-      if rb_name == 'master':
+    remote = repo.remotes['origin']
+    for rb in (remote.lookup_branch(bn) for bn in remote.listall_branches()):
+      if rb.branch_name == 'master':
         continue
-      rb = repo.lookup_branch(
-          'origin/{0}'.format(rb_name), pygit2.GIT_BRANCH_REMOTE)
-      new_b = repo.create_branch(rb_name, rb.peel(pygit2.Commit))
+      new_b = repo.create_branch(rb.branch_name, rb.head)
       new_b.upstream = rb
     return repo
 
@@ -74,8 +89,9 @@ class Repository(object):
     root: absolute path to the root of this repository.
     cwd: the current working directory relative to the root of this
       repository ('' if they are equal).
+    config: the repository's configuration.
     current_branch: the current branch (a Branch object).
-    remotes: a dictionary remote name -> Remote object.
+    remotes: the configured remotes (see RemoteCollection).
   """
 
   def __init__(self):
@@ -88,6 +104,7 @@ class Repository(object):
       path = pygit2.discover_repository(os.getcwd())
     except KeyError:
       raise NotInRepoError('You are not in a Gitless\'s repository')
+
     self.git_repo = pygit2.Repository(path)
     self.remotes = RemoteCollection(self.git_repo.remotes, self)
 
@@ -105,7 +122,19 @@ class Repository(object):
     ret = os.path.relpath(os.getcwd(), self.root)
     return '' if ret == '.' else ret
 
+  @property
+  def config(self):
+    return self.git_repo.config
+
   def revparse_single(self, revision):
+    if '/' in revision:
+      # Might be a remote branch
+      remote, remote_branch = revision.split('/', 1)
+      try:
+        return self.remotes[remote].lookup_branch(remote_branch).head
+      except KeyError:
+        pass
+
     return self.git_repo.revparse_single(revision)
 
 
@@ -116,7 +145,7 @@ class Repository(object):
   def current_branch(self):
     if self.git_repo.head_is_detached:
       # Maybe we are in the middle of a rebase?
-      rebase_path = os.path.join(self.git_repo.path, 'rebase-apply')
+      rebase_path = os.path.join(self.path, 'rebase-apply')
       if os.path.exists(rebase_path):
         rf = open(os.path.join(rebase_path, 'head-name'), 'r')
         # cut the refs/heads/ part that precedes the branch name
@@ -173,36 +202,41 @@ class Repository(object):
           'You are already on branch {0}. No need to switch.'.format(
             b.branch_name))
 
-    # TODO: let the user switch even if a merge or rebase is in progress
-    self.current_branch._check_op_not_in_progress()
+    curr_b = self.current_branch
 
-    # Helpers functions for switch
+    # TODO: let the user switch even if a merge or rebase is in progress
+    curr_b._check_op_not_in_progress()
+
+    # Helper functions for switch
+
+    def au_fp(branch):
+      return os.path.join(
+          self.path, 'GL_AU_{0}'.format(branch.branch_name.replace('/', '_')))
 
     def unmark_au_files():
       """Saves the filepaths marked as assumed unchanged and unmarks them."""
-      assumed_unchanged_fps = git_status.au_files()
+      assumed_unchanged_fps = curr_b._au_files()
       if not assumed_unchanged_fps:
         return
 
-      au_fp = os.path.join(
-          self.path, 'GL_AU_{0}'.format(self.current_branch.branch_name))
-      with open(au_fp, 'w') as f:
+      with open(au_fp(curr_b), 'w') as f:
         for fp in assumed_unchanged_fps:
           f.write(fp + '\n')
-          git('update-index', '--no-assume-unchanged', fp)
+          git('update-index', '--no-assume-unchanged', fp,
+              _cwd=self.root)
 
     def remark_au_files():
       """Re-marks files as assumed unchanged."""
-      au_fp = os.path.join(self.path, 'GL_AU_{0}'.format(b.branch_name))
-      if not os.path.exists(au_fp):
+      au = au_fp(b)
+      if not os.path.exists(au):
         return
 
-      with open(au_fp, 'r') as f:
+      with open(au, 'r') as f:
         for fp in f:
-          fp = fp.strip()
-          git('update-index', '--assume-unchanged', fp)
+          git('update-index', '--assume-unchanged', fp.strip(),
+              _cwd=self.root)
 
-      os.remove(au_fp)
+      os.remove(au)
 
 
     # Stash doesn't save assumed unchanged files, so we save which files are
@@ -211,7 +245,7 @@ class Repository(object):
 
     unmark_au_files()
     if not move_over:
-      git_stash.all(_stash_msg(self.current_branch.branch_name))
+      git_stash.all(_stash_msg(curr_b.branch_name))
 
     self.git_repo.checkout(b.git_branch)
 
@@ -404,6 +438,219 @@ class Branch(object):
     self.git_branch = self.gl_repo.git_repo.lookup_branch(
         self.branch_name, pygit2.GIT_BRANCH_LOCAL)
 
+  def history(self, include_diffs=False):
+    return git_log.log(include_diffs=include_diffs)
+
+  @property
+  def _index(self):
+    """Convenience wrapper of Git's index."""
+    class Index(object):
+
+      def __init__(self, git_index):
+        self._git_index = git_index
+        self._git_index.read()
+
+      def __enter__(self):
+        return self
+
+      def __exit__(self, type, value, traceback):
+        if not value:  # no exception
+          self._git_index.write()
+          return True
+
+      def __getattr__(self, name):
+        return getattr(self._git_index, name)
+
+    return Index(self.gl_repo.git_repo.index)
+
+  _st_map = {
+    # git status: gl status, exists_at_head, exists_in_wd, modified
+
+    pygit2.GIT_STATUS_CURRENT: (GL_STATUS_TRACKED, True, True, False),
+    pygit2.GIT_STATUS_IGNORED: (GL_STATUS_IGNORED, False, True, True),
+
+    ### WT_* ###
+    pygit2.GIT_STATUS_WT_NEW: (GL_STATUS_UNTRACKED, False, True, True),
+    pygit2.GIT_STATUS_WT_MODIFIED: (GL_STATUS_TRACKED, True, True, True),
+    pygit2.GIT_STATUS_WT_DELETED: (GL_STATUS_TRACKED, True, False, True),
+
+    ### INDEX_* ###
+    pygit2.GIT_STATUS_INDEX_NEW: (GL_STATUS_TRACKED, False, True, True),
+    pygit2.GIT_STATUS_INDEX_MODIFIED: (GL_STATUS_TRACKED, True, True, True),
+    pygit2.GIT_STATUS_INDEX_DELETED: (GL_STATUS_TRACKED, True, False, True),
+
+    ### WT_NEW | INDEX_* ###
+    # WT_NEW | INDEX_NEW -> can't happen
+    # WT_NEW | INDEX_MODIFIED -> can't happen
+    # WT_NEW | INDEX_DELETED -> could happen if user broke gl layer (e.g., did
+    # `git rm` and then created file with same name). Also, for some reason,
+    # files with conflicts have this status code
+    pygit2.GIT_STATUS_WT_NEW | pygit2.GIT_STATUS_INDEX_DELETED: (
+      GL_STATUS_TRACKED, True, True, True),
+
+    ### WT_MODIFIED | INDEX_* ###
+    pygit2.GIT_STATUS_WT_MODIFIED | pygit2.GIT_STATUS_INDEX_NEW: (
+      GL_STATUS_TRACKED, False, True, True),
+    pygit2.GIT_STATUS_WT_MODIFIED | pygit2.GIT_STATUS_INDEX_MODIFIED: (
+      GL_STATUS_TRACKED, True, True, True),
+    # WT_MODIFIED | INDEX_DELETED -> can't happen
+
+    ### WT_DELETED | INDEX_* ### -> can't happen
+    }
+
+  FileStatus = collections.namedtuple(
+    'FileStatus', [
+        'fp', 'type', 'exists_at_head', 'exists_in_wd', 'modified',
+        'in_conflict'])
+
+  def _au_files(self):
+    for f_out in git('ls-files', '-v', _cwd=self.gl_repo.root):
+      if f_out[0] == 'h':
+        yield f_out[2:].strip()
+
+  def status(self):
+    """Return a generator of file statuses (see FileStatus).
+
+    Ignored and tracked unmodified files are not reported.
+    File paths are always relative to the repo root.
+    """
+    index = self._index
+
+    for fp, git_s in self.gl_repo.git_repo.status().items():
+      in_conflict = False
+      if index.conflicts:
+        try:  # `fp in index.conflicts` doesn't work
+          index.conflicts[fp]
+          in_conflict = True
+        except KeyError:
+          pass
+      yield self.FileStatus(fp, *(self._st_map[git_s] + (in_conflict,)))
+
+    # status doesn't report au files
+    au_files = self._au_files()
+    if au_files:
+      for fp in au_files:
+        exists_in_wd = os.path.exists(os.path.join(self.gl_repo.root, fp))
+        yield self.FileStatus(
+            fp, GL_STATUS_UNTRACKED, True, exists_in_wd, True, False)
+
+  def status_file(self, path):
+    """Return the status (see FileStatus) of the given path."""
+    return self._status_file(path)[0]
+
+  def _status_file(self, path):
+    assert not os.path.isabs(path)
+
+    git_s = self.gl_repo.git_repo.status_file(path)
+
+    cmd_out = str(git(
+      'ls-files', '-v', '--full-name', path, _cwd=self.gl_repo.root))
+    if cmd_out and cmd_out[0] == 'h':
+      exists_in_wd = os.path.exists(os.path.join(self.gl_repo.root, path))
+      return (
+          self.FileStatus(
+            path, GL_STATUS_UNTRACKED, True, exists_in_wd, True, False),
+          git_s, True)
+
+    index = self._index
+    in_conflict = False
+    if index.conflicts:
+      try:  # `fp in index.conflicts` doesn't work
+        index.conflicts[path]
+        in_conflict = True
+      except KeyError:
+        pass
+    f_st = self.FileStatus(path, *(self._st_map[git_s] + (in_conflict,)))
+    return f_st, git_s, False
+
+
+  # File related methods
+
+  def track_file(self, path):
+    """Start tracking changes to path."""
+    assert not os.path.isabs(path)
+
+    gl_st, git_st, is_au = self._status_file(path)
+
+    if gl_st.type == GL_STATUS_TRACKED:
+      raise ValueError('File {0} is already tracked'.format(path))
+    elif gl_st.type == GL_STATUS_IGNORED:
+      raise ValueError(
+          'File {0} is ignored. Edit the .gitignore file to stop ignoring '
+          'file {0}'.format(path))
+
+    # If we reached this point we know that the file to track is a untracked
+    # file. This means that in the Git world, the file could be either:
+    #   (i)  a new file for Git => add the file;
+    #   (ii) an assumed unchanged file => unmark it.
+    if git_st == pygit2.GIT_STATUS_WT_NEW:  # Case (i)
+      with self._index as index:
+        index.add(path)
+    elif is_au:  # Case (ii)
+      git('update-index', '--no-assume-unchanged', path,
+          _cwd=self.gl_repo.root)
+    else:
+      raise GlError('File {0} in unkown status {1}'.format(path, git_st))
+
+  def untrack_file(self, path):
+    """Stop tracking changes to the given path."""
+    assert not os.path.isabs(path)
+
+    gl_st, git_st, is_au = self._status_file(path)
+
+    if gl_st.type == GL_STATUS_UNTRACKED:
+      raise ValueError('File {0} is already untracked'.format(path))
+    elif gl_st.type == GL_STATUS_IGNORED:
+      raise ValueError(
+          'File {0} is ignored. Edit the .gitignore file to stop ignoring '
+          'file {0}'.format(path))
+    elif gl_st.in_conflict:
+      raise ValueError('File {0} has conflicts'.format(path))
+
+    # If we reached this point we know that the file to untrack is a tracked
+    # file. This means that in the Git world, the file could be either:
+    #   (i)  a new file for Git that is staged (the user executed `gl track` on
+    #        an uncomitted file) => reset changes;
+    #   (ii) the file is a previously committed file => mark it as assumed
+    #        unchanged.
+    if git_st == pygit2.GIT_STATUS_INDEX_NEW:  # Case (i)
+      with self._index as index:
+        index.remove(path)
+    elif not is_au:  # Case (ii)
+      git('update-index', '--assume-unchanged', path,
+          _cwd=self.gl_repo.root)
+    else:
+      raise GlError('File {0} in unkown status {1}'.format(path, git_st))
+
+  def resolve_file(self, path):
+    """Mark the given path as resolved."""
+    assert not os.path.isabs(path)
+
+    gl_st, _, _ = self._status_file(path)
+    if not gl_st.in_conflict:
+      raise ValueError('File {0} has no conflicts'.format(path))
+
+    with self._index as index:
+      index.add(path)
+
+  def checkout_file(self, path, commit):
+    """Checkouts the given path at the given commit."""
+    assert not os.path.isabs(path)
+
+    data = self.gl_repo.git_repo[commit.tree[path].id].data
+    with open(os.path.join(self.gl_repo.root, path), 'w') as dst:
+      dst.write(data)
+
+    # So as to not get confused with the status of the file we also add it
+    with self._index as index:
+      index.add(path)
+
+  def diff_file(self, path):
+    """Diff the working version of the given path with its committed version."""
+    assert not os.path.isabs(path)
+
+    return git_file.diff(path, self)[:-1]
+
 
   # Merge related methods
 
@@ -416,7 +663,7 @@ class Branch(object):
     if result & pygit2.GIT_MERGE_ANALYSIS_UP_TO_DATE:
       raise GlError('Nothing to merge')
     try:
-      git.merge(src.branch_name)
+      git.merge(src.branch_name, '--no-ff')
     except ErrorReturnCode as e:
       raise GlError(e.stdout + e.stderr)
 
@@ -492,10 +739,9 @@ class Branch(object):
             index.add(f)
 
       # Update index to how it should look like after the commit
-      index = self.gl_repo.git_repo.index
-      index.read()
-      update(index)
-      index.write()
+      index = self._index
+      with index:
+        update(index)
 
       # To create the commit tree with only the changes to the given files we:
       #   (i)   reset the index to HEAD,
@@ -523,19 +769,10 @@ class Branch(object):
       return
 
     # There's a merge/rebase in progress
-
-    if self.gl_repo.git_repo.index.conflicts:
+    index = self._index
+    if index.conflicts:
       raise GlError('Unresolved conflicts')
 
-    # temp hack
-    def internal_resolved_cleanup():
-      path = self.gl_repo.path
-      for f in os.listdir(path):
-        if f.startswith('GL_RESOLVED'):
-          os.remove(os.path.join(path, f))
-          #print 'removed %s' % f
-
-    internal_resolved_cleanup()
     if self.rebase_in_progress:
       try:
         git.rebase('--continue')

@@ -9,7 +9,7 @@ from clint.textui import puts
 import re
 import sys
 
-from gitless.core import file as file_lib
+import gitless.core.core as core
 
 
 SEP = (
@@ -113,9 +113,9 @@ def diff(processed_diff, max_line_digits, p=sys.stdout.write):
       status: status code of a line.
 
     Returns:
-      True if status is file_lib.DIFF_SAME or file_lib.DIFF_INFO.
+      True if status is core.DIFF_SAME or core.DIFF_INFO.
     """
-    return status == file_lib.DIFF_SAME or status == file_lib.DIFF_INFO
+    return status == core.DIFF_SAME or status == core.DIFF_INFO
 
   processed = []
   for index, line_data in enumerate(processed_diff):
@@ -125,11 +125,11 @@ def diff(processed_diff, max_line_digits, p=sys.stdout.write):
     # the line before was removed from the file AND
     # the line two before is non-existent or unchanged.
     # In other words: bold if only one line was changed in this area.
-    if (line_data.status == file_lib.DIFF_ADDED and
+    if (line_data.status == core.DIFF_ADDED and
        (index == len(processed_diff) - 1 or
            is_unchanged(processed_diff[index + 1].status)) and
        (index - 1 >= 0 and
-           processed_diff[index - 1].status == file_lib.DIFF_MINUS) and
+           processed_diff[index - 1].status == core.DIFF_MINUS) and
        (index - 2 < 0 or is_unchanged(processed_diff[index - 2].status))):
       interest = _highlight(
           processed_diff[index - 1].line[1:], line_data.line[1:])
@@ -171,11 +171,11 @@ def _format_line(line_data, max_line_digits, bold_delim=None):
   line = line_data.line
   formatted = ''
 
-  if line_data.status == file_lib.DIFF_SAME:
+  if line_data.status == core.DIFF_SAME:
     formatted = (
         str(line_data.old_line_number).ljust(max_line_digits) +
         str(line_data.new_line_number).ljust(max_line_digits) + line)
-  elif line_data.status == file_lib.DIFF_ADDED:
+  elif line_data.status == core.DIFF_ADDED:
     formatted = (
         ' ' * max_line_digits + GREEN +
         str(line_data.new_line_number).ljust(max_line_digits))
@@ -186,7 +186,7 @@ def _format_line(line_data, max_line_digits, bold_delim=None):
       formatted += (
           line[:bold_start] + GREEN_BOLD + line[bold_start:bold_end] + CLEAR +
           GREEN + line[bold_end:])
-  elif line_data.status == file_lib.DIFF_MINUS:
+  elif line_data.status == core.DIFF_MINUS:
     formatted = (
         RED + str(line_data.old_line_number).ljust(max_line_digits) +
         ' ' * max_line_digits)
@@ -197,7 +197,7 @@ def _format_line(line_data, max_line_digits, bold_delim=None):
       formatted += (
           line[:bold_start] + RED_BOLD + line[bold_start:bold_end] +
           CLEAR + RED + line[bold_end:])
-  elif line_data.status == file_lib.DIFF_INFO:
+  elif line_data.status == core.DIFF_INFO:
     formatted = CLEAR + '\n' + line
 
   return formatted + CLEAR

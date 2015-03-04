@@ -26,7 +26,10 @@ def parser(subparsers):
   init_parser.set_defaults(func=main)
 
 
-def main(args):
+def main(args, repo):
+  if repo:
+    pprint.err('You are already in a Gitless repository')
+    return False
   core.init_repository(url=args.repo)
   pprint.msg('Local repo created in \'{0}\''.format(os.getcwd()))
   if args.repo:

@@ -6,8 +6,6 @@
 
 from clint.textui import colored
 
-from gitless.core import core
-
 from . import pprint
 
 
@@ -24,8 +22,7 @@ def parser(subparsers):
   switch_parser.set_defaults(func=main)
 
 
-def main(args):
-  repo = core.Repository()
+def main(args, repo):
   b = repo.lookup_branch(args.branch)
 
   if not b:

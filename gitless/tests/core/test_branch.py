@@ -7,7 +7,6 @@
 import os
 
 import gitless.core.core as core
-import gitless.core.file as file_lib
 import gitless.tests.utils as utils_lib
 
 from . import common
@@ -38,6 +37,8 @@ class TestBranch(common.TestCore):
     utils_lib.write_file('.gitignore', contents='{0}'.format(IGNORED_FP))
     utils_lib.write_file(IGNORED_FP)
     utils_lib.git_call('branch "{0}"'.format(BRANCH))
+
+    self.curr_b = self.repo.current_branch
 
 
 class TestCreate(TestBranch):
@@ -88,7 +89,7 @@ class TestDelete(TestBranch):
 class TestSwitch(TestBranch):
 
   def test_switch_contents_still_there_untrack_tracked(self):
-    file_lib.untrack(TRACKED_FP)
+    self.curr_b.untrack_file(TRACKED_FP)
     utils_lib.write_file(TRACKED_FP, contents='contents')
     self.repo.switch_current_branch(self.repo.lookup_branch(BRANCH))
     self.assertEqual(TRACKED_FP_CONTENTS_2, utils_lib.read_file(TRACKED_FP))
@@ -120,15 +121,15 @@ class TestSwitch(TestBranch):
     self.assertEqual('commit', utils_lib.read_file(TRACKED_FP))
 
   def test_switch_file_classification_is_mantained(self):
-    file_lib.untrack(TRACKED_FP)
+    self.curr_b.untrack_file(TRACKED_FP)
     self.repo.switch_current_branch(self.repo.lookup_branch(BRANCH))
-    st = file_lib.status(TRACKED_FP)
+    st = self.curr_b.status_file(TRACKED_FP)
     self.assertTrue(st)
-    self.assertEqual(file_lib.TRACKED, st.type)
+    self.assertEqual(core.GL_STATUS_TRACKED, st.type)
     self.repo.switch_current_branch(self.repo.lookup_branch('master'))
-    st = file_lib.status(TRACKED_FP)
+    st = self.curr_b.status_file(TRACKED_FP)
     self.assertTrue(st)
-    self.assertEqual(file_lib.UNTRACKED, st.type)
+    self.assertEqual(core.GL_STATUS_UNTRACKED, st.type)
 
   def test_switch_with_hidden_files(self):
     hf = '.file'

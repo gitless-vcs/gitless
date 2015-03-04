@@ -12,19 +12,19 @@ def get_branch_name(branch):
 
 
 def get_branch(branch_name, repo):
-  b = None
-  if '/' not in branch_name:
-    # It is a local branch
-    b = repo.lookup_branch(branch_name)
-    if not b:
+  b = repo.lookup_branch(branch_name)
+  if not b:
+    if '/' not in branch_name:
       raise ValueError('Branch "{0}" doesn\'t exist'.format(branch_name))
-  else:
-    # It is a remote branch
+
+    # It might be a remote branch
     remote, remote_branch = branch_name.split('/', 1)
     try:
       r = repo.remotes[remote]
     except KeyError:
-      raise ValueError('Remote "{0}" doesn\'t exist'.format(remote))
+      raise ValueError(
+          'Remote "{0}" doesn\'t exist, and there is no local '
+          'branch "{1}"'.format(remote, branch_name))
 
     b = r.lookup_branch(remote_branch)
     if not b:

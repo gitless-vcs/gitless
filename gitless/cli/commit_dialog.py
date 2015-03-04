@@ -7,7 +7,6 @@
 import os
 import subprocess
 
-from gitless.core import repo as repo_lib
 
 from . import pprint
 
@@ -47,12 +46,16 @@ def show(files, repo):
     pprint.item(f, p=cf.write)
   pprint.sep(p=cf.write)
   cf.close()
-  _launch_editor(cf.name)
+  _launch_editor(cf.name, repo)
   return _extract_msg(repo)
 
 
-def _launch_editor(fp):
-  editor = repo_lib.editor()
+def _launch_editor(fp, repo):
+  try:
+    editor = repo.config['core.editor']
+  except KeyError:
+    editor = os.environ['EDITOR'] if 'EDITOR' in os.environ else 'vim'
+
   if subprocess.call([editor, fp]) != 0:
     raise Exception('Call to editor {0} failed'.format(editor))
 

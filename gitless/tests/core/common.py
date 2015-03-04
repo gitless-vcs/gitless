@@ -8,7 +8,6 @@ from functools import wraps
 import os
 
 import gitless.core.core as core
-import gitless.core.file as file_lib
 import gitless.tests.utils as utils_lib
 
 
@@ -74,7 +73,9 @@ def assert_contents_unchanged(*fps):
   Args:
     fps: the filepath(s) to assert.
   """
-  return __assert_decorator('Contents', utils_lib.read_file, *fps)
+  def prop(*args, **kwargs):
+    return utils_lib.read_file
+  return __assert_decorator('Contents', prop, *fps)
 
 
 def assert_status_unchanged(*fps):
@@ -91,7 +92,9 @@ def assert_status_unchanged(*fps):
   Args:
     fps: the filepath(s) to assert.
   """
-  return __assert_decorator('Status', file_lib.status, *fps)
+  def prop(self, *args, **kwargs):
+    return self.curr_b.status_file
+  return __assert_decorator('Status', prop, *fps)
 
 
 def assert_no_side_effects(*fps):
@@ -136,10 +139,10 @@ def __assert_decorator(msg, prop, *fps):
       # We save up the cwd to chdir to it after the test has run so that the
       # the given fps still "work" even if the test changed the cwd.
       cwd_before = os.getcwd()
-      before_list = [prop(fp) for fp in fps]
+      before_list = [prop(*args, **kwargs)(fp) for fp in fps]
       f(*args, **kwargs)
       os.chdir(cwd_before)
-      after_list = [prop(fp) for fp in fps]
+      after_list = [prop(*args, **kwargs)(fp) for fp in fps]
       for fp, before, after in zip(fps, before_list, after_list):
         self.assertEqual(
             before, after,

@@ -37,21 +37,21 @@ Gitless's Release Notes
 16th Jan 2014 - kendall.0.4.4
 -----------------------------
 
-* More performance improvements in status.
+* More performance improvements to status.
 * Bug fixes in `gl resolve`.
 
 
 15th Jan 2014 - kendall.0.4.3
 -----------------------------
 
-* Fixed bug that occured when trying to commit after a conflicted rebase/merge.
+* Fixed bug that occurred when trying to commit after a conflicted rebase/merge.
 * Fixed bug that caused error msgs when a commit fails to be incorrect.
 
 
 15th Jan 2014 - kendall.0.4.2
 -----------------------------
 
-* Performance improvements in status (updated to using gitpylib 0.4.2).
+* Performance improvements to `gl status` (updated to using gitpylib 0.4.2).
 * `gl history` is piped to less (updated to using gitpylib 0.4.2).
 * Output an error msg if the user provides a directory to file related ops.
 * Sort the files outputted by `gl status` so that it looks nicer.
@@ -76,7 +76,7 @@ Gitless's Release Notes
 * General bug fixes.
 * UI improvements (made some messages more clear, consistent).
 * Allow the user to branch out from certain commit point.
-* Improvements in `gl diff`: now it outputs a message if the file is ignored or
+* Improvements to `gl diff`: now it outputs a message if the file is ignored or
   if there are no diffs to show.
 * pre-commit hooks now work fine.
 
@@ -91,13 +91,13 @@ Gitless's Release Notes
 ---------------------------
 
 * Support for files with spaces.
-* General improvements in the `gl checkout` command:
+* General improvements to the `gl checkout` command:
     * Now the commit point is passed with the `-cp` flag (defaults to `HEAD`).
     * Fixed bug that made it impossible to checkout a file without specifying
       its full repo path.
     * Ask for confirmation by the user if there are uncommitted changes that
       could be overwritten by checkout.
-* General improvements in the `gl diff` command:
+* General improvements to the `gl diff` command:
     * Fixed bug that made it impossible to diff a deleted file.
     * Now if no arguments are given all tracked files with modifications are
       diffed.
@@ -110,7 +110,7 @@ Gitless's Release Notes
 16th July 2013 - kendall.0.1
 ----------------------------
 
-* Minor improvements in output of commands.
+* Minor improvements to output of commands.
 * Improvements in Makefile and added Python version checks.
 * Made case-sensitiveness consistent with FS.
 * Fixed bug that made it impossible to `gl-track` files under directories

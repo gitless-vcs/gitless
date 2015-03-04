@@ -4,8 +4,6 @@
 """gl publish - Publish commits upstream."""
 
 
-from gitless.core import core
-
 from . import helpers
 from . import pprint
 
@@ -19,8 +17,7 @@ def parser(subparsers):
   publish_parser.set_defaults(func=main)
 
 
-def main(args):
-  repo = core.Repository()
+def main(args, repo):
   current_b = repo.current_branch
 
   dst_branch = None
