@@ -21,44 +21,6 @@ class TestCore(utils_lib.TestBase):
     self.repo = core.Repository()
 
 
-def stub(module, fake):
-  """Stub the given module with the given fake.
-
-  Each symbol in the module is overrwritten with its matching symbol
-  in the fake.
-
-  Args:
-    module: the module to stub.
-    fake: an instance of a class or dict used for stubbing.
-  """
-  return Stubber(module, fake)
-
-
-class Stubber(object):
-
-  def __init__(self, module, fake):
-    self.__module = module
-    self.__backup = {}
-    if not isinstance(fake, dict):
-      # We dictionarize (is that even a word?) the object.
-      fake = dict(
-          (n, getattr(fake, n)) for n in dir(fake) if not n.startswith('__'))
-
-    for k, v in fake.items():
-      try:
-        self.__backup[k] = getattr(module, k)
-      except AttributeError:
-        pass
-      setattr(module, k, v)
-
-  def __enter__(self):
-    pass
-
-  def __exit__(self, t, value, traceback):
-    for k, v in self.__backup.items():
-      setattr(self.__module, k, v)
-
-
 def assert_contents_unchanged(*fps):
   """Decorator that fails the test if the contents of the file fp changed.
 

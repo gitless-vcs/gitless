@@ -44,40 +44,6 @@ def git_call(cmd):
   return p.returncode == 0, out, err
 
 
-def remove_dups(list, key):
-  """Returns a new list without duplicates.
-
-  Given two elements e1, e2 from list, e1 is considered to be a duplicate of e2
-  if key(e1) == key(e2).
-
-  Args:
-    list: the list to read from.
-    key: a function that receives an element from list and returns its key.
-
-  Yields:
-    unique elements of the given list
-  """
-  keys = set()
-  for a in list:
-    k_a = key(a)
-    if k_a not in keys:
-      keys.add(k_a)
-      yield a
-
-
-def get_all_fps_under_cwd():
-  """Returns a list of all existing filepaths under the cwd.
-
-  The filepaths returned are relative to the cwd. The Git directory (.git)
-  is ignored.
-  """
-  for dirpath, dirnames, filenames in os.walk(os.getcwd()):
-    if '.git' in dirnames:
-      dirnames.remove('.git')
-    for fp in filenames:
-      yield os.path.relpath(os.path.join(dirpath, fp))
-
-
 def items(dic):
   """Py 2/3 compatible way of getting the items of a dictionary."""
   try:
