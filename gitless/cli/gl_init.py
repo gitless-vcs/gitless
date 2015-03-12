@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Gitless - a version control system built on top of Git.
 # Licensed under GNU GPL v2.
 

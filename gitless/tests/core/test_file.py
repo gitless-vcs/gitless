@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Gitless - a version control system built on top of Git.
 # Licensed under GNU GPL v2.
 
@@ -5,6 +6,8 @@
 
 
 import os
+
+from sh import git
 
 from gitless import core
 import gitless.tests.utils as utils_lib
@@ -51,7 +54,7 @@ class TestFile(common.TestCore):
   def setUp(self):
     super(TestFile, self).setUp()
 
-    # Build up an interesting mock repo.
+    # Build up an interesting mock repo
     utils_lib.write_file(TRACKED_FP, contents=TRACKED_FP_CONTENTS_1)
     utils_lib.write_file(TRACKED_FP_WITH_SPACE, contents=TRACKED_FP_CONTENTS_1)
     utils_lib.write_file(TRACKED_DIR_FP, contents=TRACKED_FP_CONTENTS_1)
@@ -60,16 +63,14 @@ class TestFile(common.TestCore):
     utils_lib.write_file(TRACKED_DIR_DIR_FP, contents=TRACKED_FP_CONTENTS_1)
     utils_lib.write_file(
         TRACKED_DIR_DIR_FP_WITH_SPACE, contents=TRACKED_FP_CONTENTS_1)
-    utils_lib.git_call(
-        'add "{0}" "{1}" "{2}" "{3}" "{4}" "{5}"'.format(
-          TRACKED_FP, TRACKED_FP_WITH_SPACE,
-          TRACKED_DIR_FP, TRACKED_DIR_FP_WITH_SPACE,
-          TRACKED_DIR_DIR_FP, TRACKED_DIR_DIR_FP_WITH_SPACE))
-    utils_lib.git_call(
-        'commit -m"1" "{0}" "{1}" "{2}" "{3}" "{4}" "{5}"'.format(
-          TRACKED_FP, TRACKED_FP_WITH_SPACE,
-          TRACKED_DIR_FP, TRACKED_DIR_FP_WITH_SPACE,
-          TRACKED_DIR_DIR_FP, TRACKED_DIR_DIR_FP_WITH_SPACE))
+    git.add(
+        TRACKED_FP, TRACKED_FP_WITH_SPACE,
+        TRACKED_DIR_FP, TRACKED_DIR_FP_WITH_SPACE,
+        TRACKED_DIR_DIR_FP, TRACKED_DIR_DIR_FP_WITH_SPACE)
+    git.commit(
+        TRACKED_FP, TRACKED_FP_WITH_SPACE,
+        TRACKED_DIR_FP, TRACKED_DIR_FP_WITH_SPACE,
+        TRACKED_DIR_DIR_FP, TRACKED_DIR_DIR_FP_WITH_SPACE, m='1')
     utils_lib.write_file(TRACKED_FP, contents=TRACKED_FP_CONTENTS_2)
     utils_lib.write_file(TRACKED_FP_WITH_SPACE, contents=TRACKED_FP_CONTENTS_2)
     utils_lib.write_file(TRACKED_DIR_FP, contents=TRACKED_FP_CONTENTS_2)
@@ -78,11 +79,10 @@ class TestFile(common.TestCore):
     utils_lib.write_file(TRACKED_DIR_DIR_FP, contents=TRACKED_FP_CONTENTS_2)
     utils_lib.write_file(
         TRACKED_DIR_DIR_FP_WITH_SPACE, contents=TRACKED_FP_CONTENTS_2)
-    utils_lib.git_call(
-        'commit -m"2" "{0}" "{1}" "{2}" "{3}" "{4}" "{5}"'.format(
-          TRACKED_FP, TRACKED_FP_WITH_SPACE,
-          TRACKED_DIR_FP, TRACKED_DIR_FP_WITH_SPACE,
-          TRACKED_DIR_DIR_FP, TRACKED_DIR_DIR_FP_WITH_SPACE))
+    git.commit(
+        TRACKED_FP, TRACKED_FP_WITH_SPACE,
+        TRACKED_DIR_FP, TRACKED_DIR_FP_WITH_SPACE,
+        TRACKED_DIR_DIR_FP, TRACKED_DIR_DIR_FP_WITH_SPACE, m='2')
     utils_lib.write_file(UNTRACKED_FP)
     utils_lib.write_file(UNTRACKED_FP_WITH_SPACE)
     utils_lib.write_file(UNTRACKED_DIR_FP)
@@ -633,24 +633,18 @@ class TestResolveFile(TestFile):
   def setUp(self):
     super(TestResolveFile, self).setUp()
 
-    # Generate a conflict.
-    utils_lib.git_call('checkout -b branch')
+    # Generate a conflict
+    git.checkout(b='branch')
     utils_lib.write_file(FP_IN_CONFLICT, contents='branch')
     utils_lib.write_file(DIR_FP_IN_CONFLICT, contents='branch')
-    utils_lib.git_call(
-        'add "{0}" "{1}"'.format(FP_IN_CONFLICT, DIR_FP_IN_CONFLICT))
-    utils_lib.git_call(
-        'commit -m"branch" "{0}" "{1}"'.format(
-            FP_IN_CONFLICT, DIR_FP_IN_CONFLICT))
-    utils_lib.git_call('checkout master')
+    git.add(FP_IN_CONFLICT, DIR_FP_IN_CONFLICT)
+    git.commit(FP_IN_CONFLICT, DIR_FP_IN_CONFLICT, m='branch')
+    git.checkout('master')
     utils_lib.write_file(FP_IN_CONFLICT, contents='master')
     utils_lib.write_file(DIR_FP_IN_CONFLICT, contents='master')
-    utils_lib.git_call(
-        'add "{0}" "{1}"'.format(FP_IN_CONFLICT, DIR_FP_IN_CONFLICT))
-    utils_lib.git_call(
-        'commit -m"master" "{0}" "{1}"'.format(
-            FP_IN_CONFLICT, DIR_FP_IN_CONFLICT))
-    utils_lib.git_call('merge branch', expected_ret_code=1)
+    git.add(FP_IN_CONFLICT, DIR_FP_IN_CONFLICT)
+    git.commit(FP_IN_CONFLICT, DIR_FP_IN_CONFLICT, m='master')
+    git.merge('branch', _ok_code=[1])
 
   @common.assert_no_side_effects(TRACKED_FP)
   def test_resolve_fp_with_no_conflicts(self):

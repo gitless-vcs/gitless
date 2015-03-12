@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Gitless - a version control system built on top of Git.
 # Licensed under GNU GPL v2.
 
@@ -6,6 +7,8 @@
 
 from functools import wraps
 import os
+
+from sh import git
 
 from gitless import core
 import gitless.tests.utils as utils_lib
@@ -16,7 +19,7 @@ class TestCore(utils_lib.TestBase):
 
   def setUp(self):
     super(TestCore, self).setUp('gl-core-test')
-    utils_lib.git_call('init')
+    git.init()
     utils_lib.set_test_config()
     self.repo = core.Repository()
 

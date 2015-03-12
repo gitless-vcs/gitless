@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Gitless - a version control system built on top of Git.
 # Licensed under GNU GPL v2.
 
@@ -35,7 +36,6 @@ def main(args, repo):
   else:
     dst_branch = helpers.get_branch(args.src, repo)
 
-
-  print(repo.current_branch.publish(dst_branch))
+  repo.current_branch.publish(dst_branch)
   pprint.msg('Publish succeeded')
   return True

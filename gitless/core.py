@@ -1,8 +1,11 @@
+# -*- coding: utf-8 -*-
 # Gitless - a version control system built on top of Git.
 # Licensed under GNU GPL v2.
 
 """Gitless's library."""
 
+
+from __future__ import unicode_literals
 
 import collections
 import os
@@ -635,7 +638,7 @@ class Branch(object):
     assert not os.path.isabs(path)
 
     data = self.gl_repo.git_repo[commit.tree[path].id].data
-    with open(os.path.join(self.gl_repo.root, path), 'w') as dst:
+    with open(os.path.join(self.gl_repo.root, path), 'wb') as dst:
       dst.write(data)
 
     # So as to not get confused with the status of the file we also add it
@@ -699,14 +702,15 @@ class Branch(object):
     self._check_op_not_in_progress()
 
     try:
-      out = git.rebase(src.target)
-      if re.match(r'Current branch [^\s]+ is up to date.\n', out.stdout):
+      out = str(git.rebase(src.target))
+      if re.match(r'Current branch [^\s]+ is up to date.\n', out):
         raise GlError('Nothing to rebase')
     except ErrorReturnCode as e:
-      if 'Please commit or stash them' in e.stderr:
+      stderr = str(e.stderr)
+      if 'Please commit or stash them' in stderr:
         raise GlError('Local changes would be lost')
       elif ('The following untracked working tree files would be overwritten'
-          in e.stderr):
+          in stderr):
         raise GlError('Local changes would be lost')
       raise GlError('There are conflicts you need to resolve')
 

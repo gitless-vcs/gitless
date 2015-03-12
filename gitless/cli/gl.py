@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Gitless - a version control system built on top of Git.
 # Licensed under GNU GPL v2.
 
@@ -9,7 +10,7 @@ import traceback
 import pygit2
 from sh import ErrorReturnCode
 
-from clint.textui import colored
+from clint.textui import colored, puts
 
 from gitless import core
 
@@ -72,11 +73,7 @@ def main():
   try:
     return SUCCESS if args.func(args, repo) else ERRORS_FOUND
   except KeyboardInterrupt:
-    # The user pressed Crl-c.
-    # Disable pylint's superflous-parens warning (they are not superflous
-    # in this case -- python 2/3 compatibility).
-    # pylint: disable=C0325
-    print('\n')
+    puts('\n')
     pprint.msg('Keyboard interrupt detected, operation aborted')
     return SUCCESS
   except core.NotInRepoError as e:

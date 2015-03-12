@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Gitless - a version control system built on top of Git.
 # Licensed under GNU GPL v2.
 
@@ -8,8 +9,9 @@ import tempfile
 import os
 import shutil
 
+from sh import git
+
 from gitless import core
-import gitless.tests.utils as utils_lib
 
 from . import common
 
@@ -90,8 +92,8 @@ class TestSync(TestRemote):
     with open('foo', 'w') as f:
       f.write('foo')
 
-    utils_lib.git_call('add foo')
-    utils_lib.git_call('commit -m"msg" foo')
+    git.add('foo')
+    git.commit('foo', m='msg')
 
     self.repo.remotes.create('remote', self.remote_path)
     self.remote = self.repo.remotes['remote']
