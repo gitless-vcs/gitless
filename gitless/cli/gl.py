@@ -11,7 +11,7 @@ from sh import ErrorReturnCode
 
 from clint.textui import colored
 
-from gitless.core import core
+from gitless import core
 
 from . import gl_track
 from . import gl_untrack

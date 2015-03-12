@@ -6,7 +6,7 @@
 
 import os
 
-import gitless.core.core as core
+from gitless import core
 
 from . import pprint
 

@@ -36,7 +36,7 @@ setup(
     author='Santiago Perez De Rosso',
     author_email='sperezde@csail.mit.edu',
     url='http://gitless.com',
-    packages=['gitless', 'gitless.cli', 'gitless.core'],
+    packages=['gitless', 'gitless.cli'],
     install_requires=reqs,
     license='GPLv2',
     classifiers=(

@@ -7,7 +7,7 @@
 from functools import wraps
 import os
 
-import gitless.core.core as core
+from gitless import core
 import gitless.tests.utils as utils_lib
 
 

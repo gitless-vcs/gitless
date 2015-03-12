@@ -8,7 +8,7 @@ import tempfile
 import os
 import shutil
 
-import gitless.core.core as core
+from gitless import core
 import gitless.tests.utils as utils_lib
 
 from . import common

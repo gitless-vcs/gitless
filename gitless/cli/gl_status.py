@@ -8,7 +8,7 @@ import os
 
 from clint.textui import colored
 
-from gitless.core import core
+from gitless import core
 
 from . import pprint
 

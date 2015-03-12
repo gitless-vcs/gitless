@@ -4,7 +4,7 @@
 """gl commit - Record changes in the local repository."""
 
 
-from gitless.core import core
+from gitless import core
 
 from . import commit_dialog
 from . import pprint

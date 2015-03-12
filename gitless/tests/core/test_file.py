@@ -6,8 +6,8 @@
 
 import os
 
+from gitless import core
 import gitless.tests.utils as utils_lib
-import gitless.core.core as core
 
 from . import common
 
