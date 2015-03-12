@@ -29,6 +29,7 @@ def main(args, repo):
     files = [
         f.fp for f in curr_b.status()
         if f.type == core.GL_STATUS_TRACKED and f.modified]
+    files.sort()
     if not files:
       pprint.msg(
           'Nothing to diff (there are no tracked files with modifications).')
@@ -39,28 +40,18 @@ def main(args, repo):
   success = True
   for fp in files:
     try:
-      out, padding, additions, deletions = curr_b.diff_file(
-          os.path.relpath(fp, repo.root))
+      patch = curr_b.diff_file(os.path.relpath(fp, repo.root))
     except KeyError:
       pprint.err('Can\'t diff non-existent file {0}'.format(fp))
       success = False
       continue
 
-    if not out:
+    if (not patch.additions) and (not patch.deletions):
       pprint.msg('No diffs to output for {0}'.format(fp))
       continue
 
     with tempfile.NamedTemporaryFile(mode='w', delete=False) as tf:
-      pprint.msg(
-          'Diff of file {0} with its last committed version'.format(fp),
-          p=tf.write)
-      put_s = lambda num: '' if num == 1 else 's'
-      pprint.msg(
-          '{0} line{1} added'.format(additions, put_s(additions)), p=tf.write)
-      pprint.msg(
-          '{0} line{1} removed'.format(deletions, put_s(deletions)),
-          p=tf.write)
-      pprint.diff(out, padding, p=tf.write)
+      pprint.diff(patch, stream=tf.write)
 
     subprocess.call('less -r -f {0}'.format(tf.name), shell=True)
     os.remove(tf.name)

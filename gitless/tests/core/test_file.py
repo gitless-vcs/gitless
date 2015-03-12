@@ -526,16 +526,18 @@ class TestDiffFile(TestFile):
         IGNORED_FP, IGNORED_FP_WITH_SPACE]
     for fp in fps:
       utils_lib.write_file(fp, contents='new contents')
-      out, _, additions, removals = self.curr_b.diff_file(fp)
+      patch = self.curr_b.diff_file(fp)
 
-      self.assertEqual(1, additions)
-      self.assertEqual(0, removals)
+      self.assertEqual(1, patch.additions)
+      self.assertEqual(0, patch.deletions)
 
-      self.assertEqual(2, len(out))
-      self.assertEqual('+new contents', out[1].line)
-      self.assertEqual(core.DIFF_ADDED, out[1].status)
-      self.assertEqual(None, out[1].old_line_number)
-      self.assertEqual(1, out[1].new_line_number)
+      self.assertEqual(1, len(patch.hunks))
+      hunk = list(patch.hunks)[0]
+      lines = list(hunk.lines)
+
+      self.assertEqual(2, len(lines))
+      self.assertEqual('+', lines[0][0])
+      self.assertEqual('new contents', lines[0][1])
 
   def test_diff_nonexistent_fp(self):
     self.assertRaises(KeyError, self.curr_b.diff_file, NONEXISTENT_FP)
@@ -544,79 +546,82 @@ class TestDiffFile(TestFile):
 
   @common.assert_no_side_effects(TRACKED_FP)
   def test_empty_diff(self):
-    out, _, _, _ = self.curr_b.diff_file(TRACKED_FP)
-    self.assertEqual([], out)
+    patch = self.curr_b.diff_file(TRACKED_FP)
+    self.assertEqual(0, len(list(patch.hunks)))
+    self.assertEqual(0, patch.additions)
+    self.assertEqual(0, patch.deletions)
 
   def test_diff_basic(self):
     utils_lib.write_file(TRACKED_FP, contents='new contents')
-    out, _, additions, removals = self.curr_b.diff_file(TRACKED_FP)
+    patch = self.curr_b.diff_file(TRACKED_FP)
 
-    self.assertEqual(1, additions)
-    self.assertEqual(1, removals)
+    self.assertEqual(1, patch.additions)
+    self.assertEqual(1, patch.deletions)
 
-    self.assertEqual(3, len(out))
-    # [:-1] removes the '\n'.
-    self.assertEqual('-' + TRACKED_FP_CONTENTS_2[:-1], out[1].line)
-    self.assertEqual(core.DIFF_MINUS, out[1].status)
-    self.assertEqual(1, out[1].old_line_number)
-    self.assertEqual(None, out[1].new_line_number)
+    self.assertEqual(1, len(patch.hunks))
+    hunk = list(patch.hunks)[0]
+    lines = list(hunk.lines)
 
-    self.assertEqual('+new contents', out[2].line)
-    self.assertEqual(core.DIFF_ADDED, out[2].status)
-    self.assertEqual(None, out[2].old_line_number)
-    self.assertEqual(1, out[2].new_line_number)
+    self.assertEqual(3, len(lines))
+    self.assertEqual('-', lines[0][0])
+    self.assertEqual(TRACKED_FP_CONTENTS_2, lines[0][1])
+
+    self.assertEqual('+', lines[1][0])
+    self.assertEqual('new contents', lines[1][1])
 
   def test_diff_append(self):
     utils_lib.append_to_file(TRACKED_FP, contents='new contents')
-    out, _, additions, removals = self.curr_b.diff_file(TRACKED_FP)
+    patch = self.curr_b.diff_file(TRACKED_FP)
 
-    self.assertEqual(1, additions)
-    self.assertEqual(0, removals)
+    self.assertEqual(1, patch.additions)
+    self.assertEqual(0, patch.deletions)
 
-    self.assertEqual(3, len(out))
-    # [:-1] removes the '\n'.
-    self.assertEqual(' ' + TRACKED_FP_CONTENTS_2[:-1], out[1].line)
-    self.assertEqual(core.DIFF_SAME, out[1].status)
-    self.assertEqual(1, out[1].old_line_number)
-    self.assertEqual(1, out[1].new_line_number)
+    self.assertEqual(1, len(patch.hunks))
+    hunk = list(patch.hunks)[0]
+    lines = list(hunk.lines)
 
-    self.assertEqual('+new contents', out[2].line)
-    self.assertEqual(core.DIFF_ADDED, out[2].status)
-    self.assertEqual(None, out[2].old_line_number)
-    self.assertEqual(2, out[2].new_line_number)
+    self.assertEqual(3, len(lines))
+    self.assertEqual(' ', lines[0][0])
+    self.assertEqual(TRACKED_FP_CONTENTS_2, lines[0][1])
+
+    self.assertEqual('+', lines[1][0])
+    self.assertEqual('new contents', lines[1][1])
 
   def test_diff_new_fp(self):
     fp = 'new'
-    utils_lib.write_file(fp, contents=fp + '\n')
+    new_fp_contents = 'new fp contents\n'
+    utils_lib.write_file(fp, contents=new_fp_contents)
     self.curr_b.track_file(fp)
-    out, _, additions, removals = self.curr_b.diff_file(fp)
+    patch = self.curr_b.diff_file(fp)
 
-    self.assertEqual(1, additions)
-    self.assertEqual(0, removals)
+    self.assertEqual(1, patch.additions)
+    self.assertEqual(0, patch.deletions)
 
-    self.assertEqual(2, len(out))
-    self.assertEqual('+' + fp, out[1].line)
-    self.assertEqual(core.DIFF_ADDED, out[1].status)
-    self.assertEqual(None, out[1].old_line_number)
-    self.assertEqual(1, out[1].new_line_number)
+    self.assertEqual(1, len(patch.hunks))
+    hunk = list(patch.hunks)[0]
+    lines = list(hunk.lines)
+
+    self.assertEqual(1, len(lines))
+    self.assertEqual('+', lines[0][0])
+    self.assertEqual(new_fp_contents, lines[0][1])
 
     # Now let's add some change to the file and check that diff notices it.
     utils_lib.append_to_file(fp, contents='new line')
-    out, _, additions, removals = self.curr_b.diff_file(fp)
+    patch = self.curr_b.diff_file(fp)
 
-    self.assertEqual(2, additions)
-    self.assertEqual(0, removals)
+    self.assertEqual(2, patch.additions)
+    self.assertEqual(0, patch.deletions)
 
-    self.assertEqual(3, len(out))
-    self.assertEqual('+' + fp, out[1].line)
-    self.assertEqual(core.DIFF_ADDED, out[1].status)
-    self.assertEqual(None, out[1].old_line_number)
-    self.assertEqual(1, out[1].new_line_number)
+    self.assertEqual(1, len(patch.hunks))
+    hunk = list(patch.hunks)[0]
+    lines = list(hunk.lines)
 
-    self.assertEqual('+new line', out[2].line)
-    self.assertEqual(core.DIFF_ADDED, out[2].status)
-    self.assertEqual(None, out[2].old_line_number)
-    self.assertEqual(2, out[2].new_line_number)
+    self.assertEqual(3, len(lines))
+    self.assertEqual('+', lines[0][0])
+    self.assertEqual(new_fp_contents, lines[0][1])
+
+    self.assertEqual('+', lines[1][0])
+    self.assertEqual('new line', lines[1][1])
 
 
 FP_IN_CONFLICT = 'f_conflict'

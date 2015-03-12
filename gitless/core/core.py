@@ -11,10 +11,6 @@ import re
 import pygit2
 from sh import git, ErrorReturnCode
 
-from gitless.gitpylib import file as git_file
-from gitless.gitpylib import stash as git_stash
-from gitless.gitpylib import log as git_log
-
 
 # Errors
 
@@ -35,13 +31,6 @@ GL_STATUS_UNTRACKED = 1
 GL_STATUS_TRACKED = 2
 GL_STATUS_IGNORED = 3
 
-# Possible diff output lines
-
-DIFF_INFO = git_file.DIFF_INFO  # line carrying diff info for new hunk
-DIFF_SAME = git_file.DIFF_SAME  # line that git diff includes for context
-DIFF_ADDED = git_file.DIFF_ADDED
-DIFF_MINUS = git_file.DIFF_MINUS
-
 
 def init_repository(url=None):
   """Creates a new Gitless's repository in the cwd.
@@ -57,8 +46,7 @@ def init_repository(url=None):
   try:
     pygit2.discover_repository(cwd)
     raise GlError('You are already in a Gitless repository')
-  except KeyError:
-    # Expected
+  except KeyError:  # Expected
     if not url:
       repo = pygit2.init_repository(cwd)
       # We also create an initial root commit
@@ -70,8 +58,8 @@ def init_repository(url=None):
     except ErrorReturnCode as e:
       raise GlError(e.stderr)
 
-    repo = Repository()
     # We get all remote branches as well and create local equivalents.
+    repo = Repository()
     remote = repo.remotes['origin']
     for rb in (remote.lookup_branch(bn) for bn in remote.listall_branches()):
       if rb.branch_name == 'master':
@@ -245,11 +233,14 @@ class Repository(object):
 
     unmark_au_files()
     if not move_over:
-      git_stash.all(_stash_msg(curr_b.branch_name))
+      git.stash.save('--all', '--', _stash_msg(curr_b.branch_name))
 
     self.git_repo.checkout(b.git_branch)
 
-    git_stash.pop(_stash_msg(b.branch_name))
+    s_id = _stash_id(_stash_msg(b.branch_name))
+    if s_id:
+      git.stash.pop(s_id)
+
     remark_au_files()
 
 
@@ -386,8 +377,11 @@ class Branch(object):
 
     branch_name = self.branch_name
     self.git_branch.delete()
-    # We also cleanup any stash left.
-    git_stash.drop(_stash_msg(branch_name))
+
+    # We also cleanup any stash left
+    s_id = _stash_id(_stash_msg(branch_name))
+    if s_id:
+      git.stash.drop(s_id)
 
   @property
   def branch_name(self):
@@ -438,8 +432,11 @@ class Branch(object):
     self.git_branch = self.gl_repo.git_repo.lookup_branch(
         self.branch_name, pygit2.GIT_BRANCH_LOCAL)
 
-  def history(self, include_diffs=False):
-    return git_log.log(include_diffs=include_diffs)
+  def history(self):
+    return self.gl_repo.git_repo.walk(self.target, pygit2.GIT_SORT_TIME)
+
+  def diff_commits(self, c1, c2):
+    return c1.tree.diff_to_tree(c2.tree)
 
   @property
   def _index(self):
@@ -649,7 +646,21 @@ class Branch(object):
     """Diff the working version of the given path with its committed version."""
     assert not os.path.isabs(path)
 
-    return git_file.diff(path, self)[:-1]
+    git_repo = self.gl_repo.git_repo
+    try:
+      blob_at_head = git_repo[git_repo.head.peel().tree[path].id]
+    except KeyError:  # no blob at head
+      wt_blob = git_repo[git_repo.create_blob_fromworkdir(path)]
+      nil_blob = git_repo[git_repo.create_blob('')]
+      return nil_blob.diff(wt_blob, 0, path, path)
+
+    try:
+      wt_blob = git_repo[git_repo.create_blob_fromworkdir(path)]
+    except KeyError:  # no blob at wd (the file was deleted)
+      nil_blob = git_repo[git_repo.create_blob('')]
+      return blob_at_head.diff(nil_blob, 0, path, path)
+
+    return blob_at_head.diff(wt_blob, 0, path, path)
 
 
   # Merge related methods
@@ -818,6 +829,30 @@ class Branch(object):
     if not self.is_current:
       raise BranchIsCurrentError(
         'Branch "{0}" is the current branch'.format(self.branch_name))
+
+
+# Some helpers for stashing
+
+def _stash_id(msg):
+  """Gets the stash id of the stash with the given msg.
+
+  Args:
+    msg: the message of the stash to retrieve.
+
+  Returns:
+    the stash id of the stash with the given msg or None if no matching stash is
+    found.
+  """
+  out = str(git.stash.list(grep=': {0}'.format(msg), _tty_out=False))
+
+  if not out:
+    return None
+
+  result = re.match(r'(stash@\{.+\}): ', out)
+  if not result:
+    raise GlError('Unexpected output of git stash: {0}'.format(out))
+
+  return result.group(1)
 
 
 def _stash_msg(name):
