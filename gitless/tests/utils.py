@@ -7,6 +7,7 @@
 
 import logging
 import os
+import re
 import shutil
 import sys
 import tempfile
@@ -38,6 +39,18 @@ class TestBase(unittest.TestCase):
         return super(TestBase, self).assertCountEqual(actual, expected, msg=msg)
       except AttributeError:
         return self.assertEqual(sorted(actual), sorted(expected), msg=msg)
+
+  def assertRaisesRegexp(self, exc, r, fun, *args, **kwargs):
+    try:
+      return super(TestBase, self).assertRaisesRegexp(
+          exc, r, fun, *args, **kwargs)
+    except AttributeError: # Python < 2.7
+      try:
+        fun(*args, **kwargs)
+      except exc as e:
+        if not re.search(r, e.msg):
+          self.fail('No "{0}" found in "{1}"'.format(r, e.msg))
+
 
 
 def write_file(fp, contents=None):
