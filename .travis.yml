@@ -11,6 +11,8 @@ python:
 before_install:
   - sudo apt-get install cmake
   - "./.travis.sh"
+  - git config --global user.name "travis-test"
+  - git config --global user.email "travis@test.com"
 
 install:
   - pip install .

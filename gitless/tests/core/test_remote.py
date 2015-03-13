@@ -27,9 +27,6 @@ class TestRemote(common.TestCore):
     super(TestRemote, self).setUp()
 
     # Create a repo to use as the remote
-    git.config('--global', 'user.name', 'test')
-    git.config('--global', 'user.email', 'test@test.com')
-
     self.remote_path = tempfile.mkdtemp(prefix='gl-remote-test')
     os.chdir(self.remote_path)
     remote_repo = core.init_repository()
