@@ -48,8 +48,8 @@ class TestBase(unittest.TestCase):
       try:
         fun(*args, **kwargs)
       except exc as e:
-        if not re.search(r, str(msg)):
-          self.fail('No "{0}" found in "{1}"'.format(r, str(msg)))
+        if not re.search(r, str(e)):
+          self.fail('No "{0}" found in "{1}"'.format(r, str(e)))
 
 
 
