@@ -26,43 +26,32 @@ def parser(subparsers):
 
 
 def main(args, repo):
-  success = True
-  for fp in args.files:
-    if not _checkout_file(fp, args.cp, repo):
-      success = False
+  errors_found = False
 
-  return success
-
-
-def _checkout_file(fp, cp, repo):
-  """Checkout file fp at commit point cp.
-
-  Will output to screen if some error is encountered.
-
-  Returns:
-    True if the file was checkouted successfully or False if some error was
-    encountered.
-  """
   curr_b = repo.current_branch
-  conf_msg = (
-      'You have uncomitted changes in {0} that could be overwritten by the '
-      'checkout'.format(fp))
+  cp = args.cp
 
-  try:
-    f = curr_b.status_file(os.path.relpath(fp, repo.root))
-    if f.type == core.GL_STATUS_TRACKED and f.modified and (
-        not pprint.conf_dialog(conf_msg)):
+  for fp in args.files:
+    conf_msg = (
+        'You have uncomitted changes in "{0}" that could be overwritten by '
+        'checkout'.format(fp))
+    try:
+      f = curr_b.status_file(os.path.relpath(fp, repo.root))
+      if f.type == core.GL_STATUS_TRACKED and f.modified and (
+          not pprint.conf_dialog(conf_msg)):
+        pprint.err('Checkout aborted')
+        continue
+    except KeyError:
+      pass
+
+    try:
+      curr_b.checkout_file(fp, repo.revparse_single(cp))
+      pprint.msg(
+          'File {0} checked out sucessfully to its state at {1}'.format(
+              fp, cp))
+    except KeyError:
       pprint.err('Checkout aborted')
-      return False
-  except KeyError:
-    pass
+      pprint.err('There\'s no file {0} at {1}'.format(fp, cp))
+      errors_found = True
 
-  try:
-    curr_b.checkout_file(fp, repo.revparse_single(cp))
-    pprint.msg(
-        'File {0} checked out sucessfully to its state at {1}'.format(fp, cp))
-    return True
-  except KeyError:
-    pprint.err('Checkout aborted')
-    pprint.err('There\'s no file {0} at {1}'.format(fp, cp))
-    return False
+  return not errors_found

@@ -125,7 +125,6 @@ def _do_set_upstream(upstream, repo):
   repo.current_branch.upstream = helpers.get_branch(upstream, repo)
   pprint.msg('Current branch {0} set to track {1}'.format(
       colored.green(repo.current_branch.branch_name), upstream))
-
   return True
 
 

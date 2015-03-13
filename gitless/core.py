@@ -98,24 +98,14 @@ class Repository(object):
 
     self.git_repo = pygit2.Repository(path)
     self.remotes = RemoteCollection(self.git_repo.remotes, self)
-
-
-  @property
-  def path(self):
-    return self.git_repo.path
-
-  @property
-  def root(self):
-    return self.path[:-6]  # strip trailing /.git/
+    self.path = self.git_repo.path
+    self.root = self.path[:-6]  # strip trailing /.git/
+    self.config = self.git_repo.config
 
   @property
   def cwd(self):
     ret = os.path.relpath(os.getcwd(), self.root)
     return '' if ret == '.' else ret
-
-  @property
-  def config(self):
-    return self.git_repo.config
 
   def revparse_single(self, revision):
     if '/' in revision:
@@ -282,18 +272,19 @@ class RemoteCollection(object):
 
 
 class Remote(object):
+  """Tracked remote repository.
+
+  Attributes:
+    name: the name of this remote.
+    url: the url of this remote.
+  """
 
   def __init__(self, git_remote, gl_repo):
     self.git_remote = git_remote
     self.gl_repo = gl_repo
+    self.name = self.git_remote.name
+    self.url = self.git_remote.url
 
-  @property
-  def name(self):
-    return self.git_remote.name
-
-  @property
-  def url(self):
-    return self.git_remote.url
 
   def listall_branches(self):
     """Return a list with the names of all the branches in this repository.
@@ -329,15 +320,8 @@ class RemoteBranch(object):
   def __init__(self, git_branch, gl_repo):
     self.git_branch = git_branch
     self.gl_repo = gl_repo
-
-
-  @property
-  def branch_name(self):
-    return self.git_branch.branch_name[len(self.remote_name) + 1:]
-
-  @property
-  def remote_name(self):
-    return self.git_branch.remote_name
+    self.remote_name = self.git_branch.remote_name
+    self.branch_name = self.git_branch.branch_name[len(self.remote_name) + 1:]
 
   @property
   def target(self):
@@ -372,6 +356,7 @@ class Branch(object):
   def __init__(self, git_branch, gl_repo):
     self.git_branch = git_branch
     self.gl_repo = gl_repo
+    self.branch_name = self.git_branch.branch_name
 
 
   def delete(self):
@@ -385,13 +370,6 @@ class Branch(object):
     s_id = _stash_id(_stash_msg(branch_name))
     if s_id:
       git.stash.drop(s_id)
-
-  @property
-  def branch_name(self):
-    try:
-      return self.git_branch.branch_name
-    except AttributeError:
-      return 'master'
 
   @property
   def upstream(self):

@@ -14,21 +14,10 @@ from clint.textui import colored, puts
 
 from gitless import core
 
-from . import gl_track
-from . import gl_untrack
-from . import gl_status
-from . import gl_diff
-from . import gl_commit
-from . import gl_branch
-from . import gl_checkout
-from . import gl_merge
-from . import gl_rebase
-from . import gl_remote
-from . import gl_resolve
-from . import gl_publish
-from . import gl_switch
-from . import gl_init
-from . import gl_history
+from . import (
+    gl_track, gl_untrack, gl_status, gl_diff, gl_commit, gl_branch,
+    gl_checkout, gl_merge, gl_resolve, gl_rebase, gl_remote, gl_publish,
+    gl_switch, gl_init, gl_history)
 from . import pprint
 
 
