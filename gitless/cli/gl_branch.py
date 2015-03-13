@@ -1,14 +1,16 @@
+# -*- coding: utf-8 -*-
 # Gitless - a version control system built on top of Git.
 # Licensed under GNU GPL v2.
 
-"""gl branch - Create, edit, delete or switch branches."""
+"""gl branch - List, create, edit or delete branches."""
 
 
 from clint.textui import colored
 
-from gitless.core import branch as branch_lib
+from gitless import core
 
 from . import pprint
+from . import helpers
 
 
 def parser(subparsers):
@@ -35,23 +37,23 @@ def parser(subparsers):
   branch_parser.set_defaults(func=main)
 
 
-def main(args):
+def main(args, repo):
   ret = True
   if args.create_b:
-    ret = _do_create(args.create_b, args.dp)
+    ret = _do_create(args.create_b, args.dp, repo)
   elif args.delete_b:
-    ret = _do_delete(args.delete_b)
+    ret = _do_delete(args.delete_b, repo)
   elif args.upstream_b:
-    ret = _do_set_upstream(args.upstream_b)
+    ret = _do_set_upstream(args.upstream_b, repo)
   elif args.unset_upstream:
-    ret = _do_unset_upstream()
+    ret = _do_unset_upstream(repo)
   else:
-    _do_list()
+    _do_list(repo)
 
   return ret
 
 
-def _do_list():
+def _do_list(repo):
   pprint.msg('List of branches:')
   pprint.exp('do gl branch -c <b> to create branch b')
   pprint.exp('do gl branch -d <b> to delete branch b')
@@ -59,105 +61,75 @@ def _do_list():
       'do gl branch -su <upstream> to set an upstream for the current branch')
   pprint.exp('* = current branch')
   pprint.blank()
-  for name, is_current, upstream, upstream_exists in branch_lib.status_all():
-    current_str = '*' if is_current else ' '
+
+  for b in (repo.lookup_branch(n) for n in repo.listall_branches()):
+    current_str = '*' if b.is_current else ' '
     upstream_str = ''
-    if upstream:
-      np_str = ' --not present in remote yet' if not upstream_exists else ''
-      upstream_str = '(upstream is {0}{1})'.format(upstream, np_str)
-    color = colored.green if is_current else colored.yellow
-    pprint.item('{0} {1} {2}'.format(current_str, color(name), upstream_str))
+    try:
+      upstream_str = '(upstream is {0})'.format(b.upstream_name)
+    except KeyError:
+      pass
+    color = colored.green if b.is_current else colored.yellow
+    pprint.item(
+        '{0} {1} {2}'.format(current_str, color(b.branch_name), upstream_str))
 
 
-def _do_create(create_b, divergent_point):
+def _do_create(create_b, dp, repo):
   errors_found = False
 
-  for b in create_b:
-    b_st = branch_lib.status(b)
-    cb = colored.green(b)
-    if b_st:
-      pprint.err('Branch {0} already exists'.format(cb))
-      pprint.err_exp('do gl branch to list existing branches')
+  try:
+    target = repo.revparse_single(dp)
+  except KeyError:
+    raise ValueError('Invalid divergent point "{0}"'.format(dp))
+
+  for b_name in create_b:
+    try:
+      repo.create_branch(b_name, target)
+      pprint.msg('Created new branch "{0}"'.format(b_name))
+    except ValueError as e:
+      pprint.err(e)
       errors_found = True
-    else:
-      ret = branch_lib.create(b, dp=divergent_point)
-      if ret == branch_lib.INVALID_NAME:
-        pprint.err('Invalid branch name')
-        errors_found = True
-      elif ret == branch_lib.INVALID_DP:
-        pprint.msg('Invalid divergent point {0}'.format(divergent_point))
-        errors_found = True
-      elif ret == branch_lib.SUCCESS:
-        pprint.msg('Created new branch {0}'.format(b))
-      else:
-        raise Exception('Unrecognized ret code {0}'.format(ret))
+
   return not errors_found
 
 
-def _do_delete(delete_b):
+def _do_delete(delete_b, repo):
   errors_found = False
 
-  for b in delete_b:
-    b_st = branch_lib.status(b)
-    cb = colored.green(b)
-    if not b_st:
-      pprint.err('Can\'t remove non-existent branch {0}'.format(cb))
+  for b_name in delete_b:
+    b = repo.lookup_branch(b_name)
+    if not b:
+      pprint.err('Branch "{0}" doesn\'t exist'.format(b_name))
       pprint.err_exp('do gl branch to list existing branches')
       errors_found = True
-    elif b_st and b_st.is_current:
-      pprint.err('Can\'t remove current branch {0}'.format(cb))
+      continue
+
+    if not pprint.conf_dialog('Branch {0} will be removed'.format(b_name)):
+      pprint.msg('Aborted: removal of branch {0}'.format(b_name))
+      continue
+
+    try:
+      b.delete()
+      pprint.msg('Branch {0} removed successfully'.format(b_name))
+    except core.BranchIsCurrentError as e:
+      pprint.err(e)
       pprint.err_exp(
           'do gl branch <b> to create or switch to another branch b and then '
-          'gl branch -d {0} to remove branch {0}'.format(cb))
+          'gl branch -d {0} to remove branch {0}'.format(b_name))
       errors_found = True
-    elif not pprint.conf_dialog('Branch {0} will be removed'.format(cb)):
-      pprint.msg('Aborted: removal of branch {0}'.format(cb))
-    else:
-      branch_lib.delete(b)
-      pprint.msg('Branch {0} removed successfully'.format(cb))
 
   return not errors_found
 
 
-def _do_set_upstream(upstream):
-  if '/' not in upstream:
-    pprint.err(
-        'Invalid upstream branch. It must be in the format remote/branch')
-    return True
+def _do_set_upstream(upstream, repo):
+  repo.current_branch.upstream = helpers.get_branch(upstream, repo)
+  pprint.msg('Current branch {0} set to track {1}'.format(
+      colored.green(repo.current_branch.branch_name), upstream))
 
-  ret = branch_lib.set_upstream(upstream)
-
-  errors_found = False
-  upstream_remote, upstream_branch = upstream.split('/')
-  if ret is branch_lib.REMOTE_NOT_FOUND:
-    pprint.err('Remote {0} not found'.format(upstream_remote))
-    pprint.err_exp('do gl remote to list all existing remotes')
-    pprint.err_exp(
-        'do gl remote {0} <r_url> to add a new remote {0} mapping to '
-        'r_url'.format(upstream_remote))
-    errors_found = True
-  elif ret is branch_lib.SUCCESS:
-    pprint.msg(
-        'Current branch {0} set to track {1}/{2}'.format(
-            colored.green(branch_lib.current()), upstream_remote,
-            upstream_branch))
-
-  return not errors_found
+  return True
 
 
-def _do_unset_upstream():
-  ret = branch_lib.unset_upstream()
-
-  errors_found = False
-  if ret is branch_lib.UPSTREAM_NOT_SET:
-    pprint.err('Current branch has no upstream set')
-    pprint.err_exp(
-        'do gl branch to list all existing branches -- if a branch has an '
-        'upstream set it will be shown')
-    pprint.err_exp(
-      'do gl branch -su <upstream> to set an upstream for the current branch')
-    errors_found = True
-  elif ret is branch_lib.SUCCESS:
-    pprint.msg('Upstream unset for current branch')
-
-  return not errors_found
+def _do_unset_upstream(repo):
+  repo.current_branch.upstream = None
+  pprint.msg('Upstream unset for current branch')
+  return True

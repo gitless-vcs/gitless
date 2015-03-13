@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Gitless - a version control system built on top of Git.
 # Licensed under GNU GPL v2.
 
@@ -6,7 +7,7 @@
 
 import os
 
-from gitless.core import file as file_lib
+from gitless import core
 
 from . import pprint
 
@@ -24,17 +25,16 @@ def parser(subparsers):
   checkout_parser.set_defaults(func=main)
 
 
-def main(args):
+def main(args, repo):
   success = True
-
   for fp in args.files:
-    if not _checkout_file(fp, args.cp):
+    if not _checkout_file(fp, args.cp, repo):
       success = False
 
   return success
 
 
-def _checkout_file(fp, cp):
+def _checkout_file(fp, cp, repo):
   """Checkout file fp at commit point cp.
 
   Will output to screen if some error is encountered.
@@ -43,28 +43,26 @@ def _checkout_file(fp, cp):
     True if the file was checkouted successfully or False if some error was
     encountered.
   """
-  if os.path.isdir(fp):
-    # TODO: support this.
-    pprint.dir_err_exp(fp, 'checkout')
-    return False
-
+  curr_b = repo.current_branch
   conf_msg = (
       'You have uncomitted changes in {0} that could be overwritten by the '
       'checkout'.format(fp))
-  f = file_lib.status(fp)
-  if f and f.type == file_lib.TRACKED and f.modified and not pprint.conf_dialog(
-      conf_msg):
-    pprint.err('Checkout aborted')
-    return False
 
-  ret, _ = file_lib.checkout(fp, cp)
-  if ret == file_lib.FILE_NOT_FOUND_AT_CP:
-    pprint.err('Checkout aborted')
-    pprint.err('There\'s no file {0} at {1}'.format(fp, cp))
-    return False
-  elif ret == file_lib.SUCCESS:
+  try:
+    f = curr_b.status_file(os.path.relpath(fp, repo.root))
+    if f.type == core.GL_STATUS_TRACKED and f.modified and (
+        not pprint.conf_dialog(conf_msg)):
+      pprint.err('Checkout aborted')
+      return False
+  except KeyError:
+    pass
+
+  try:
+    curr_b.checkout_file(fp, repo.revparse_single(cp))
     pprint.msg(
         'File {0} checked out sucessfully to its state at {1}'.format(fp, cp))
     return True
-  else:
-    raise Exception('Unrecognized ret code {0}'.format(ret))
+  except KeyError:
+    pprint.err('Checkout aborted')
+    pprint.err('There\'s no file {0} at {1}'.format(fp, cp))
+    return False

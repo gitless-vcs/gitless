@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Gitless - a version control system built on top of Git.
 # Licensed under GNU GPL v2.
 
@@ -7,7 +8,9 @@
 from functools import wraps
 import os
 
-import gitless.core.file as file_lib
+from sh import git
+
+from gitless import core
 import gitless.tests.utils as utils_lib
 
 
@@ -16,46 +19,9 @@ class TestCore(utils_lib.TestBase):
 
   def setUp(self):
     super(TestCore, self).setUp('gl-core-test')
-    utils_lib.git_call('init')
+    git.init()
     utils_lib.set_test_config()
-
-
-def stub(module, fake):
-  """Stub the given module with the given fake.
-
-  Each symbol in the module is overrwritten with its matching symbol
-  in the fake.
-
-  Args:
-    module: the module to stub.
-    fake: an instance of a class or dict used for stubbing.
-  """
-  return Stubber(module, fake)
-
-
-class Stubber(object):
-
-  def __init__(self, module, fake):
-    self.__module = module
-    self.__backup = {}
-    if not isinstance(fake, dict):
-      # We dictionarize (-- is that even a word?) the object.
-      fake = dict(
-          (n, getattr(fake, n)) for n in dir(fake) if not n.startswith('__'))
-
-    for k, v in fake.items():
-      try:
-        self.__backup[k] = getattr(module, k)
-      except AttributeError:
-        pass
-      setattr(module, k, v)
-
-  def __enter__(self):
-    pass
-
-  def __exit__(self, t, value, traceback):
-    for k, v in self.__backup.items():
-      setattr(self.__module, k, v)
+    self.repo = core.Repository()
 
 
 def assert_contents_unchanged(*fps):
@@ -72,7 +38,9 @@ def assert_contents_unchanged(*fps):
   Args:
     fps: the filepath(s) to assert.
   """
-  return __assert_decorator('Contents', utils_lib.read_file, *fps)
+  def prop(*args, **kwargs):
+    return utils_lib.read_file
+  return __assert_decorator('Contents', prop, *fps)
 
 
 def assert_status_unchanged(*fps):
@@ -89,7 +57,9 @@ def assert_status_unchanged(*fps):
   Args:
     fps: the filepath(s) to assert.
   """
-  return __assert_decorator('Status', file_lib.status, *fps)
+  def prop(self, *args, **kwargs):
+    return self.curr_b.status_file
+  return __assert_decorator('Status', prop, *fps)
 
 
 def assert_no_side_effects(*fps):
@@ -134,10 +104,10 @@ def __assert_decorator(msg, prop, *fps):
       # We save up the cwd to chdir to it after the test has run so that the
       # the given fps still "work" even if the test changed the cwd.
       cwd_before = os.getcwd()
-      before_list = [prop(fp) for fp in fps]
+      before_list = [prop(*args, **kwargs)(fp) for fp in fps]
       f(*args, **kwargs)
       os.chdir(cwd_before)
-      after_list = [prop(fp) for fp in fps]
+      after_list = [prop(*args, **kwargs)(fp) for fp in fps]
       for fp, before, after in zip(fps, before_list, after_list):
         self.assertEqual(
             before, after,

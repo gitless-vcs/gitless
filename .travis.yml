@@ -1,4 +1,5 @@
 language: python
+
 python:
   - "2.6"
   - "2.7"
@@ -6,14 +7,22 @@ python:
   - "3.3"
   - "3.4"
   - "pypy"
+
+before_install:
+  - sudo apt-get install cmake
+  - "./.travis.sh"
+
 install:
-  - pip install clint
   - pip install .
+
+env: LIBGIT2=~/libgit2/_install/ LD_LIBRARY_PATH=~/libgit2/_install/lib
+
 script:
   - nosetests
   # nose doesn't like the number on test_e2e so it's not detected by the
   # previous command.
   - nosetests gitless/tests/test_e2e.py
+
 branches:
   only:
     - develop

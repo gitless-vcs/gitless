@@ -1,12 +1,13 @@
+# -*- coding: utf-8 -*-
 # Gitless - a version control system built on top of Git.
 # Licensed under GNU GPL v2.
 
 """Helper module for gl_{track, untrack, resolve}."""
 
 
-from . import pprint
+import os
 
-from gitless.core import file as file_lib
+from . import pprint
 
 
 VOWELS = ('a', 'e', 'i', 'o', 'u')
@@ -22,46 +23,24 @@ def parser(help_msg, subcmd):
 
 
 def main(subcmd):
-  def f(args):
+  def f(args, repo):
+    curr_b = repo.current_branch
     success = True
 
+    root = repo.root
     for fp in args.files:
-      ret = getattr(file_lib, subcmd)(fp)
-      if ret == file_lib.FILE_NOT_FOUND:
-        pprint.err('Can\'t {0} a non-existent file: {1}'.format(subcmd, fp))
-        success = False
-      elif ret == file_lib.FILE_IS_DIR:
-        pprint.dir_err_exp(fp, subcmd)
-        success = False
-      elif ret is file_lib.FILE_ALREADY_UNTRACKED:
-        pprint.err('File {0} is already untracked'.format(fp))
-        success = False
-      elif ret is file_lib.FILE_ALREADY_TRACKED:
-        pprint.err('File {0} is already tracked'.format(fp))
-        success = False
-      elif ret is file_lib.FILE_IS_IGNORED:
-        pprint.err('File {0} is ignored. Nothing to {1}'.format(fp, subcmd))
-        pprint.err_exp(
-            'edit the .gitignore file to stop ignoring file {0}'.format(fp))
-        success = False
-      elif ret is file_lib.FILE_IN_CONFLICT:
-        pprint.err('Can\'t {0} a file in conflict'.format(subcmd))
-        success = False
-      elif ret is file_lib.FILE_NOT_IN_CONFLICT:
-        pprint.err('File {0} has no conflicts'.format(fp))
-        success = False
-      elif ret is file_lib.FILE_ALREADY_RESOLVED:
-        pprint.err(
-            'Nothing to resolve. File {0} was already marked as '
-            'resolved'.format(fp))
-        success = False
-      elif ret is file_lib.SUCCESS:
+      try:
+        getattr(curr_b, subcmd + '_file')(os.path.relpath(fp, root))
         pprint.msg(
             'File {0} is now a{1} {2}{3}d file'.format(
-                fp, 'n' if subcmd.startswith(VOWELS) else '', subcmd,
-                '' if subcmd.endswith('e') else 'e'))
-      else:
-        raise Exception('Unexpected return code {0}'.format(ret))
+              fp, 'n' if subcmd.startswith(VOWELS) else '', subcmd,
+              '' if subcmd.endswith('e') else 'e'))
+      except KeyError:
+        pprint.err('Can\'t {0} a non-existent file: {1}'.format(subcmd, fp))
+        success = False
+      except ValueError as e:
+        pprint.err(e)
+        success = False
 
     return success
   return f
