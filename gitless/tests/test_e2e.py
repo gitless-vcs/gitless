@@ -134,20 +134,23 @@ class TestCommit(TestEndToEnd):
     gl.commit(self.UNTRACKED_FP, m='msg')
     self.__assert_commit(self.UNTRACKED_FP)
 
-  def test_commit_inc(self):
-    gl.commit(m='msg', inc=self.UNTRACKED_FP)
+  def test_commit_include(self):
+    gl.commit(m='msg', include=self.UNTRACKED_FP)
     self.__assert_commit(self.TRACKED_FP, self.UNTRACKED_FP)
 
-  def test_commit_exc_inc(self):
-    gl.commit(m='msg', inc=self.UNTRACKED_FP, exc=self.TRACKED_FP)
+  def test_commit_exclude_include(self):
+    gl.commit(m='msg', include=self.UNTRACKED_FP, exclude=self.TRACKED_FP)
     self.__assert_commit(self.UNTRACKED_FP)
 
   # Error paths
   def test_commit_no_files(self):
-    self.assertRaises(ErrorReturnCode, gl.commit, m='msg', exc=self.TRACKED_FP)
+    self.assertRaises(
+        ErrorReturnCode, gl.commit, m='msg', exclude=self.TRACKED_FP)
     self.assertRaises(ErrorReturnCode, gl.commit, 'non-existent', m='msg')
-    self.assertRaises(ErrorReturnCode, gl.commit, m='msg', exc='non-existent')
-    self.assertRaises(ErrorReturnCode, gl.commit, m='msg', inc='non-existent')
+    self.assertRaises(
+        ErrorReturnCode, gl.commit, m='msg', exclude='non-existent')
+    self.assertRaises(
+        ErrorReturnCode, gl.commit, m='msg', include='non-existent')
 
 # TODO: uncomment once commit accepts paths instead of only files
 #  def test_commit_dir(self):

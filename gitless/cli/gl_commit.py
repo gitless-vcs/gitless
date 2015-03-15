@@ -20,12 +20,12 @@ def parser(subparsers):
       help='only the files listed as arguments will be committed (files could '
            'be tracked or untracked files)')
   commit_parser.add_argument(
-      '-exc', '--exclude', nargs='+',
+      '-e', '--exclude', nargs='+',
       help=('files listed as arguments will be excluded from the commit (files '
             'must be tracked files)'),
       dest='exc_files')
   commit_parser.add_argument(
-      '-inc', '--include', nargs='+',
+      '-i', '--include', nargs='+',
       help=('files listed as arguments will be included to the commit (files '
             'must be untracked files)'),
       dest='inc_files')

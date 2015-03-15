@@ -17,7 +17,7 @@ def parser(subparsers):
   checkout_parser = subparsers.add_parser(
       'checkout', help='checkout committed versions of files')
   checkout_parser.add_argument(
-      '-cp', '--commit_point', help=(
+      '-cp', '--commit-point', help=(
           'the commit point to checkout the files at. Defaults to HEAD.'),
       dest='cp', default='HEAD')
   checkout_parser.add_argument(
