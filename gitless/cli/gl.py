@@ -50,6 +50,7 @@ def main():
          'GL Version: {0}\nYou can check if there\'s a new version of Gitless '
          'available at {1}'.format(VERSION, URL)))
   subparsers = parser.add_subparsers(dest='subcmd_name')
+  subparsers.required = True
 
   sub_cmds = [
       gl_track, gl_untrack, gl_status, gl_diff, gl_commit, gl_branch,
@@ -60,6 +61,9 @@ def main():
 
   args = parser.parse_args()
   try:
+    if args.subcmd_name != 'init' and not repo:
+      raise core.NotInRepoError('You are not in a Gitless\'s repository')
+
     return SUCCESS if args.func(args, repo) else ERRORS_FOUND
   except KeyboardInterrupt:
     puts('\n')

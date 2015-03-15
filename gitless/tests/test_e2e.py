@@ -21,6 +21,21 @@ class TestEndToEnd(utils_lib.TestBase):
     utils_lib.set_test_config()
 
 
+class TestNotInRepo(utils_lib.TestBase):
+
+  def setUp(self):
+    super(TestNotInRepo, self).setUp('gl-e2e-test')
+
+  def test_not_in_repo(self):
+    def assert_not_in_repo(*cmds):
+      for cmd in cmds:
+        self.assertRaisesRegexp(ErrorReturnCode, 'not in a Gitless\'s repository', cmd)
+
+    assert_not_in_repo(
+      gl.status, gl.diff, gl.commit, gl.branch, gl.merge, gl.rebase, gl.remote,
+      gl.publish, gl.history)
+
+
 # TODO(sperezde): add dialog related tests.
 # TODO(sperezde): add checkout related tests.
 
