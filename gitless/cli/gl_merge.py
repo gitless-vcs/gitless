@@ -5,6 +5,8 @@
 """gl merge - Merge the divergent changes of one branch onto another."""
 
 
+from __future__ import unicode_literals
+
 from . import sync_cmd
 
 

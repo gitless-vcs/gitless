@@ -8,11 +8,18 @@
 from __future__ import unicode_literals
 
 import collections
+import io
+from locale import getpreferredencoding
 import os
 import re
+import sys
 
 import pygit2
 from sh import git, ErrorReturnCode
+
+
+IS_PY2 = sys.version_info[0] == 2
+ENCODING = getpreferredencoding() or 'utf-8'
 
 
 # Errors
@@ -59,7 +66,7 @@ def init_repository(url=None):
     try:
       git.clone(url, cwd)
     except ErrorReturnCode as e:
-      raise GlError(e.stderr)
+      raise GlError(stderr(e))
 
     # We get all remote branches as well and create local equivalents.
     repo = Repository()
@@ -128,7 +135,8 @@ class Repository(object):
       # Maybe we are in the middle of a rebase?
       rebase_path = os.path.join(self.path, 'rebase-apply')
       if os.path.exists(rebase_path):
-        rf = open(os.path.join(rebase_path, 'head-name'), 'r')
+        rf = io.open(
+            os.path.join(rebase_path, 'head-name'), mode='r', encoding=ENCODING)
         # cut the refs/heads/ part that precedes the branch name
         b_name = rf.readline().strip()[11:]
       else:
@@ -200,7 +208,7 @@ class Repository(object):
       if not assumed_unchanged_fps:
         return
 
-      with open(au_fp(curr_b), 'w') as f:
+      with io.open(au_fp(curr_b), mode='w', encoding=ENCODING) as f:
         for fp in assumed_unchanged_fps:
           f.write(fp + '\n')
           git('update-index', '--no-assume-unchanged', fp,
@@ -212,7 +220,7 @@ class Repository(object):
       if not os.path.exists(au):
         return
 
-      with open(au, 'r') as f:
+      with io.open(au, mode='r', encoding=ENCODING) as f:
         for fp in f:
           git('update-index', '--assume-unchanged', fp.strip(),
               _cwd=self.root)
@@ -263,7 +271,7 @@ class RemoteCollection(object):
     try:
       git('ls-remote', '--heads', url)
     except ErrorReturnCode as e:
-      raise ValueError(e.stderr)
+      raise ValueError(stderr(e))
 
     self.git_remote_collection.create(name, url)
 
@@ -293,12 +301,12 @@ class Remote(object):
     to each name.
     """
     regex = re.compile(r'.*\trefs/heads/(.*)')
-    for head in git('ls-remote', '--heads', self.name):
+    for head in stdout(git('ls-remote', '--heads', self.name)).splitlines():
       yield regex.match(head).group(1)
 
   def lookup_branch(self, branch_name):
     """Return the RemoteBranch object corresponding to the given branch name."""
-    if not git('ls-remote', '--heads', self.name, branch_name):
+    if not stdout(git('ls-remote', '--heads', self.name, branch_name)):
       return None
     # The branch exists in the remote
     git.fetch(self.git_remote.name, branch_name)
@@ -482,7 +490,7 @@ class Branch(object):
         'in_conflict'])
 
   def _au_files(self):
-    for f_out in git('ls-files', '-v', _cwd=self.gl_repo.root):
+    for f_out in stdout(git('ls-files', '-v', _cwd=self.gl_repo.root)).splitlines():
       if f_out[0] == 'h':
         yield f_out[2:].strip()
 
@@ -521,7 +529,7 @@ class Branch(object):
 
     git_s = self.gl_repo.git_repo.status_file(path)
 
-    cmd_out = str(git(
+    cmd_out = stdout(git(
       'ls-files', '-v', '--full-name', path, _cwd=self.gl_repo.root))
     if cmd_out and cmd_out[0] == 'h':
       exists_in_wd = os.path.exists(os.path.join(self.gl_repo.root, path))
@@ -616,7 +624,7 @@ class Branch(object):
     assert not os.path.isabs(path)
 
     data = self.gl_repo.git_repo[commit.tree[path].id].data
-    with open(os.path.join(self.gl_repo.root, path), 'wb') as dst:
+    with io.open(os.path.join(self.gl_repo.root, path), mode='wb') as dst:
       dst.write(data)
 
     # So as to not get confused with the status of the file we also add it
@@ -657,7 +665,7 @@ class Branch(object):
     try:
       git.merge(src.branch_name, '--no-ff')
     except ErrorReturnCode as e:
-      raise GlError(e.stdout + e.stderr)
+      raise GlError(stdout(e) + stderr(e))
 
   @property
   def merge_in_progress(self):
@@ -680,15 +688,15 @@ class Branch(object):
     self._check_op_not_in_progress()
 
     try:
-      out = str(git.rebase(src.target))
+      out = stdout(git.rebase(src.target))
       if re.match(r'Current branch [^\s]+ is up to date.\n', out):
         raise GlError('Nothing to rebase')
     except ErrorReturnCode as e:
-      stderr = str(e.stderr)
-      if 'Please commit or stash them' in stderr:
+      err_msg = stderr(e)
+      if 'Please commit or stash them' in err_msg:
         raise GlError('Local changes would be lost')
       elif ('The following untracked working tree files would be overwritten'
-          in stderr):
+          in err_msg):
         raise GlError('Local changes would be lost')
       raise GlError('There are conflicts you need to resolve')
 
@@ -770,7 +778,7 @@ class Branch(object):
       try:
         git.rebase('--continue')
       except ErrorReturnCode as e:
-        raise GlError(e.stderr)
+        raise GlError(stderr(e))
     else:
       # do the merge commit
       self.gl_repo.git_repo.create_commit(
@@ -796,7 +804,7 @@ class Branch(object):
           branch.remote_name,
           '{0}:{1}'.format(self.branch_name, branch.branch_name))
     except ErrorReturnCode as e:
-      raise GlError(e.stderr)
+      raise GlError(stderr(e))
 
 
   # Some helpers for checking preconditions
@@ -825,7 +833,7 @@ def _stash_id(msg):
     the stash id of the stash with the given msg or None if no matching stash is
     found.
   """
-  out = str(git.stash.list(grep=': {0}'.format(msg), _tty_out=False))
+  out = stdout(git.stash.list(grep=': {0}'.format(msg), _tty_out=False))
 
   if not out:
     return None
@@ -840,3 +848,13 @@ def _stash_id(msg):
 def _stash_msg(name):
   """Computes the stash msg to use for stashing changes in branch name."""
   return '---gl-{0}---'.format(name)
+
+
+# Misc
+
+def stdout(p):
+  return p.stdout.decode(ENCODING)
+
+
+def stderr(p):
+  return p.stderr.decode(ENCODING)

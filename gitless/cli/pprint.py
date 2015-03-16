@@ -5,16 +5,34 @@
 """Module for pretty printing Gitless output."""
 
 
+from __future__ import unicode_literals
+
 from collections import namedtuple
+from locale import getpreferredencoding
 import re
 import sys
 
-from clint.textui import colored, puts
+from clint.textui import colored
+from clint.textui import puts as clint_puts
 
 
 SEP = (
     '##########################################################################'
     '######')
+
+
+IS_PY2 = sys.version_info[0] == 2
+ENCODING = getpreferredencoding() or 'utf-8'
+
+
+def puts(s='', newline=True, stream=sys.stdout.write):
+  assert not IS_PY2 or (
+      isinstance(s, unicode) or isinstance(s, colored.ColoredString))
+
+  if IS_PY2:
+    s = s.encode(ENCODING)
+  clint_puts(s, newline=newline, stream=stream)
+
 
 # Stdout.
 
@@ -137,6 +155,7 @@ def _hunk(hunk, stream=sys.stdout.write):
   ld = lambda st, line: LineData(st, line, old_line_number, new_line_number)
 
   for st, line in hunk.lines:
+    assert not IS_PY2 or isinstance(line, unicode)
     line = line.rstrip('\n')
 
     if st == '-' and not maybe_bold:

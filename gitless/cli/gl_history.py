@@ -5,12 +5,14 @@
 """gl history - Show commit history."""
 
 
+from __future__ import unicode_literals
+
 from datetime import datetime, tzinfo, timedelta
 import os
 import subprocess
 import tempfile
 
-from clint.textui import colored, indent, puts
+from clint.textui import colored, indent
 
 from . import pprint
 
@@ -29,25 +31,25 @@ def main(args, repo):
   curr_b = repo.current_branch
   with tempfile.NamedTemporaryFile(mode='w', delete=False) as tf:
     for ci in curr_b.history():
-      puts(colored.yellow(
+      pprint.puts(colored.yellow(
         'Commit Id: {0}'.format(ci.id)), stream=tf.write)
-      puts(colored.yellow(
+      pprint.puts(colored.yellow(
         'Author:    {0} <{1}>'.format(ci.author.name, ci.author.email)),
         stream=tf.write)
       ci_author_dt = datetime.fromtimestamp(
           ci.author.time, FixedOffset(ci.author.offset))
-      puts(colored.yellow(
+      pprint.puts(colored.yellow(
         'Date:      {0:%c %z}'.format(ci_author_dt)), stream=tf.write)
 
-      puts(stream=tf.write)
+      pprint.puts(stream=tf.write)
       with indent(4):
-        puts(ci.message, stream=tf.write)
-      puts(stream=tf.write)
-      puts(stream=tf.write)
+        pprint.puts(ci.message, stream=tf.write)
+      pprint.puts(stream=tf.write)
+      pprint.puts(stream=tf.write)
       if args.verbose and len(ci.parents) == 1:  # TODO: merge commits diffs
         for patch in curr_b.diff_commits(ci.parents[0], ci):
           pprint.diff(patch, stream=tf.write)
-          puts(stream=tf.write)
+          pprint.puts(stream=tf.write)
   subprocess.call('less -r -f {0}'.format(tf.name), shell=True)
   os.remove(tf.name)
   return True

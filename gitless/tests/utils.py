@@ -5,6 +5,10 @@
 """Utility library for tests."""
 
 
+from __future__ import unicode_literals
+
+import io
+from locale import getpreferredencoding
 import logging
 import os
 import re
@@ -14,6 +18,10 @@ import tempfile
 import unittest
 
 from sh import git
+
+
+IS_PY2 = sys.version_info[0] == 2
+ENCODING = getpreferredencoding() or 'utf-8'
 
 
 class TestBase(unittest.TestCase):
@@ -53,18 +61,12 @@ class TestBase(unittest.TestCase):
 
 
 
-def write_file(fp, contents=None):
+def write_file(fp, contents=''):
   _x_file('w', fp, contents=contents)
 
 
-def append_to_file(fp, contents=None):
+def append_to_file(fp, contents=''):
   _x_file('a', fp, contents=contents)
-
-
-def read_file(fp):
-  with open(fp, 'r') as f:
-    ret = f.read()
-  return ret
 
 
 def set_test_config():
@@ -72,14 +74,30 @@ def set_test_config():
   git.config('user.email', 'test@test.com')
 
 
+def read_file(fp):
+  with io.open(fp, mode='r', encoding=ENCODING) as f:
+    ret = f.read()
+  return ret
+
+
+def stdout(p):
+  return p.stdout.decode(ENCODING)
+
+
+def stderr(p):
+  return p.stderr.decode(ENCODING)
+
+
 # Private functions
 
 
-def _x_file(x, fp, contents=None):
+def _x_file(x, fp, contents=''):
+  assert not IS_PY2 or isinstance(contents, unicode)
+
   if not contents:
     contents = fp
   dirs, _ = os.path.split(fp)
   if dirs and not os.path.exists(dirs):
     os.makedirs(dirs)
-  with open(fp, x) as f:
+  with io.open(fp, mode=x, encoding=ENCODING) as f:
     f.write(contents)

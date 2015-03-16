@@ -5,6 +5,9 @@
 """Some helpers for commands."""
 
 
+from __future__ import unicode_literals
+
+
 def get_branch_name(branch):
   try:
     return branch.remote_name + '/' + branch.branch_name

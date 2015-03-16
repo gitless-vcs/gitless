@@ -5,6 +5,8 @@
 """gl branch - List, create, edit or delete branches."""
 
 
+from __future__ import unicode_literals
+
 from clint.textui import colored
 
 from gitless import core

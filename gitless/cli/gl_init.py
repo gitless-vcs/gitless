@@ -5,6 +5,8 @@
 """gl init - Create an empty repo or make a clone."""
 
 
+from __future__ import unicode_literals
+
 import os
 
 from gitless import core

@@ -5,6 +5,8 @@
 """gl diff - Show changes in files."""
 
 
+from __future__ import unicode_literals
+
 import os
 import subprocess
 import tempfile

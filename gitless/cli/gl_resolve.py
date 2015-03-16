@@ -5,6 +5,8 @@
 """gl resolve - Mark a file with conflicts as resolved."""
 
 
+from __future__ import unicode_literals
+
 from . import file_cmd
 
 

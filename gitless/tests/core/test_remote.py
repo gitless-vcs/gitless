@@ -2,12 +2,16 @@
 # Gitless - a version control system built on top of Git.
 # Licensed under GNU GPL v2.
 
-"""Unit tests for remote module."""
+"""Unit tests for remote related operations."""
 
 
-import tempfile
+from __future__ import unicode_literals
+
+import io
+from locale import getpreferredencoding
 import os
 import shutil
+import tempfile
 
 from sh import git
 
@@ -15,6 +19,8 @@ from gitless import core
 
 from . import common
 
+
+ENCODING = getpreferredencoding() or 'utf-8'
 
 REMOTE_BRANCH = 'rb'
 
@@ -88,7 +94,7 @@ class TestSync(TestRemote):
   def setUp(self):
     super(TestSync, self).setUp()
 
-    with open('foo', 'w') as f:
+    with io.open('foo', mode='w', encoding=ENCODING) as f:
       f.write('foo')
 
     git.add('foo')

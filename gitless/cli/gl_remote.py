@@ -5,6 +5,8 @@
 """gl remote - List, create, edit or delete remotes."""
 
 
+from __future__ import unicode_literals
+
 from . import pprint
 
 

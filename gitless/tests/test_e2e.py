@@ -5,23 +5,25 @@
 """End-to-end test."""
 
 
+from __future__ import unicode_literals
+
 import logging
 import time
 
 from sh import ErrorReturnCode, gl, git
 
-import gitless.tests.utils as utils_lib
+from gitless.tests import utils
 
 
-class TestEndToEnd(utils_lib.TestBase):
+class TestEndToEnd(utils.TestBase):
 
   def setUp(self):
     super(TestEndToEnd, self).setUp('gl-e2e-test')
     gl.init()
-    utils_lib.set_test_config()
+    utils.set_test_config()
 
 
-class TestNotInRepo(utils_lib.TestBase):
+class TestNotInRepo(utils.TestBase):
 
   def setUp(self):
     super(TestNotInRepo, self).setUp('gl-e2e-test')
@@ -43,7 +45,7 @@ class TestNotInRepo(utils_lib.TestBase):
 class TestBasic(TestEndToEnd):
 
   def test_basic_functionality(self):
-    utils_lib.write_file('file1', 'Contents of file1')
+    utils.write_file('file1', 'Contents of file1')
     # Track
     gl.track('file1')
     self.assertRaises(ErrorReturnCode, gl.track, 'file1')
@@ -57,20 +59,20 @@ class TestBasic(TestEndToEnd):
     gl.commit(m='file1 commit')
     self.assertRaises(ErrorReturnCode, gl.commit, m='nothing to commit')
     # History
-    if 'file1 commit' not in str(gl.history(_tty_out=False)):
+    if 'file1 commit' not in utils.stdout(gl.history(_tty_out=False)):
       self.fail('Commit didn\'t appear in history')
     # Branch
     # Make some changes to file1 and branch out
-    utils_lib.write_file('file1', 'New contents of file1')
+    utils.write_file('file1', 'New contents of file1')
     gl.branch(c='branch1')
     gl.switch('branch1')
-    if 'New' in utils_lib.read_file('file1'):
+    if 'New' in utils.read_file('file1'):
       self.fail('Branch not independent!')
     # Switch back to master branch, check that contents are the same as before.
     gl.switch('master')
-    if 'New' not in utils_lib.read_file('file1'):
+    if 'New' not in utils.read_file('file1'):
       self.fail('Branch not independent!')
-    out = str(gl.branch(_tty_out=False))
+    out = utils.stdout(gl.branch(_tty_out=False))
     if '* master' not in out:
       self.fail('Branch status output wrong: {0}'.format(out))
     if 'branch1' not in out:
@@ -85,39 +87,41 @@ class TestBasic(TestEndToEnd):
     gl.switch('branch1')
     self.assertRaises(ErrorReturnCode, gl.rebase)  # no upstream set
     gl.rebase('master')
-    if 'file1 commit' not in str(gl.history(_tty_out=False)):
+    if 'file1 commit' not in utils.stdout(gl.history(_tty_out=False)):
       self.fail()
 
     # Merge
     gl.switch('branch2')
     self.assertRaises(ErrorReturnCode, gl.merge)  # no upstream set
     gl.merge('master')
-    if 'file1 commit' not in str(gl.history(_tty_out=False)):
+    if 'file1 commit' not in utils.stdout(gl.history(_tty_out=False)):
       self.fail()
 
     # Conflicting rebase
     gl.switch('branch-conflict1')
-    utils_lib.write_file('file1', 'Conflicting changes to file1')
+    utils.write_file('file1', 'Conflicting changes to file1')
     gl.commit(m='changes in branch-conflict1')
-    err = str(gl.rebase('master', _tty_out=False, _ok_code=[1]).stderr)
+    err = utils.stderr(gl.rebase('master', _tty_out=False, _ok_code=[1]))
     if 'conflict' not in err:
       self.fail()
-    if 'file1 (with conflicts)' not in str(gl.status(_tty_out=False)):
+    out = utils.stdout(gl.status(_tty_out=False))
+    if 'file1 (with conflicts)' not in out:
       self.fail()
 
     # Try aborting
     gl.rebase('--abort')
-    if 'file1' in str(gl.status(_tty_out=False)):
+    if 'file1' in utils.stdout(gl.status(_tty_out=False)):
       self.fail()
 
     # Ok, now let's fix the conflicts
-    err = str(gl.rebase('master', _tty_out=False, _ok_code=[1]).stderr)
+    err = utils.stderr(gl.rebase('master', _tty_out=False, _ok_code=[1]))
     if 'conflict' not in err:
       self.fail()
-    if 'file1 (with conflicts)' not in str(gl.status(_tty_out=False)):
+    out = utils.stdout(gl.status(_tty_out=False))
+    if 'file1 (with conflicts)' not in out:
       self.fail()
 
-    utils_lib.write_file('file1', 'Fixed conflicts!')
+    utils.write_file('file1', 'Fixed conflicts!')
     self.assertRaises(ErrorReturnCode, gl.commit, m='resolve not called')
     self.assertRaises(ErrorReturnCode, gl.resolve, 'non-existent')
     gl.resolve('file1')
@@ -132,8 +136,8 @@ class TestCommit(TestEndToEnd):
 
   def setUp(self):
     super(TestCommit, self).setUp()
-    utils_lib.write_file(self.TRACKED_FP)
-    utils_lib.write_file(self.UNTRACKED_FP)
+    utils.write_file(self.TRACKED_FP)
+    utils.write_file(self.UNTRACKED_FP)
     gl.track(self.TRACKED_FP)
 
   # Happy paths
@@ -169,12 +173,12 @@ class TestCommit(TestEndToEnd):
 
 # TODO: uncomment once commit accepts paths instead of only files
 #  def test_commit_dir(self):
-#    utils_lib.write_file('dir/f')
+#    utils.write_file('dir/f')
 #     self.assertRaises(ErrorReturnCode, gl.commit, 'dir', m='msg')
 
   def __assert_commit(self, *expected_committed):
-    st = str(gl.status(_tty_out=False))
-    h = str(gl.history(v=True, _tty_out=False))
+    st = utils.stdout(gl.status(_tty_out=False))
+    h = utils.stdout(gl.history(v=True, _tty_out=False))
     for fp in expected_committed:
       if fp in st or fp not in h:
         self.fail('{0} was apparently not committed!'.format(fp))
@@ -192,14 +196,14 @@ class TestBranch(TestEndToEnd):
 
   def setUp(self):
     super(TestBranch, self).setUp()
-    utils_lib.write_file('f')
+    utils.write_file('f')
     gl.commit('f', m='commit')
 
   def test_create(self):
     gl.branch(c=self.BRANCH_1)
     self.assertRaises(ErrorReturnCode, gl.branch, c=self.BRANCH_1)
     self.assertRaises(ErrorReturnCode, gl.branch, c='evil*named*branch')
-    if self.BRANCH_1 not in str(gl.branch(_tty_out=False)):
+    if self.BRANCH_1 not in utils.stdout(gl.branch(_tty_out=False)):
       self.fail()
 
   def test_remove(self):
@@ -210,7 +214,7 @@ class TestBranch(TestEndToEnd):
     gl.switch(self.BRANCH_2)
     gl.branch(d=self.BRANCH_1, _in='n')
     gl.branch(d=self.BRANCH_1, _in='y')
-    if self.BRANCH_1 in str(gl.branch(_tty_out=False)):
+    if self.BRANCH_1 in utils.stdout(gl.branch(_tty_out=False)):
       self.fail()
 
   def test_upstream(self):
@@ -220,35 +224,47 @@ class TestBranch(TestEndToEnd):
         ErrorReturnCode, gl.branch, '-su', 'non-existent/non-existent')
 
 
-class TestDiff(TestEndToEnd):
+class TestDiffFile(TestEndToEnd):
 
   TRACKED_FP = 't_fp'
   UNTRACKED_FP = 'u_fp'
 
   def setUp(self):
-    super(TestDiff, self).setUp()
-    utils_lib.write_file(self.TRACKED_FP)
+    super(TestDiffFile, self).setUp()
+    utils.write_file(self.TRACKED_FP)
     gl.commit(self.TRACKED_FP, m="commit")
-    utils_lib.write_file(self.UNTRACKED_FP)
+    utils.write_file(self.UNTRACKED_FP)
 
   def test_empty_diff(self):
-    if 'Nothing to diff' not in str(gl.diff(_tty_out=False)):
+    if 'Nothing to diff' not in utils.stdout(gl.diff(_tty_out=False)):
       self.fail()
 
   def test_diff_nonexistent_fp(self):
-    err = str(gl.diff('file', _ok_code=[1]).stderr)
+    err = utils.stderr(gl.diff('file', _ok_code=[1], _tty_out=False))
     if 'non-existent' not in err:
       self.fail()
 
   def test_basic_diff(self):
-    utils_lib.write_file(self.TRACKED_FP, contents='contents')
-    out1 = str(gl.diff(_tty_out=False))
+    utils.write_file(self.TRACKED_FP, contents='contents')
+    out1 = utils.stdout(gl.diff(_tty_out=False))
     if '+contents' not in out1:
       self.fail()
-    out2 = str(gl.diff(self.TRACKED_FP, _tty_out=False))
+    out2 = utils.stdout(gl.diff(self.TRACKED_FP, _tty_out=False))
     if '+contents' not in out2:
       self.fail()
     self.assertEqual(out1, out2)
+
+  def test_diff_non_ascii(self):
+    contents = '’◕‿◕’©Ä☺’ಠ_ಠ’'
+    utils.write_file(self.TRACKED_FP, contents=contents)
+    out1 = utils.stdout(gl.diff(_tty_out=False))
+    if '+' + contents not in out1:
+      self.fail('out is ' + out1)
+    out2 = utils.stdout(gl.diff(self.TRACKED_FP, _tty_out=False))
+    if '+' + contents not in out2:
+      self.fail('out is ' + out2)
+    self.assertEqual(out1, out2)
+
 
 
 class TestPerformance(TestEndToEnd):
@@ -259,7 +275,7 @@ class TestPerformance(TestEndToEnd):
     super(TestPerformance, self).setUp()
     for i in range(0, self.FPS_QTY):
       fp = 'f' + str(i)
-      utils_lib.write_file(fp, fp)
+      utils.write_file(fp, fp)
 
   def test_status_performance(self):
     """Assert that gl status is not too slow."""

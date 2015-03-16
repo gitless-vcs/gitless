@@ -5,6 +5,8 @@
 """Unit tests for branch related operations."""
 
 
+from __future__ import unicode_literals
+
 import os
 
 from sh import git

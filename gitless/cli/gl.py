@@ -5,12 +5,14 @@
 """gl - Main Gitless's command. Dispatcher to the other cmds."""
 
 
+from __future__ import unicode_literals
+
 import argparse
 import traceback
 import pygit2
 from sh import ErrorReturnCode
 
-from clint.textui import colored, puts
+from clint.textui import colored
 
 from gitless import core
 
@@ -66,7 +68,7 @@ def main():
 
     return SUCCESS if args.func(args, repo) else ERRORS_FOUND
   except KeyboardInterrupt:
-    puts('\n')
+    pprint.puts('\n')
     pprint.msg('Keyboard interrupt detected, operation aborted')
     return SUCCESS
   except core.NotInRepoError as e:

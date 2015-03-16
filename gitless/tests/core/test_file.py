@@ -2,8 +2,10 @@
 # Gitless - a version control system built on top of Git.
 # Licensed under GNU GPL v2.
 
-"""Unit tests for file module."""
+"""Unit tests for file related operations."""
 
+
+from __future__ import unicode_literals
 
 import os
 
@@ -622,6 +624,42 @@ class TestDiffFile(TestFile):
 
     self.assertEqual('+', lines[1][0])
     self.assertEqual('new line', lines[1][1])
+
+  def test_diff_non_ascii(self):
+    fp = 'new'
+    new_fp_contents = '’◕‿◕’©Ä☺’ಠ_ಠ’\n'
+    utils_lib.write_file(fp, contents=new_fp_contents)
+    self.curr_b.track_file(fp)
+    patch = self.curr_b.diff_file(fp)
+
+    self.assertEqual(1, patch.additions)
+    self.assertEqual(0, patch.deletions)
+
+    self.assertEqual(1, len(patch.hunks))
+    hunk = list(patch.hunks)[0]
+    lines = list(hunk.lines)
+
+    self.assertEqual(1, len(lines))
+    self.assertEqual('+', lines[0][0])
+    self.assertEqual(new_fp_contents, lines[0][1])
+
+    utils_lib.append_to_file(fp, contents='new line')
+    patch = self.curr_b.diff_file(fp)
+
+    self.assertEqual(2, patch.additions)
+    self.assertEqual(0, patch.deletions)
+
+    self.assertEqual(1, len(patch.hunks))
+    hunk = list(patch.hunks)[0]
+    lines = list(hunk.lines)
+
+    self.assertEqual(3, len(lines))
+    self.assertEqual('+', lines[0][0])
+    self.assertEqual(new_fp_contents, lines[0][1])
+
+    self.assertEqual('+', lines[1][0])
+    self.assertEqual('new line', lines[1][1])
+
 
 
 FP_IN_CONFLICT = 'f_conflict'

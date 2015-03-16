@@ -5,12 +5,20 @@
 """Gitless's commit dialog."""
 
 
+from __future__ import unicode_literals
+
+import io
+from locale import getpreferredencoding
 import os
 import subprocess
+import sys
 
 
 from . import pprint
 
+
+IS_PY2 = sys.version_info[0] == 2
+ENCODING = getpreferredencoding() or 'utf-8'
 
 _COMMIT_FILE = '.GL_COMMIT_EDIT_MSG'
 _MERGE_MSG_FILE = 'MERGE_MSG'
@@ -26,9 +34,14 @@ def show(files, repo):
   Returns:
     The commit msg.
   """
-  cf = open(_commit_file(repo), 'w')
+  if IS_PY2:
+    # wb because we use pprint to write
+    cf = io.open(_commit_file(repo), mode='wb')
+  else:
+    cf = io.open(_commit_file(repo), mode='w', encoding=ENCODING)
   if repo.current_branch.merge_in_progress:
-    merge_msg = open(_merge_msg_file(repo), 'r').read()
+    merge_msg = io.open(
+        _merge_msg_file(repo), mode='r', encoding=ENCODING).read()
     cf.write(merge_msg)
   elif repo.current_branch.rebase_in_progress:
     pprint.msg(
@@ -62,7 +75,7 @@ def _launch_editor(fp, repo):
 
 
 def _extract_msg(repo):
-  cf = open(_commit_file(repo), 'r')
+  cf = io.open(_commit_file(repo), mode='r', encoding=ENCODING)
   sep = pprint.SEP + '\n'
   msg = ''
   l = cf.readline()

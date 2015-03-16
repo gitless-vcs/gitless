@@ -5,6 +5,8 @@
 """Common methods used in unit tests."""
 
 
+from __future__ import unicode_literals
+
 from functools import wraps
 import os
 

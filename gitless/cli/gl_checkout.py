@@ -5,6 +5,8 @@
 """gl checkout - Checkout committed versions of files."""
 
 
+from __future__ import unicode_literals
+
 import os
 
 from gitless import core

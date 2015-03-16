@@ -5,6 +5,8 @@
 """gl publish - Publish commits upstream."""
 
 
+from __future__ import unicode_literals
+
 from . import helpers
 from . import pprint
 

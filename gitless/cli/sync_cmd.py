@@ -5,6 +5,8 @@
 """Helper for gl_{merge, rebase}."""
 
 
+from __future__ import unicode_literals
+
 from . import helpers
 from . import pprint
 

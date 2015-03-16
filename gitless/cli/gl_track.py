@@ -5,6 +5,8 @@
 """gl track - Start tracking changes to files."""
 
 
+from __future__ import unicode_literals
+
 from . import file_cmd
 
 

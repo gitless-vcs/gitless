@@ -5,6 +5,8 @@
 """gl status - Show the status of files in the repo."""
 
 
+from __future__ import unicode_literals
+
 import os
 
 from clint.textui import colored

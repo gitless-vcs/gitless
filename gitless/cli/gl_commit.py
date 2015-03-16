@@ -5,6 +5,8 @@
 """gl commit - Record changes in the local repository."""
 
 
+from __future__ import unicode_literals
+
 from gitless import core
 
 from . import commit_dialog
