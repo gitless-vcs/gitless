@@ -10,7 +10,7 @@ from __future__ import unicode_literals
 from gitless import core
 
 from . import commit_dialog
-from . import pprint
+from . import helpers, pprint
 
 
 def parser(subparsers):
@@ -20,17 +20,17 @@ def parser(subparsers):
   commit_parser.add_argument(
       'only_files', nargs='*',
       help='only the files listed as arguments will be committed (files could '
-           'be tracked or untracked files)')
+           'be tracked or untracked files)', action=helpers.PathProcessor)
   commit_parser.add_argument(
       '-e', '--exclude', nargs='+',
       help=('files listed as arguments will be excluded from the commit (files '
             'must be tracked files)'),
-      dest='exc_files')
+      dest='exc_files', action=helpers.PathProcessor)
   commit_parser.add_argument(
       '-i', '--include', nargs='+',
       help=('files listed as arguments will be included to the commit (files '
             'must be untracked files)'),
-      dest='inc_files')
+      dest='inc_files', action=helpers.PathProcessor)
   commit_parser.add_argument(
       '-m', '--message', help='Commit message', dest='m')
   commit_parser.set_defaults(func=main)

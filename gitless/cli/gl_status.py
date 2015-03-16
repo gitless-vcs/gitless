@@ -13,7 +13,7 @@ from clint.textui import colored
 
 from gitless import core
 
-from . import pprint
+from . import helpers, pprint
 
 
 def parser(subparsers):
@@ -21,7 +21,8 @@ def parser(subparsers):
   status_parser = subparsers.add_parser(
       'status', help='show status of the repo')
   status_parser.add_argument(
-      'paths', nargs='*', help='the specific path(s) to status')
+      'paths', nargs='*', help='the specific path(s) to status',
+      action=helpers.PathProcessor)
   status_parser.set_defaults(func=main)
 
 

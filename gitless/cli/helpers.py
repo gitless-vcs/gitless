@@ -7,6 +7,9 @@
 
 from __future__ import unicode_literals
 
+import argparse
+import os
+
 
 def get_branch_name(branch):
   try:
@@ -35,3 +38,18 @@ def get_branch(branch_name, repo):
       raise ValueError('Branch "{0}" doesn\'t exist in remote "{1}"'.format(
           remote_branch, remote))
   return b
+
+
+class PathProcessor(argparse.Action):
+
+  def __call__(self, parser, namespace, paths, option_string=None):
+    setattr(namespace, self.dest, self.__process_path(paths))
+
+  def __process_path(self, paths):
+    for path in paths:
+      if os.path.isdir(path):
+        for curr_dir, _, fps in os.walk(path):
+          for fp in fps:
+            yield os.path.join(curr_dir, fp)
+      else:
+        yield path

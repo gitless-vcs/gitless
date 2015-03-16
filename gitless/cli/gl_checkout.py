@@ -11,7 +11,7 @@ import os
 
 from gitless import core
 
-from . import pprint
+from . import helpers, pprint
 
 
 def parser(subparsers):
@@ -23,7 +23,8 @@ def parser(subparsers):
           'the commit point to checkout the files at. Defaults to HEAD.'),
       dest='cp', default='HEAD')
   checkout_parser.add_argument(
-      'files', nargs='+', help='the file(s) to checkout')
+      'files', nargs='+', help='the file(s) to checkout',
+      action=helpers.PathProcessor)
   checkout_parser.set_defaults(func=main)
 
 

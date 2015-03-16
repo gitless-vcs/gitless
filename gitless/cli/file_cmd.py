@@ -9,7 +9,7 @@ from __future__ import unicode_literals
 
 import os
 
-from . import pprint
+from . import helpers, pprint
 
 
 VOWELS = ('a', 'e', 'i', 'o', 'u')
@@ -19,7 +19,8 @@ def parser(help_msg, subcmd):
   def f(subparsers):
     p = subparsers.add_parser(subcmd, help=help_msg)
     p.add_argument(
-        'files', nargs='+', help='the file(s) to {0}'.format(subcmd))
+        'files', nargs='+', help='the file(s) to {0}'.format(subcmd),
+        action=helpers.PathProcessor)
     p.set_defaults(func=main(subcmd))
   return f
 

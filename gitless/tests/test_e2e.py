@@ -171,10 +171,11 @@ class TestCommit(TestEndToEnd):
     self.assertRaises(
         ErrorReturnCode, gl.commit, m='msg', include='non-existent')
 
-# TODO: uncomment once commit accepts paths instead of only files
-#  def test_commit_dir(self):
-#    utils.write_file('dir/f')
-#     self.assertRaises(ErrorReturnCode, gl.commit, 'dir', m='msg')
+  def test_commit_dir(self):
+    fp = 'dir/f'
+    utils.write_file(fp)
+    gl.commit(fp, m='msg')
+    self.__assert_commit('dir/f')
 
   def __assert_commit(self, *expected_committed):
     st = utils.stdout(gl.status(_tty_out=False))
@@ -253,6 +254,13 @@ class TestDiffFile(TestEndToEnd):
     if '+contents' not in out2:
       self.fail()
     self.assertEqual(out1, out2)
+
+  def test_diff_dir(self):
+    fp = 'dir/dir/f'
+    utils.write_file(fp, contents='contents')
+    out = utils.stdout(gl.diff(fp, _tty_out=False))
+    if '+contents' not in out:
+      self.fail()
 
   def test_diff_non_ascii(self):
     contents = '’◕‿◕’©Ä☺’ಠ_ಠ’'

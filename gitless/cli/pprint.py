@@ -107,11 +107,6 @@ def get_user_input(text='> '):
   return input(text)
 
 
-def dir_err_exp(fp, subcmd):
-  """Prints the dir error exp to stderr."""
-  err('{0} is a directory. Can\'t {1} a directory'.format(fp, subcmd))
-
-
 def diff(patch, stream=sys.stdout.write):
   # Diff header
 
