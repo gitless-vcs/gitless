@@ -120,6 +120,10 @@ def diff(patch, stream=sys.stdout.write):
     puts('Not showing diffs for binary file', stream=stream)
     return
 
+  if (not patch.additions) and (not patch.deletions):
+    puts('No diffs to output for file', stream=stream)
+    return
+
   additions = patch.additions
   deletions = patch.deletions
   put_s = lambda num: '' if num == 1 else 's'

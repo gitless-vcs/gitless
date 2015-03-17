@@ -49,6 +49,10 @@ def main(args, repo):
       success = False
       continue
 
+    if patch.is_binary:
+      pprint.msg('Not showing diffs for binary file {0}'.format(fp))
+      continue
+
     if (not patch.additions) and (not patch.deletions):
       pprint.msg('No diffs to output for {0}'.format(fp))
       continue

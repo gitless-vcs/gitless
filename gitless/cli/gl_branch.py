@@ -59,8 +59,7 @@ def _do_list(repo):
   pprint.msg('List of branches:')
   pprint.exp('do gl branch -c <b> to create branch b')
   pprint.exp('do gl branch -d <b> to delete branch b')
-  pprint.exp(
-      'do gl branch -su <upstream> to set an upstream for the current branch')
+  pprint.exp('do gl switch <b> to switch to branch b')
   pprint.exp('* = current branch')
   pprint.blank()
 

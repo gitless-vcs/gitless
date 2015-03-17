@@ -125,7 +125,7 @@ def _print_untracked_files(untracked_list, relative_paths, repo):
     if fp == '.':
       continue
 
-    pprint.item(color(f.fp), opt_text=s)
+    pprint.item(color(fp), opt_text=s)
 
 
 def _print_conflict_exp(op):

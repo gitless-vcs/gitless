@@ -8,6 +8,7 @@
 from __future__ import unicode_literals
 
 import logging
+import os
 import time
 
 from sh import ErrorReturnCode, gl, git
@@ -188,6 +189,38 @@ class TestCommit(TestEndToEnd):
     for fp in expected_not_committed:
       if fp not in st or fp in h:
         self.fail('{0} was apparently committed!'.format(fp))
+
+
+class TestStatus(TestEndToEnd):
+
+  DIR = 'dir'
+  TRACKED_DIR_FP = 'dir/file1'
+  TRACKED_DIR_FP = 'dir/file1'
+  UNTRACKED_DIR_FP = 'dir/file2'
+
+  def setUp(self):
+    super(TestStatus, self).setUp()
+    utils.write_file(self.TRACKED_DIR_FP)
+    utils.write_file(self.UNTRACKED_DIR_FP)
+    gl.commit(self.TRACKED_DIR_FP, m='commit')
+
+  def test_status_relative(self):
+    utils.write_file(self.TRACKED_DIR_FP, contents='some modifications')
+    st = utils.stdout(gl.status(_tty_out=False))
+    if self.TRACKED_DIR_FP not in st:
+      self.fail()
+    if self.UNTRACKED_DIR_FP not in st:
+      self.fail()
+
+    os.chdir(self.DIR)
+
+    st = utils.stdout(gl.status(_tty_out=False))
+    rel_tracked = os.path.relpath(self.TRACKED_DIR_FP, self.DIR)
+    rel_untracked = os.path.relpath(self.UNTRACKED_DIR_FP, self.DIR)
+    if (self.TRACKED_DIR_FP in st) or (rel_tracked not in st):
+      self.fail()
+    if (self.UNTRACKED_DIR_FP in st) or (rel_untracked not in st):
+      self.fail()
 
 
 class TestBranch(TestEndToEnd):
