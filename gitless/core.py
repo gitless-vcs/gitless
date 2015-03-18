@@ -794,17 +794,26 @@ class Branch(object):
   def publish(self, branch):
     self._check_op_not_in_progress()
 
-    # TODO: allow publish to local branch
+    if not isinstance(branch, RemoteBranch):  # TODO: allow this
+      raise GlError(
+          'Can\'t publish to a local branch (yet---this will be implemented in '
+          'the future)')
+
     try:
       assert self.branch_name.strip()
       assert branch.branch_name in self.gl_repo.remotes[
           branch.remote_name].listall_branches()
 
-      return git.push(
+      cmd = git.push(
           branch.remote_name,
           '{0}:{1}'.format(self.branch_name, branch.branch_name))
+      if 'Everything up-to-date' in stderr(cmd):
+        raise GlError('No commits to publish')
     except ErrorReturnCode as e:
-      raise GlError(stderr(e))
+      err_msg = stderr(e)
+      if 'Updates were rejected' in err_msg:
+        raise GlError('There are changes you need to rebase/merge')
+      raise GlError(err_msg)
 
 
   # Some helpers for checking preconditions

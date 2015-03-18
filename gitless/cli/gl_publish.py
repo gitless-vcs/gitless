@@ -36,7 +36,7 @@ def main(args, repo):
         'No dst branch specified, defaulted to publishing changes to upstream '
         'branch {0}'.format(helpers.get_branch_name(dst_branch)))
   else:
-    dst_branch = helpers.get_branch(args.src, repo)
+    dst_branch = helpers.get_branch(args.branch, repo)
 
   repo.current_branch.publish(dst_branch)
   pprint.msg('Publish succeeded')
