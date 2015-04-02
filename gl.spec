@@ -1,6 +1,8 @@
 # -*- mode: python -*-
+import os
+
 a = Analysis(['gl.py'],
-             pathex=['/Users/santiago/Documents/MIT/cmodeling/code/gitless'],
+             pathex=[os.getcwd()],
              hiddenimports=['pygit2_cffi_4091df83x5470904'],
              hookspath=None,
              runtime_hooks=None)

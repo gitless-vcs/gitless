@@ -7,16 +7,31 @@ import sys
 from setuptools import setup
 
 
+VERSION = '0.6.3'
+
+
 # Build helper
 if sys.argv[-1] == 'gl-build':
-  # For this to work you need to:
-  #  - have pyinstaller
-  #  - have pygit2/decl.h file accessible at ../pygit2/decl.h
   from sh import pyinstaller
+  import shutil
+  import tarfile
+  import platform
+
+  rel = 'gl-v{0}-{1}'.format(VERSION, platform.system().lower())
 
   print('running pyinstaller...')
-  pyinstaller('gl.spec', _out=sys.stdout, _err=sys.stderr)
-  print('success!! gl binary should be at dist/gl')
+  pyinstaller(
+      'gl.spec', clean=True, distpath=rel, _out=sys.stdout, _err=sys.stderr)
+  print('success!! gl binary should be at {0}/gl'.format(rel))
+
+  print('creating tar.gz file')
+  shutil.copy('README.md', rel)
+  shutil.copy('LICENSE.md', rel)
+  
+  with tarfile.open(rel + '.tar.gz', 'w:gz') as tar:
+    tar.add(rel)
+  print('success!! binary release at {0}'.format(rel + '.tar.gz'))
+
   sys.exit()
 
 
@@ -32,7 +47,7 @@ Many people complain that Git is hard to use. We think the problem lies
 deeper than the user interface, in the concepts underlying Git. Gitless
 is an experiment to see what happens if you put a simple veneer on an
 app that changes the underlying concepts. Because Gitless is implemented
-on top of Git (could be considered what Git pros call a 'porcelain' of
+on top of Git (could be considered what Git pros call a \"porcelain\" of
 Git), you can always fall back on Git. And of course your coworkers you
 share a repo with need never know that you're not a Git aficionado.
 
@@ -45,7 +60,7 @@ mailing list <https://groups.google.com/forum/#!forum/gl-users>`__.
 
 setup(
     name='gitless',
-    version='0.6.2',
+    version=VERSION,
     description='A version control system built on top of Git',
     long_description=ld,
     author='Santiago Perez De Rosso',
