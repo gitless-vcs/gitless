@@ -7,6 +7,19 @@ import sys
 from setuptools import setup
 
 
+# Build helper
+if sys.argv[-1] == 'gl-build':
+  # For this to work you need to:
+  #  - have pyinstaller
+  #  - have pygit2/decl.h file accessible at ../pygit2/decl.h
+  from sh import pyinstaller
+
+  print('running pyinstaller...')
+  pyinstaller('gl.spec', _out=sys.stdout, _err=sys.stderr)
+  print('success!! gl binary should be at dist/gl')
+  sys.exit()
+
+
 reqs = ['pygit2==0.22.0', 'sh==1.11', 'clint==0.3.6']
 if sys.version_info < (2, 7) or (
     sys.version_info < (3, 3) and sys.version_info > (3, 0)):
