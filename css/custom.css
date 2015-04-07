@@ -38,21 +38,6 @@ h4 {
   margin:0px 0px .5em 0px;
 }
 
-h5 {
-  color: #333;
-  font-size:1em;
-  line-height:2.45em;
-  letter-spacing:-.03em;
-  margin:0px 0px .5em 0px;
-}
-
-h6 {
-  color: #333;
-  font-size:1em;
-  line-height:2.45em;
-  letter-spacing:-.03em;
-  margin:0px 0px .5em 0px;
-}
 
 #header {
   position: relative;
@@ -60,9 +45,13 @@ h6 {
   margin-bottom: 10px;
 }
 
-li {
- margin-bottom: 5px;
-}
+.vs { width: 780px; }
+.vs .gl { float: left; width: 300px; }
+.vs .git { float: right; width: 400px; }
+.vs .comment { color: silver; }
+.vs .task { color: gray; font-weight: bold; }
+
+li { margin-bottom: 5px; }
 
 #sidebar {
   float: right;
@@ -71,13 +60,9 @@ li {
   margin-top: 20px;
 }
 
-#sidebar .top {
-  margin-top: .69em;
-}
+#sidebar .top { margin-top: .69em; }
 
-.news h2 {
-  text-align: center;
-}
+.news h2 { text-align: center; }
 
 .news h2 span {
   text-align: center;
@@ -113,9 +98,7 @@ li {
   margin-top: 20px;
 }
 
-#main p {
-  width: 42em;
-}
+#main p { width: 42em; }
 
 #footer {
   position: relative;

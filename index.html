@@ -56,18 +56,19 @@
       </p>
 
       <p>
-      Check out the documentation to get started. If you are a novice user
-      that never used any version control system the documentation
-      should be enough to get you started. If you are a Git pro looking to see
-      what's different from your beloved Git you'll be able to spot the
-      differences by glancing through the documentation.
+      Check out the <a href="#documentation">documentation</a> to get started.
+      If you are a novice user that never used any version control system the
+      documentation should be enough to get you started. If you are a Git pro
+      looking to see what's different from your beloved Git you'll be able to
+      spot the differences by glancing through the
+      <a href="#vs">Gitless vs. Git</a> section.
       </p>
     </div>
     <!-- End Main -->
 
     <!-- Begin Documentation -->
     <div class="twothird">
-      <h2>Documentation</h2>
+      <a name="documentation"><h2>Documentation</h2></a>
 
       <!-- Begin Documentation/Commands -->
 
@@ -350,6 +351,521 @@
       <!-- End Documentation/Guide -->
     </div>
     <!-- End Documentation -->
+
+    <!-- Begin Versus -->
+    <div class="twothird">
+      <a name="vs"><h2>Gitless vs. Git</h2></a>
+      <p>Gitless on the left, Git on the right.</p>
+
+      <p>This section is using Gitless v0.7 (which is coming very soon).</p>
+
+      <!-- Begin Versus/Changes -->
+      <h3>Recording Changes to the Repository</h3>
+      <p>There's no staging area in Gitless. This, coupled with a flexible
+      commit command makes recording changes to the repository very
+      straightforward:
+      </p>
+
+      <div class="vs">
+        <pre class="gl">
+        <code>
+        <span class="task">Commit all modified tracked files</span>
+        $ gl commit
+        ...
+        <span class="comment">The default set of files to be commited are
+        all modified tracked files</span>
+
+        <span class="task">Leave some modified tracked files (`foo`, `bar`)
+        out of the commit</span>
+        $ gl commit -e foo bar
+        ...
+        <span class="comment">-e/--exclude excludes files from the
+        default set of files to be commited</span>
+
+
+
+
+        <span class="task">Include some untracked files in the
+        commit</span>
+        $ gl commit -i foo2 bar2
+        ...
+        <span class="comment">-i/--include includes files to the
+        default set of files to be commited</span>
+        <span class="comment">-i and -e can be combined together</span>
+
+        <span class="task">Commit only some of the modified tracked
+        files</span>
+        $ gl commit foo3 bar3
+        ...
+        <span class="comment">Giving files as input to the commit command
+        restricts the set of files to be committed to only
+        the specified ones</span>
+
+        <span class="task">Commit only some of the modified tracked or
+        untracked files</span>
+        $ gl commit foo3 bar3 foo4
+        ...
+        </code>
+        </pre>
+        <pre class="git">
+        <code>
+        <span class="task">Commit all modified tracked files</span>
+        $ git commit -a
+        ...
+        <span class="comment">-a/--all automatically
+        stages files that have been modified or deleted</span>
+
+        <span class="task">Leave some modified tracked files (`foo`, `bar`)
+        out of the commit</span>
+        $ git add <span class="comment">(all files you want to commit minus foo bar)</span>
+        $ git commit
+
+
+
+
+
+
+        <span class="task">Include some untracked files in the
+        commit</span>
+        $ git add foo2 bar2  <span class="comment">(+ modified tracked files you want to commit)</span>
+        $ git commit
+        ...
+
+
+
+        <span class="task">Commit only some of the modified tracked
+        files</span>
+        $ git commit foo3 bar3
+        ...
+
+
+
+
+        <span class="task">Commit only some of the modified tracked or
+        untracked files</span>
+        $ git commit foo3 bar3 foo4
+        error: pathspec 'foo4' did not match any file(s) known to git.
+        <span class="comment">...hmm ok... </span>
+        $ git add foo4
+        $ git commit foo3 bar3 foo4
+        ...
+        </code>
+        </pre>
+        <div style="clear:both"></div>
+      </div>
+      <p>Also, you can change the classification of any file to tracked,
+      untracked or ignored, it doesn't matter whether the file exists at head
+      or not:
+      </p>
+      <div class="vs">
+        <pre class="gl">
+        <code>
+        <span class="comment">Say we have committed file `foo` with
+        modifications</span>
+        $ gl status
+        # ...
+        # Tracked files with modifications:
+        # ...
+        #   foo
+        # ...
+
+        <span class="task">Stop tracking changes to `foo`</span>
+        $ gl untrack foo
+        # File foo is now an untracked file
+        <span class="comment">Now `foo` won't be automatically considered
+        for commit</span>
+        $ gl status
+        # ...
+        # Untracked files:
+        # ...
+        #   foo (exists at head)
+        # ...
+
+        <span class="task">Start tracking changes to `foo` again</span>
+        $ gl track foo
+        # File foo is now a tracked file
+        <span class="comment">Now `foo` will be automatically considered
+        for commit</span>
+        $ gl status
+        # ...
+        # Tracked files with modifications:
+        # ...
+        #   foo (exists at head)
+        # ...
+        </pre>
+        </code>
+        <pre class="git">
+        <code>
+        <span class="comment">Say we have committed file `foo` with
+        modifications</span>
+        $ git status
+        # ...
+        # Changes not staged for commit:
+        # ...
+        #   modified: foo
+        # ...
+
+        <span class="task">Stop tracking changes to `foo`</span>
+        <span class="comment">No way to do this, if you want to prevent accidental
+        commiting of the file you can always do `git add` of all the files
+        but `foo` everytime you do a commit. Alternatively, you can ignore the
+        file by marking it as assumed unchanged</span>
+        $ git update-index --assume-unchanged foo
+        <span class="comment">Now the file behaves as if it were ignored</span>
+        $ git status
+        ...
+        <span class="comment">`foo` won't appear listed in status</span>
+
+
+        <span class="task">Start tracking changes to `foo` again</span>
+        $ git update-index --no-assume-unchanged foo
+        $ git status
+        # ...
+        # Changes not staged for commit:
+        # ...
+        #   modified: foo
+        # ...
+        </code>
+        </pre>
+        <div style="clear:both"></div>
+      </div>
+      <!-- End Versus/Changes -->
+
+      <!-- Begin Versus/Branching -->
+      <h3>Branching</h3>
+      <p>
+      The main thing to understand is that in Gitless a branch is a completely
+      independent line of development. Each branch keeps its working version
+      of files separate from each other. Whenever you switch to a different
+      branch, the contents of your working directory are saved, and the ones
+      corresponding to the branch you are switching to are retrieved. The
+      classifications of files are also saved (i.e., a file can
+      be untracked on some branch but tracked on another and Gitless will
+      remember this):
+      </p>
+      <div class="vs">
+        <pre class="gl">
+        <code>
+        <span class="comment">Say we have committed file `foo` with
+        modifications</span>
+        $ gl status
+        # ...
+        # Tracked files with modifications:
+        # ...
+        #   foo
+        # ...
+
+        <span class="task">Create new branch `develop`</span>
+        $ gl branch -c develop
+        # Created new branch "develop"
+
+        <span class="task">Switch to `develop`</span>
+        $ gl switch develop
+        # Switched to branch develop
+        $ gl status
+        # ...
+        # Tracked files with modifications:
+        # ... no changes to foo here
+
+
+        <span class="task">Switch back to `master`</span>
+        $ gl switch master
+        # Switched to branch master
+        $ gl status
+        # ...
+        # Tracked files with modifications:
+        # ...
+        #   foo
+        # ...
+
+        <span class="comment">If you want the uncommitted changes to follow
+        you into the new branch you can use the
+        -mo/--move-over flag to move over the changes
+        in the current branch to the destination branch</span>
+        </code>
+        </pre>
+        <pre class="git">
+        <code>
+        <span class="comment">Say we have committed file `foo` with
+        modifications</span>
+        $ git status
+        # ...
+        # Changes not staged for commit:
+        # ...
+        #   modified: foo
+        # ...
+
+        <span class="task">Create new branch `develop`</span>
+        $ git branch develop
+
+
+        <span class="task">Switch to `develop`</span>
+        $ git checkout develop
+        $ git status
+        # ...
+        # Changes not staged for commit:
+        # ...
+        #   modified: foo
+        # ...
+
+        <span class="task">Switch back to `master`</span>
+        $ git checkout master
+        # ...
+        # Changes not staged for commit:
+        # ...
+        #   modified: foo
+        # ...
+        </code>
+        </pre>
+        <div style="clear:both"></div>
+      </div>
+      <p>
+      This means that in Gitless you don't have to worry about uncommitted
+      changes conflicting with the changes in the destination branch:
+      </p>
+      <div class="vs">
+        <pre class="gl">
+        <code>
+        <span class="comment">Say we have uncomitted changes to `foo`
+        which conflict with the state of `foo` in
+        branch `develop`</span>
+
+        <span class="task">Switch to `develop`</span>
+        $ gl switch develop
+        # Switched to branch develop
+        </code>
+        </pre>
+        <pre class="git">
+        <code>
+        <span class="comment">Say we have uncomitted changes to `foo`
+        which conflict with the state of `foo` in
+        branch `develop`</span>
+
+        <span class="task">Switch to `develop`</span>
+        $ git checkout develop
+        error: Your local changes to the following files
+        would be overwritten by checkout:
+             foo
+        Please, commit your changes or stash them before
+        you can switch branches.
+        Aborting
+        $ git stash
+        Saved working directory and index state WIP on
+        master: fbe3b8c ...
+        HEAD is now at fbe3b8c ...
+        $ git checkout develop
+        Switched to branch 'develop'
+        </code>
+        </pre>
+        <div style="clear:both"></div>
+      </div>
+      <p>
+      And if you are in the middle of a rebase/merge and you want to put aside
+      the conflict resolution for later, you can. The conflict will be there
+      when you switch back:
+      </p>
+      <p>
+      (Not yet implemented, coming soon)
+      </p>
+      <div class="vs">
+        <pre class="gl">
+        <code>
+        $ gl rebase develop
+        # There are conflicts you need to resolve
+        $ gl status
+        # On branch master, repo-directory //
+        #
+        # You are in the middle of a rebase; all
+        # conflicts must be resolved before
+        # commiting
+        # ...
+        # Tracked files with modifications:
+        #      ...
+        #     foo (with conflicts)
+        #
+        ...
+
+
+
+
+
+
+
+        <span class="task">Switch to `bugfix`</span>
+        $ gl switch bugfix
+        # Switched to branch bugfix
+        <span class="comment">No conflicts here</span>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        <span class="task">Switch back to `develop`</span>
+        $ gl switch develop
+        # Switched to branch develop
+        $ gl status
+        # On branch master, repo-directory //
+        #
+        # You are in the middle of a rebase; all
+        # conflicts must be resolved before
+        # commiting
+        # ...
+        # Tracked files with modifications:
+        #     ...
+        #     foo (with conflicts)
+        #
+        ...
+        </code>
+        </pre>
+        <pre class="git">
+        <code>
+        $ git rebase develop
+        First, rewinding head to replay your work on top of it...
+        Applying: this commit should trigger a conflict
+        Using index info to reconstruct a base tree...
+        M foo
+        Falling back to patching base and 3-way merge...
+        Auto-merging foo
+        CONFLICT (content): Merge conflict in foo
+        Failed to merge in the changes.
+        Patch failed at 0001 foo conflict
+        The copy of the patch that failed is found in:
+           ...
+        $ git status
+        rebase in progress; onto 989269e
+        You are currently rebasing branch 'master' on '989269e'.
+          ...
+        Unmerged paths:
+          ...
+          both modified:   foo
+        ...
+
+        <span class="task">Switch to `bugfix`</span>
+        $ git checkout bugfix
+        foo: needs merge
+        error: you need to resolve your current index first
+        <span class="comment">Maybe stash works?</span>
+        $ git stash
+        foo: needs merge
+        foo: needs merge
+        foo: unmerged (0b3c542edb2e9e8ff801c669d7a5f2d78fe2678b)
+        foo: unmerged (94421333de34e32405f632d0f7b63b39c8930776)
+        foo: unmerged (eb97dba229aab53fe5f231e60491dd2a7cb09703)
+        fatal: git-write-tree: error building trees
+        Cannot save the current index state
+        <span class="comment"> ...hmm..ok...</span>
+        $ <span class="comment">save all the changes to files somewhere else</span>
+        $ git rebase --abort
+        $ git checkout bugfix
+        Switched to branch 'bugfix'
+
+        <span class="task">Switch back to `develop`</span>
+        $ git checkout develop
+        $ git status
+        ...
+        <span class="comment">We aborted the rebase to be able to
+        switch branches, so there's nothing here now</span>
+        $ git rebase develop
+        ... <span class="comment">same conflict as before</span>
+        $ <span class="comment">Copy back the changes we saved</span>
+        </pre>
+        </code>
+        <div style="clear:both"></div>
+      </div>
+      <!-- End Versus/Branching -->
+
+      <!-- Begin Versus/Syncing -->
+      <h3>Syncing with Other Repositories</h3>
+      <p>
+      Syncing with other repositories in Gitless works quite similar to
+      Git:
+      </p>
+      <div class="vs">
+        <pre class="gl">
+        <code>
+        <span class="task">Configure a new remote `experiment`</span>
+        $ gl remote -c experiment
+        https://github.com/spderosso/experiment
+        # Remote experiment mapping to
+        # https://github.com/spderosso/experiment
+        # created successfully
+        #   (to list existing remotes do gl remote)
+        #   (to remove experiment do gl remote -d experiment)
+
+        <span class="task">Download and apply changes from a branch
+        in `experiment`</span>
+        $ gl rebase experiment/master
+        # Rebase succeeded
+        <span class="comment">If you instead want to merge the changes, you
+        can do `gl merge experiment/master`</span>
+
+        <span class="comment">You can also set an upstream for the
+        current branch</span>
+        $ gl branch -su experiment/master
+        # Current branch master set to track
+        # experiment/master
+        $ gl rebase
+        # No src branch specified, defaulted to getting
+        # changes from upstream branch experiment/master
+
+        <span class="task">Send changes to the remote</span>
+        $ gl publish
+        # No src branch specified, defaulted to sending
+        # changes to upstream branch experiment/master
+        # Publish succeeded
+        <span class="comment">Only the changes in the current branch
+        are uploaded</span>
+        </code>
+        </pre>
+        <pre class="git">
+        <code>
+        <span class="task">Configure a new remote `experiment`</span>
+        $ git remote add experiment
+        https://github.com/spderosso/experiment
+
+
+
+
+
+
+        <span class="task">Download and apply changes from a branch
+        in `experiment`</span>
+        $ git pull experiment/master
+        ...
+        <span class="comment">If you instead want to rebase the
+        changes, you can do `git pull --rebase experiment/master`</span>
+
+        <span class="comment">You can also set an upstream for the
+        current branch</span>
+        $ gl branch --set-upstream master experiment/master
+        $ git pull
+        ...
+
+
+
+
+        <span class="task">Send changes to the remote</span>
+        $ git push
+        <span class="comment">What happens when you do a push depends on
+        the value of the `push.default` config variable</span>
+        </code>
+        </pre>
+        <div style="clear:both"></div>
+      </div>
+      <!-- End Versus/Syncing -->
+
+    </div>
+    <!-- End Versus -->
 
     <!-- Begin Community -->
     <div class="twothird">
