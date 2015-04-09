@@ -35,7 +35,7 @@ going to disappear soon once we finish with our migration to pygit2).
 
 Note to Windows users: we currently have no binary release for Windows. If you
 are having trouble getting v0.7 to work in Windows (we now depend on pygit2 in
-addition to `git`), you can try v0.6.3 instead (which depends only on
+addition to `git`), you can try v0.6.2 instead (which depends only on
 `git`) and people have managed to get it working.
 
 
