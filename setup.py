@@ -7,7 +7,7 @@ import sys
 from setuptools import setup
 
 
-VERSION = '0.6.3'
+VERSION = '0.7'
 
 
 # Build helper

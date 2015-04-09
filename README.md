@@ -28,19 +28,62 @@ Install
 -------
 
 Note that the installation **won't interfere** with your Git installation in any
-way, you can keep using Git, and switch between Git and Gitless seamleslly.
+way, you can keep using Git, and switch between Git and Gitless seamlessly.
 
-You need to have Python and Git installed. If you don't, search for their
-official websites, install them and come back.
+We currently require Git (1.7.12+) to be installed (but this requirement is
+going to disappear soon once we finish with our migration to pygit2).
 
-The easiest way to install Gitless is using the Python Package Manager `pip`. If
-you don't have `pip`, just search the web for it, and you'll find installation
-instructions on their website. Now, once you have `pip` installed just do:
+Note to Windows users: we currently have no binary release for Windows. If you
+are having trouble getting v0.7 to work in Windows (we now depend on pygit2 in
+addition to `git`), you can try v0.6.3 instead (which depends only on
+`git`) and people have managed to get it working.
 
-    $> pip install gitless
 
-You should now be able to start executing the `gl` command.
+### Binary releases
 
+Binary releases for Mac OS and Linux are available @
+[Gitless's website](http://gitless.com "Gitless's website"). This is the easiest
+way to get Gitless.
+
+If you've downloaded a binary release of Gitless everything is contained in the
+gl binary, so to install simply do:
+
+    $ cp path-to-downloaded-gl-binary /usr/local/bin/gl
+
+You can put the binary in other locations as well, just be sure to update your
+PATH.
+
+If for some reason this doesn't work (maybe you are running an old version of
+your OS?), try one of the other options (installing from source code or via
+the Python Package Index).
+
+
+### Installing from source
+
+To install from source you need to have Python (2.6, 2.7, 3.2+ or pypy)
+installed.
+
+Additionaly, you need to [install pygit2](
+http://www.pygit2.org/install.html "pygit2 install").
+
+Then, download the source code tarball available @
+[Gitless's website](http://gitless.com "Gitless's website") and do:
+
+    $ ./setup.py install
+
+
+### Installing via the Python Package Index
+
+If you are a Python fan you might find it easier to install
+Gitless via the Python Package Index. To do this, you need to have
+Python (2.6, 2.7, 3.2+ or pypy) installed.
+
+Additionaly, you need to [install pygit2](
+http://www.pygit2.org/install.html "pygit2 install").
+
+Then, just do:
+
+    $ pip install gitless
 
 
 Contribute

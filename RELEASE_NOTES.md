@@ -2,6 +2,18 @@ Gitless's Release Notes
 =======================
 
 
+04/09/2015 - v0.7
+-----------------
+
+* new backend that uses pygit2
+* some ui changes
+  * new `switch` command for switching branches
+  * added a `-mo/--move-over` option to move over changes to the destination
+    branch
+  * other misc cleanups in flags
+* bug fixes
+
+
 25th Mar 2014 - kendall.0.6.2
 -----------------------------
 
