@@ -17,7 +17,8 @@ if sys.argv[-1] == 'gl-build':
   import tarfile
   import platform
 
-  rel = 'gl-v{0}-{1}'.format(VERSION, platform.system().lower())
+  rel = 'gl-v{0}-{1}-{2}'.format(
+      VERSION, platform.system().lower(), platform.machine())
 
   print('running pyinstaller...')
   pyinstaller(
