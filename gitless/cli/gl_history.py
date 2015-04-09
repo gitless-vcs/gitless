@@ -1,16 +1,18 @@
+# -*- coding: utf-8 -*-
 # Gitless - a version control system built on top of Git.
 # Licensed under GNU GPL v2.
 
 """gl history - Show commit history."""
 
 
+from __future__ import unicode_literals
+
+from datetime import datetime, tzinfo, timedelta
 import os
 import subprocess
 import tempfile
 
-from clint.textui import colored, indent, puts
-
-from gitless.core import repo as repo_lib
+from clint.textui import colored, indent
 
 from . import pprint
 
@@ -25,35 +27,41 @@ def parser(subparsers):
   history_parser.set_defaults(func=main)
 
 
-def main(args):
+def main(args, repo):
+  curr_b = repo.current_branch
   with tempfile.NamedTemporaryFile(mode='w', delete=False) as tf:
-    for ci in repo_lib.history(include_diffs=args.verbose):
-      puts(colored.yellow('Commit Id: {0}'.format(ci.id)), stream=tf.write)
-      puts(colored.yellow(
+    for ci in curr_b.history():
+      pprint.puts(colored.yellow(
+        'Commit Id: {0}'.format(ci.id)), stream=tf.write)
+      pprint.puts(colored.yellow(
         'Author:    {0} <{1}>'.format(ci.author.name, ci.author.email)),
         stream=tf.write)
-      puts(colored.yellow(
-        'Date:      {0} ({1})'.format(ci.author.date, ci.author.date_relative)),
-        stream=tf.write)
-      puts(stream=tf.write)
+      ci_author_dt = datetime.fromtimestamp(
+          ci.author.time, FixedOffset(ci.author.offset))
+      pprint.puts(colored.yellow(
+        'Date:      {0:%c %z}'.format(ci_author_dt)), stream=tf.write)
+
+      pprint.puts(stream=tf.write)
       with indent(4):
-        for l in ci.msg.splitlines():
-          puts(l, stream=tf.write)
-      puts(stream=tf.write)
-      puts(stream=tf.write)
-      for diff in ci.diffs:
-        puts(
-            colored.cyan('Diff of file {0}'.format(diff.fp_before)),
-            stream=tf.write)
-        if diff.fp_before != diff.fp_after:
-          puts(colored.cyan(
-              ' (renamed to {0})'.format(diff.fp_after)), stream=tf.write)
-        puts(stream=tf.write)
-        puts(stream=tf.write)
-        pprint.diff(*diff.diff, p=tf.write)
-        puts(stream=tf.write)
-        puts(stream=tf.write)
-      puts(stream=tf.write)
+        pprint.puts(ci.message, stream=tf.write)
+      pprint.puts(stream=tf.write)
+      pprint.puts(stream=tf.write)
+      if args.verbose and len(ci.parents) == 1:  # TODO: merge commits diffs
+        for patch in curr_b.diff_commits(ci.parents[0], ci):
+          pprint.diff(patch, stream=tf.write)
+          pprint.puts(stream=tf.write)
   subprocess.call('less -r -f {0}'.format(tf.name), shell=True)
   os.remove(tf.name)
   return True
+
+
+class FixedOffset(tzinfo):
+
+  def __init__(self, offset):
+    self.__offset = timedelta(minutes=offset)
+
+  def utcoffset(self, _):
+    return self.__offset
+
+  def dst(self, _):
+    return timedelta(0)

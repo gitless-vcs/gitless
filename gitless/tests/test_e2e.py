@@ -1,22 +1,42 @@
+# -*- coding: utf-8 -*-
 # Gitless - a version control system built on top of Git.
 # Licensed under GNU GPL v2.
 
 """End-to-end test."""
 
 
+from __future__ import unicode_literals
+
 import logging
+import os
 import time
-import unittest
 
-import gitless.tests.utils as utils_lib
+from sh import ErrorReturnCode, gl, git
+
+from gitless.tests import utils
 
 
-class TestEndToEnd(utils_lib.TestBase):
+class TestEndToEnd(utils.TestBase):
 
   def setUp(self):
     super(TestEndToEnd, self).setUp('gl-e2e-test')
-    utils_lib.gl_expect_success('init')
-    utils_lib.set_test_config()
+    gl.init()
+    utils.set_test_config()
+
+
+class TestNotInRepo(utils.TestBase):
+
+  def setUp(self):
+    super(TestNotInRepo, self).setUp('gl-e2e-test')
+
+  def test_not_in_repo(self):
+    def assert_not_in_repo(*cmds):
+      for cmd in cmds:
+        self.assertRaisesRegexp(ErrorReturnCode, 'not in a Gitless\'s repository', cmd)
+
+    assert_not_in_repo(
+      gl.status, gl.diff, gl.commit, gl.branch, gl.merge, gl.rebase, gl.remote,
+      gl.publish, gl.history)
 
 
 # TODO(sperezde): add dialog related tests.
@@ -26,83 +46,87 @@ class TestEndToEnd(utils_lib.TestBase):
 class TestBasic(TestEndToEnd):
 
   def test_basic_functionality(self):
-    utils_lib.write_file('file1', 'Contents of file1')
-    # Track.
-    utils_lib.gl_expect_success('track file1')
-    utils_lib.gl_expect_error('track file1')  # file1 is already tracked.
-    utils_lib.gl_expect_error('track non-existent')
-    # Untrack.
-    utils_lib.gl_expect_success('untrack file1')
-    utils_lib.gl_expect_success('untrack file1')  # file1 is already untracked.
-    utils_lib.gl_expect_error('untrack non-existent')
-    # Commit.
-    utils_lib.gl_expect_success('commit -m"file1 commit"')
-    utils_lib.gl_expect_error('commit -m"nothing to commit"')
-    # History.
-    if 'file1 commit' not in utils_lib.gl_expect_success('history')[0]:
+    utils.write_file('file1', 'Contents of file1')
+    # Track
+    gl.track('file1')
+    self.assertRaises(ErrorReturnCode, gl.track, 'file1')
+    self.assertRaises(ErrorReturnCode, gl.track, 'non-existent')
+    # Untrack
+    gl.untrack('file1')
+    self.assertRaises(ErrorReturnCode, gl.untrack, 'file1')
+    self.assertRaises(ErrorReturnCode, gl.untrack, 'non-existent')
+    # Commit
+    gl.track('file1')
+    gl.commit(m='file1 commit')
+    self.assertRaises(ErrorReturnCode, gl.commit, m='nothing to commit')
+    # History
+    if 'file1 commit' not in utils.stdout(gl.history(_tty_out=False)):
       self.fail('Commit didn\'t appear in history')
-    # Branch.
-    # Make some changes in file1 and branch out.
-    utils_lib.write_file('file1', 'New contents of file1')
-    utils_lib.gl_expect_success('branch branch1')
-    if 'New' in utils_lib.read_file('file1'):
+    # Branch
+    # Make some changes to file1 and branch out
+    utils.write_file('file1', 'New contents of file1')
+    gl.branch(c='branch1')
+    gl.switch('branch1')
+    if 'New' in utils.read_file('file1'):
       self.fail('Branch not independent!')
     # Switch back to master branch, check that contents are the same as before.
-    utils_lib.gl_expect_success('branch master')
-    if 'New' not in utils_lib.read_file('file1'):
+    gl.switch('master')
+    if 'New' not in utils.read_file('file1'):
       self.fail('Branch not independent!')
-    out, _ = utils_lib.gl_expect_success('branch')
+    out = utils.stdout(gl.branch(_tty_out=False))
     if '* master' not in out:
-      self.fail('Branch status output wrong')
+      self.fail('Branch status output wrong: {0}'.format(out))
     if 'branch1' not in out:
-      self.fail('Branch status output wrong')
+      self.fail('Branch status output wrong: {0}'.format(out))
 
-    utils_lib.gl_expect_success('branch branch1')
-    utils_lib.gl_expect_success('branch branch2')
-    utils_lib.gl_expect_success('branch branch-conflict1')
-    utils_lib.gl_expect_success('branch branch-conflict2')
-    utils_lib.gl_expect_success('branch master')
-    utils_lib.gl_expect_success('commit -m"New contents commit"')
+    gl.branch(c='branch2')
+    gl.branch(c='branch-conflict1')
+    gl.branch(c='branch-conflict2')
+    gl.commit(m='New contents commit')
 
-    # Rebase.
-    utils_lib.gl_expect_success('branch branch1')
-    utils_lib.gl_expect_error('rebase')  # no upstream set.
-    utils_lib.gl_expect_success('rebase master')
-    if 'file1 commit' not in utils_lib.gl_expect_success('history')[0]:
+    # Rebase
+    gl.switch('branch1')
+    self.assertRaises(ErrorReturnCode, gl.rebase)  # no upstream set
+    gl.rebase('master')
+    if 'file1 commit' not in utils.stdout(gl.history(_tty_out=False)):
       self.fail()
 
-    # Merge.
-    utils_lib.gl_expect_success('branch branch2')
-    utils_lib.gl_expect_error('merge')  # no upstream set.
-    utils_lib.gl_expect_success('merge master')
-    if 'file1 commit' not in utils_lib.gl_expect_success('history')[0]:
+    # Merge
+    gl.switch('branch2')
+    self.assertRaises(ErrorReturnCode, gl.merge)  # no upstream set
+    gl.merge('master')
+    if 'file1 commit' not in utils.stdout(gl.history(_tty_out=False)):
       self.fail()
 
-    # Conflicting rebase.
-    utils_lib.gl_expect_success('branch branch-conflict1')
-    utils_lib.write_file('file1', 'Conflicting changes to file1')
-    utils_lib.gl_expect_success('commit -m"changes in branch-conflict1"')
-    if 'conflict' not in utils_lib.gl_expect_error('rebase master')[1]:
+    # Conflicting rebase
+    gl.switch('branch-conflict1')
+    utils.write_file('file1', 'Conflicting changes to file1')
+    gl.commit(m='changes in branch-conflict1')
+    err = utils.stderr(gl.rebase('master', _tty_out=False, _ok_code=[1]))
+    if 'conflict' not in err:
       self.fail()
-    if 'file1 (with conflicts)' not in utils_lib.gl_expect_success('status')[0]:
-      self.fail()
-
-    # Try aborting.
-    utils_lib.gl_expect_success('rebase --abort')
-    if 'file1' in utils_lib.gl_expect_success('status')[0]:
+    out = utils.stdout(gl.status(_tty_out=False))
+    if 'file1 (with conflicts)' not in out:
       self.fail()
 
-    # Ok, now let's fix the conflicts.
-    if 'conflict' not in utils_lib.gl_expect_error('rebase master')[1]:
-      self.fail()
-    if 'file1 (with conflicts)' not in utils_lib.gl_expect_success('status')[0]:
+    # Try aborting
+    gl.rebase('--abort')
+    if 'file1' in utils.stdout(gl.status(_tty_out=False)):
       self.fail()
 
-    utils_lib.write_file('file1', 'Fixed conflicts!')
-    utils_lib.gl_expect_error('commit -m"shouldn\'t work (resolve not called)"')
-    utils_lib.gl_expect_error('resolve nonexistentfile')
-    utils_lib.gl_expect_success('resolve file1')
-    utils_lib.gl_expect_success('commit -m"fixed conflicts"')
+    # Ok, now let's fix the conflicts
+    err = utils.stderr(gl.rebase('master', _tty_out=False, _ok_code=[1]))
+    if 'conflict' not in err:
+      self.fail()
+    out = utils.stdout(gl.status(_tty_out=False))
+    if 'file1 (with conflicts)' not in out:
+      self.fail()
+
+    utils.write_file('file1', 'Fixed conflicts!')
+    self.assertRaises(ErrorReturnCode, gl.commit, m='resolve not called')
+    self.assertRaises(ErrorReturnCode, gl.resolve, 'non-existent')
+    gl.resolve('file1')
+    gl.commit(m='fixed conflicts')
 
 
 class TestCommit(TestEndToEnd):
@@ -113,48 +137,50 @@ class TestCommit(TestEndToEnd):
 
   def setUp(self):
     super(TestCommit, self).setUp()
-    utils_lib.write_file(self.TRACKED_FP)
-    utils_lib.write_file(self.UNTRACKED_FP)
-    utils_lib.gl_expect_success('track {0}'.format(self.TRACKED_FP))
+    utils.write_file(self.TRACKED_FP)
+    utils.write_file(self.UNTRACKED_FP)
+    gl.track(self.TRACKED_FP)
 
-  # Happy paths.
+  # Happy paths
   def test_commit(self):
-    utils_lib.gl_expect_success('commit -m"msg"')
+    gl.commit(m='msg')
     self.__assert_commit(self.TRACKED_FP)
 
   def test_commit_only(self):
-    utils_lib.gl_expect_success('commit -m"msg" {0}'.format(self.TRACKED_FP))
+    gl.commit(self.TRACKED_FP, m='msg')
     self.__assert_commit(self.TRACKED_FP)
 
   def test_commit_only_untrack(self):
-    utils_lib.gl_expect_success('commit -m"msg" {0}'.format(self.UNTRACKED_FP))
+    gl.commit(self.UNTRACKED_FP, m='msg')
     self.__assert_commit(self.UNTRACKED_FP)
 
-  def test_commit_inc(self):
-    utils_lib.gl_expect_success(
-        'commit -m"msg" -inc {0}'.format(self.UNTRACKED_FP))
+  def test_commit_include(self):
+    gl.commit(m='msg', include=self.UNTRACKED_FP)
     self.__assert_commit(self.TRACKED_FP, self.UNTRACKED_FP)
 
-  def test_commit_exc_inc(self):
-    utils_lib.gl_expect_success(
-        'commit -m"msg" -inc {0} -exc {1}'.format(
-            self.UNTRACKED_FP, self.TRACKED_FP))
+  def test_commit_exclude_include(self):
+    gl.commit(m='msg', include=self.UNTRACKED_FP, exclude=self.TRACKED_FP)
     self.__assert_commit(self.UNTRACKED_FP)
 
-  # Error paths.
+  # Error paths
   def test_commit_no_files(self):
-    utils_lib.gl_expect_error('commit -m"msg" -exc {0}'.format(self.TRACKED_FP))
-    utils_lib.gl_expect_error('commit -m"msg" nonexistentfp')
-    utils_lib.gl_expect_error('commit -m"msg" -exc nonexistentfp')
-    utils_lib.gl_expect_error('commit -m"msg" -inc nonexistentfp')
+    self.assertRaises(
+        ErrorReturnCode, gl.commit, m='msg', exclude=self.TRACKED_FP)
+    self.assertRaises(ErrorReturnCode, gl.commit, 'non-existent', m='msg')
+    self.assertRaises(
+        ErrorReturnCode, gl.commit, m='msg', exclude='non-existent')
+    self.assertRaises(
+        ErrorReturnCode, gl.commit, m='msg', include='non-existent')
 
   def test_commit_dir(self):
-    utils_lib.write_file('dir/f')
-    utils_lib.gl_expect_error('commit -m"msg" dir')
+    fp = 'dir/f'
+    utils.write_file(fp)
+    gl.commit(fp, m='msg')
+    self.__assert_commit('dir/f')
 
   def __assert_commit(self, *expected_committed):
-    st = utils_lib.gl_expect_success('status')[0]
-    h = utils_lib.gl_expect_success('history -v')[0]
+    st = utils.stdout(gl.status(_tty_out=False))
+    h = utils.stdout(gl.history(v=True, _tty_out=False))
     for fp in expected_committed:
       if fp in st or fp not in h:
         self.fail('{0} was apparently not committed!'.format(fp))
@@ -165,6 +191,38 @@ class TestCommit(TestEndToEnd):
         self.fail('{0} was apparently committed!'.format(fp))
 
 
+class TestStatus(TestEndToEnd):
+
+  DIR = 'dir'
+  TRACKED_DIR_FP = 'dir/file1'
+  TRACKED_DIR_FP = 'dir/file1'
+  UNTRACKED_DIR_FP = 'dir/file2'
+
+  def setUp(self):
+    super(TestStatus, self).setUp()
+    utils.write_file(self.TRACKED_DIR_FP)
+    utils.write_file(self.UNTRACKED_DIR_FP)
+    gl.commit(self.TRACKED_DIR_FP, m='commit')
+
+  def test_status_relative(self):
+    utils.write_file(self.TRACKED_DIR_FP, contents='some modifications')
+    st = utils.stdout(gl.status(_tty_out=False))
+    if self.TRACKED_DIR_FP not in st:
+      self.fail()
+    if self.UNTRACKED_DIR_FP not in st:
+      self.fail()
+
+    os.chdir(self.DIR)
+
+    st = utils.stdout(gl.status(_tty_out=False))
+    rel_tracked = os.path.relpath(self.TRACKED_DIR_FP, self.DIR)
+    rel_untracked = os.path.relpath(self.UNTRACKED_DIR_FP, self.DIR)
+    if (self.TRACKED_DIR_FP in st) or (rel_tracked not in st):
+      self.fail()
+    if (self.UNTRACKED_DIR_FP in st) or (rel_untracked not in st):
+      self.fail()
+
+
 class TestBranch(TestEndToEnd):
 
   BRANCH_1 = 'branch1'
@@ -172,63 +230,84 @@ class TestBranch(TestEndToEnd):
 
   def setUp(self):
     super(TestBranch, self).setUp()
-    utils_lib.write_file('f')
-    utils_lib.gl_expect_success('commit f -msg"commit"')
+    utils.write_file('f')
+    gl.commit('f', m='commit')
 
   def test_create(self):
-    utils_lib.gl_expect_success('branch {0}'.format(self.BRANCH_1))
-    utils_lib.gl_expect_error('branch {0}'.format(self.BRANCH_1))
-    utils_lib.gl_expect_error('branch evil_named_branch')
-    if self.BRANCH_1 not in utils_lib.gl_expect_success('branch')[0]:
+    gl.branch(c=self.BRANCH_1)
+    self.assertRaises(ErrorReturnCode, gl.branch, c=self.BRANCH_1)
+    self.assertRaises(ErrorReturnCode, gl.branch, c='evil*named*branch')
+    if self.BRANCH_1 not in utils.stdout(gl.branch(_tty_out=False)):
       self.fail()
 
   def test_remove(self):
-    utils_lib.gl_expect_success('branch {0}'.format(self.BRANCH_1))
-    utils_lib.gl_expect_error('branch -d {0}'.format(self.BRANCH_1))
-    utils_lib.gl_expect_success('branch {0}'.format(self.BRANCH_2))
-    utils_lib.gl_expect_success(
-        'branch -d {0}'.format(self.BRANCH_1), pre_cmd='echo "n"')
-    utils_lib.gl_expect_success(
-        'branch -d {0}'.format(self.BRANCH_1), pre_cmd='echo "y"')
-    if self.BRANCH_1 in utils_lib.gl_expect_success('branch')[0]:
+    gl.branch(c=self.BRANCH_1)
+    gl.switch(self.BRANCH_1)
+    self.assertRaises(ErrorReturnCode, gl.branch, d=self.BRANCH_1, _in='y')
+    gl.branch(c=self.BRANCH_2)
+    gl.switch(self.BRANCH_2)
+    gl.branch(d=self.BRANCH_1, _in='n')
+    gl.branch(d=self.BRANCH_1, _in='y')
+    if self.BRANCH_1 in utils.stdout(gl.branch(_tty_out=False)):
       self.fail()
 
+  def test_upstream(self):
+    self.assertRaises(ErrorReturnCode, gl.branch, '-uu')
+    self.assertRaises(ErrorReturnCode, gl.branch, '-su', 'non-existent')
+    self.assertRaises(
+        ErrorReturnCode, gl.branch, '-su', 'non-existent/non-existent')
 
-class TestDiff(TestEndToEnd):
+
+class TestDiffFile(TestEndToEnd):
 
   TRACKED_FP = 't_fp'
   UNTRACKED_FP = 'u_fp'
 
   def setUp(self):
-    super(TestDiff, self).setUp()
-    utils_lib.write_file(self.TRACKED_FP)
-    utils_lib.gl_expect_success(
-        'commit {0} -msg"commit"'.format(self.TRACKED_FP))
-    utils_lib.write_file(self.UNTRACKED_FP)
+    super(TestDiffFile, self).setUp()
+    utils.write_file(self.TRACKED_FP)
+    gl.commit(self.TRACKED_FP, m="commit")
+    utils.write_file(self.UNTRACKED_FP)
 
   def test_empty_diff(self):
-    if 'Nothing to diff' not in utils_lib.gl_expect_success('diff')[0]:
+    if 'Nothing to diff' not in utils.stdout(gl.diff(_tty_out=False)):
       self.fail()
 
   def test_diff_nonexistent_fp(self):
-    _, err = utils_lib.gl_expect_error('diff {0}'.format('file'))
+    err = utils.stderr(gl.diff('file', _ok_code=[1], _tty_out=False))
     if 'non-existent' not in err:
       self.fail()
 
   def test_basic_diff(self):
-    utils_lib.write_file(self.TRACKED_FP, contents='contents')
-    out1 = utils_lib.gl_expect_success('diff')[0]
+    utils.write_file(self.TRACKED_FP, contents='contents')
+    out1 = utils.stdout(gl.diff(_tty_out=False))
     if '+contents' not in out1:
       self.fail()
-    out2 = utils_lib.gl_expect_success('diff {0}'.format(self.TRACKED_FP))[0]
+    out2 = utils.stdout(gl.diff(self.TRACKED_FP, _tty_out=False))
     if '+contents' not in out2:
       self.fail()
     self.assertEqual(out1, out2)
 
+  def test_diff_dir(self):
+    fp = 'dir/dir/f'
+    utils.write_file(fp, contents='contents')
+    out = utils.stdout(gl.diff(fp, _tty_out=False))
+    if '+contents' not in out:
+      self.fail()
 
-# TODO(sperezde): add more performance tests to check that we're not dropping
-# the ball: We should try to keep Gitless's performance reasonably close to
-# Git's.
+  def test_diff_non_ascii(self):
+    contents = '’◕‿◕’©Ä☺’ಠ_ಠ’'
+    utils.write_file(self.TRACKED_FP, contents=contents)
+    out1 = utils.stdout(gl.diff(_tty_out=False))
+    if '+' + contents not in out1:
+      self.fail('out is ' + out1)
+    out2 = utils.stdout(gl.diff(self.TRACKED_FP, _tty_out=False))
+    if '+' + contents not in out2:
+      self.fail('out is ' + out2)
+    self.assertEqual(out1, out2)
+
+
+
 class TestPerformance(TestEndToEnd):
 
   FPS_QTY = 10000
@@ -237,7 +316,7 @@ class TestPerformance(TestEndToEnd):
     super(TestPerformance, self).setUp()
     for i in range(0, self.FPS_QTY):
       fp = 'f' + str(i)
-      utils_lib.write_file(fp, fp)
+      utils.write_file(fp, fp)
 
   def test_status_performance(self):
     """Assert that gl status is not too slow."""
@@ -248,22 +327,22 @@ class TestPerformance(TestEndToEnd):
       MAX_TOLERANCE = 100
 
       t = time.time()
-      utils_lib.gl_call('status')
+      gl.status()
       gl_t = time.time() - t
 
       t = time.time()
-      utils_lib.git_call('status')
+      git.status()
       git_t = time.time() - t
 
       self.assertTrue(
           gl_t < git_t*MAX_TOLERANCE,
           msg='gl_t {0}, git_t {1}'.format(gl_t, git_t))
 
-    # All files are untracked.
+    # All files are untracked
     assert_status_performance()
-    # Track all files, repeat.
+    # Track all files, repeat
     logging.info('Doing a massive git add, this might take a while')
-    utils_lib.git_call('add .')
+    git.add('.')
     logging.info('Done')
     assert_status_performance()
 
@@ -271,28 +350,23 @@ class TestPerformance(TestEndToEnd):
     """Assert that switching branches is not too slow."""
     MAX_TOLERANCE = 100
 
-    # Temporary hack until we get stuff working smoothly when the repo has no
-    # commits.
-    utils_lib.gl_call('commit -m"commit" f1')
+    gl.commit('f1', m='commit')
 
     t = time.time()
-    utils_lib.gl_call('branch develop')
+    gl.branch(c='develop')
+    gl.switch('develop')
     gl_t = time.time() - t
 
-    # go back to previous state.
-    utils_lib.gl_call('branch master')
+    # go back to previous state
+    gl.switch('master')
 
-    # do the same for git.
+    # do the same for git
     t = time.time()
-    utils_lib.git_call('branch gitdev')
-    utils_lib.git_call('stash save --all')
-    utils_lib.git_call('checkout gitdev')
+    git.branch('gitdev')
+    git.stash.save('--all')
+    git.checkout('gitdev')
     git_t = time.time() - t
 
     self.assertTrue(
         gl_t < git_t*MAX_TOLERANCE,
         msg='gl_t {0}, git_t {1}'.format(gl_t, git_t))
-
-
-if __name__ == '__main__':
-  unittest.main()

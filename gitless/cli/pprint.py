@@ -1,20 +1,38 @@
+# -*- coding: utf-8 -*-
 # Gitless - a version control system built on top of Git.
 # Licensed under GNU GPL v2.
 
 """Module for pretty printing Gitless output."""
 
 
-from clint.textui import puts
+from __future__ import unicode_literals
 
+from collections import namedtuple
+from locale import getpreferredencoding
 import re
 import sys
 
-from gitless.core import file as file_lib
+from clint.textui import colored
+from clint.textui import puts as clint_puts
 
 
 SEP = (
     '##########################################################################'
     '######')
+
+
+IS_PY2 = sys.version_info[0] == 2
+ENCODING = getpreferredencoding() or 'utf-8'
+
+
+def puts(s='', newline=True, stream=sys.stdout.write):
+  assert not IS_PY2 or (
+      isinstance(s, unicode) or isinstance(s, colored.ColoredString))
+
+  if IS_PY2:
+    s = s.encode(ENCODING)
+  clint_puts(s, newline=newline, stream=stream)
+
 
 # Stdout.
 
@@ -52,7 +70,7 @@ def err_blank():
   blank(p=sys.stderr.write)
 
 
-def err_item(i, opt_text='', p=sys.stderr.write):
+def err_item(i, opt_text=''):
   item(i, opt_text, p=sys.stderr.write)
 
 
@@ -89,74 +107,117 @@ def get_user_input(text='> '):
   return input(text)
 
 
-def dir_err_exp(fp, subcmd):
-  """Prints the dir error exp to stderr."""
-  err('{0} is a directory. Can\'t {1} a directory'.format(fp, subcmd))
+def diff(patch, stream=sys.stdout.write):
+  # Diff header
+
+  puts('Diff of file "{0}"'.format(patch.old_file_path), stream=stream)
+  if patch.old_file_path != patch.new_file_path:
+    puts(colored.cyan(
+        ' (renamed to {0})'.format(patch.new_file_path)), stream=stream)
+    puts(stream=stream)
+
+  if patch.is_binary:
+    puts('Not showing diffs for binary file', stream=stream)
+    return
+
+  if (not patch.additions) and (not patch.deletions):
+    puts('No diffs to output for file', stream=stream)
+    return
+
+  additions = patch.additions
+  deletions = patch.deletions
+  put_s = lambda num: '' if num == 1 else 's'
+  puts('{0} line{1} added'.format(additions, put_s(additions)), stream=stream)
+  puts('{0} line{1} removed'.format(deletions, put_s(deletions)), stream=stream)
+  puts(stream=stream)
+
+  # Diff body
+
+  for hunk in patch.hunks:
+    puts(stream=stream)
+    _hunk(hunk, stream=stream)
 
 
-def diff(processed_diff, max_line_digits, p=sys.stdout.write):
-  """Uses line-by-line diff information to format lines nicely.
+LineData = namedtuple(
+  'LineData', ['st', 'line', 'old_line_number', 'new_line_number'])
 
-  Args:
-    processed_diff: a list of LineData objects.
-    max_line_digits: largest number of digits in a line number (for padding).
-    p: a writer function (defaults to sys.stdout.write).
 
-  Returns:
-    a list of strings making up the formatted diff output.
-  """
+def _hunk(hunk, stream=sys.stdout.write):
+  puts(colored.cyan('@@ -{0},{1} +{2},{3} @@'.format(
+      hunk.old_start, hunk.old_lines, hunk.new_start, hunk.new_lines)),
+      stream=stream)
+  padding = _padding(hunk)
 
-  def is_unchanged(status):
-    """Check if a diff status code does not correspond to + or -.
+  del_line, add_line, maybe_bold, saw_add = None, None, False, False
+  old_line_number, new_line_number = hunk.old_start, hunk.new_start
 
-    Args:
-      status: status code of a line.
+  ld = lambda st, line: LineData(st, line, old_line_number, new_line_number)
 
-    Returns:
-      True if status is file_lib.DIFF_SAME or file_lib.DIFF_INFO.
-    """
-    return status == file_lib.DIFF_SAME or status == file_lib.DIFF_INFO
+  for st, line in hunk.lines:
+    assert not IS_PY2 or isinstance(line, unicode)
+    line = line.rstrip('\n')
 
-  processed = []
-  for index, line_data in enumerate(processed_diff):
-    # check if line is a single line diff (do diff within line if so).
-    # condition: The current line was ADDED to the file AND
-    # the line after is non-existent or unchanged AND
-    # the line before was removed from the file AND
-    # the line two before is non-existent or unchanged.
-    # In other words: bold if only one line was changed in this area.
-    if (line_data.status == file_lib.DIFF_ADDED and
-       (index == len(processed_diff) - 1 or
-           is_unchanged(processed_diff[index + 1].status)) and
-       (index - 1 >= 0 and
-           processed_diff[index - 1].status == file_lib.DIFF_MINUS) and
-       (index - 2 < 0 or is_unchanged(processed_diff[index - 2].status))):
-      interest = _highlight(
-          processed_diff[index - 1].line[1:], line_data.line[1:])
-      if interest:
-        # show changed line with bolded diff in both red and green.
-        starts, ends = interest
-        # first bold negative diff.
-        processed[-1] = _format_line(
-            processed_diff[index - 1], max_line_digits,
-            bold_delim=(starts[0], ends[0]))
-        processed += [_format_line(
-            line_data, max_line_digits, bold_delim=(starts[1], ends[1]))]
-      else:
-        processed += [_format_line(line_data, max_line_digits)]
+    if st == '-' and not maybe_bold:
+      maybe_bold = True
+      del_line = ld(st, line)
+      old_line_number += 1
+    elif st == '+' and maybe_bold and not saw_add:
+      saw_add = True
+      add_line = ld(st, line)
+      new_line_number += 1
+    elif st == ' ' and maybe_bold and saw_add:
+      bold1, bold2 = _highlight(del_line.line, add_line.line)
+
+      puts(_format_line(del_line, padding, bold_delim=bold1), stream=stream)
+      puts(_format_line(add_line, padding, bold_delim=bold2), stream=stream)
+
+      del_line, add_line, maybe_bold, saw_add = None, None, False, False
+
+      puts(_format_line(ld(st, line), padding), stream=stream)
+      old_line_number += 1
+      new_line_number += 1
     else:
-      processed += [_format_line(line_data, max_line_digits)]
-  # TODO: print as we process.
-  return p('\n'.join(processed) + '\n')
+      if del_line:
+        puts(_format_line(del_line, padding), stream=stream)
+      if add_line:
+        puts(_format_line(add_line, padding), stream=stream)
+
+      del_line, add_line, maybe_bold, saw_add = None, None, False, False
+
+      puts(_format_line(ld(st, line), padding), stream=stream)
+
+      if st == '-':
+        old_line_number += 1
+      elif st == '+':
+        new_line_number += 1
+      else:
+        old_line_number += 1
+        new_line_number += 1
 
 
-def _format_line(line_data, max_line_digits, bold_delim=None):
+  if maybe_bold and saw_add:
+    bold1, bold2 = _highlight(del_line.line, add_line.line)
+
+    puts(_format_line(del_line, padding, bold_delim=bold1), stream=stream)
+    puts(_format_line(add_line, padding, bold_delim=bold2), stream=stream)
+  else:
+    if del_line:
+      puts(_format_line(del_line, padding), stream=stream)
+    if add_line:
+      puts(_format_line(add_line, padding), stream=stream)
+
+
+def _padding(hunk):
+  MIN_LINE_PADDING = 8
+
+  max_line_number = max([
+    hunk.old_start + hunk.old_lines, hunk.new_start + hunk.new_lines])
+  max_line_digits = len(str(max_line_number))
+  return max(MIN_LINE_PADDING, max_line_digits + 1)
+
+
+def _format_line(line_data, padding, bold_delim=None):
   """Format a standard diff line.
-
-  Args:
-    line_data: a namedtuple with the line info to be formatted.
-    max_line_digits: maximum number of digits in a line number (for padding).
-    bold_delim: optional arg indicate where to start/end bolding.
 
   Returns:
     a colored version of the diff line using ANSI control characters.
@@ -168,17 +229,17 @@ def _format_line(line_data, max_line_digits, bold_delim=None):
   RED_BOLD = '\033[1;31m'
   CLEAR = '\033[0m'
 
-  line = line_data.line
   formatted = ''
+  line = line_data.st + line_data.line
 
-  if line_data.status == file_lib.DIFF_SAME:
+  if line_data.st == ' ':
     formatted = (
-        str(line_data.old_line_number).ljust(max_line_digits) +
-        str(line_data.new_line_number).ljust(max_line_digits) + line)
-  elif line_data.status == file_lib.DIFF_ADDED:
+        str(line_data.old_line_number).ljust(padding) +
+        str(line_data.new_line_number).ljust(padding) + line)
+  elif line_data.st == '+':
     formatted = (
-        ' ' * max_line_digits + GREEN +
-        str(line_data.new_line_number).ljust(max_line_digits))
+        ' ' * padding + GREEN +
+        str(line_data.new_line_number).ljust(padding))
     if not bold_delim:
       formatted += line
     else:
@@ -186,10 +247,10 @@ def _format_line(line_data, max_line_digits, bold_delim=None):
       formatted += (
           line[:bold_start] + GREEN_BOLD + line[bold_start:bold_end] + CLEAR +
           GREEN + line[bold_end:])
-  elif line_data.status == file_lib.DIFF_MINUS:
+  elif line_data.st == '-':
     formatted = (
-        RED + str(line_data.old_line_number).ljust(max_line_digits) +
-        ' ' * max_line_digits)
+        RED + str(line_data.old_line_number).ljust(padding) +
+        ' ' * padding)
     if not bold_delim:
       formatted += line
     else:
@@ -197,8 +258,6 @@ def _format_line(line_data, max_line_digits, bold_delim=None):
       formatted += (
           line[:bold_start] + RED_BOLD + line[bold_start:bold_end] +
           CLEAR + RED + line[bold_end:])
-  elif line_data.status == file_lib.DIFF_INFO:
-    formatted = CLEAR + '\n' + line
 
   return formatted + CLEAR
 
@@ -206,13 +265,9 @@ def _format_line(line_data, max_line_digits, bold_delim=None):
 def _highlight(line1, line2):
   """Returns the sections that should be bolded in the given lines.
 
-  Args:
-    line1: a line from a diff output without the first status character.
-    line2: see line1
-
   Returns:
-    two tuples. The first tuple indicates the starts of where to bold
-    and the second tuple indicated the ends.
+    two tuples. Each tuple indicates the start and end of the section
+    of the line that should be bolded for line1 and line2 respectively.
    """
   start1 = start2 = 0
   match = re.search(r'\S', line1)  # ignore leading whitespace.
@@ -237,5 +292,5 @@ def _highlight(line1, line2):
     bold_end1 -= 1
     bold_end2 -= 1
   if bold_start1 - start1 > 0 or len(line1) - 1 - bold_end1 > 0:
-    return (bold_start1 + 1, bold_start2 + 1), (bold_end1 + 2, bold_end2 + 2)
-  return None
+    return (bold_start1 + 1, bold_end1 + 2), (bold_start2 + 1, bold_end2 + 2)
+  return None, None

@@ -1,76 +1,127 @@
+# -*- coding: utf-8 -*-
 # Gitless - a version control system built on top of Git.
 # Licensed under GNU GPL v2.
 
-"""Unit tests for remote module."""
+"""Unit tests for remote related operations."""
 
 
-import unittest
+from __future__ import unicode_literals
+
+import io
+from locale import getpreferredencoding
+import os
+import shutil
+import tempfile
+
+from sh import git
+
+from gitless import core
 
 from . import common
-from . import stubs
 
-import gitless.core.remote as remote_lib
 
+ENCODING = getpreferredencoding() or 'utf-8'
+
+REMOTE_BRANCH = 'rb'
 
 
 class TestRemote(common.TestCore):
   """Base class for remote tests."""
 
   def setUp(self):
+    """Creates temporary local Git repo to use as the remote."""
     super(TestRemote, self).setUp()
-    # Re-stub the module with a fresh RemoteLib instance.
-    # This keeps unit tests independent between each other.
-    common.stub(remote_lib.git_remote, stubs.RemoteLib())
+
+    # Create a repo to use as the remote
+    self.remote_path = tempfile.mkdtemp(prefix='gl-remote-test')
+    os.chdir(self.remote_path)
+    remote_repo = core.init_repository()
+    remote_repo.create_branch(
+        REMOTE_BRANCH, remote_repo.revparse_single('HEAD'))
+
+    # Go back to the original repo
+    os.chdir(self.path)
+    self.remotes = self.repo.remotes
 
 
-class TestAdd(TestRemote):
-
-  def test_add_new(self):
-    self.assertEqual(remote_lib.SUCCESS, remote_lib.add('remote', 'url'))
-
-  def test_add_existing(self):
-    remote_lib.add('remote', 'url')
-    self.assertEqual(
-        remote_lib.REMOTE_ALREADY_SET, remote_lib.add('remote', 'url2'))
-
-  def test_add_invalid_name(self):
-    self.assertEqual(remote_lib.INVALID_NAME, remote_lib.add('rem/ote', 'url'))
+  def tearDown(self):
+    """Removes the temporary dir."""
+    super(TestRemote, self).tearDown()
+    shutil.rmtree(self.remote_path)
 
 
-class TestInfo(TestRemote):
+class TestCreate(TestRemote):
 
-  def test_info_nonexistent(self):
-    self.assertEqual(
-        remote_lib.REMOTE_NOT_FOUND, remote_lib.info('nonexistent_remote')[0])
+  def test_create_new(self):
+    self.remotes.create('remote', self.remote_path)
 
-  def test_info(self):
-    remote_lib.add('remote', 'url')
-    self.assertEqual(remote_lib.SUCCESS, remote_lib.info('remote')[0])
+  def test_create_existing(self):
+    self.remotes.create('remote', self.remote_path)
+    self.assertRaises(
+        ValueError, self.remotes.create, 'remote', self.remote_path)
+
+  def test_create_invalid_name(self):
+    self.assertRaises(ValueError, self.remotes.create, 'rem/ote', 'url')
+
+  def test_create_invalid_url(self):
+    self.assertRaises(ValueError, self.remotes.create, 'remote', '')
 
 
-class TestInfoAll(TestRemote):
+class TestListAll(TestRemote):
 
-  def test_info_all(self):
-    remote_lib.add('remote1', 'url1')
-    remote_lib.add('remote2', 'url2')
+  def test_list_all(self):
+    self.remotes.create('remote1', self.remote_path)
+    self.remotes.create('remote2', self.remote_path)
     self.assertItemsEqual(
-        [remote_lib.RemoteInfo('remote1', 'url1', 'url1'),
-         remote_lib.RemoteInfo('remote2', 'url2', 'url2')],
-        remote_lib.info_all())
+        ['remote1', 'remote2'], [r.name for r in self.remotes])
 
 
 class TestRm(TestRemote):
 
   def test_rm(self):
-    remote_lib.add('remote', 'url')
-    self.assertEqual(remote_lib.SUCCESS, remote_lib.rm('remote'))
+    self.remotes.create('remote', self.remote_path)
+    self.remotes.delete('remote')
 
   def test_rm_nonexistent(self):
-    self.assertEqual(remote_lib.REMOTE_NOT_FOUND, remote_lib.rm('remote'))
-    remote_lib.add('remote', 'url')
-    remote_lib.rm('remote')
-    self.assertEqual(remote_lib.REMOTE_NOT_FOUND, remote_lib.rm('remote'))
+    self.assertRaises(KeyError, self.remotes.delete, 'remote')
+    self.remotes.create('remote', self.remote_path)
+    self.remotes.delete('remote')
+    self.assertRaises(KeyError, self.remotes.delete, 'remote')
 
 
-if __name__ == '__main__':
-  unittest.main()
+class TestSync(TestRemote):
+
+  def setUp(self):
+    super(TestSync, self).setUp()
+
+    with io.open('foo', mode='w', encoding=ENCODING) as f:
+      f.write('foo')
+
+    git.add('foo')
+    git.commit('foo', m='msg')
+
+    self.repo.remotes.create('remote', self.remote_path)
+    self.remote = self.repo.remotes['remote']
+
+  def test_sync_changes(self):
+    master_head_before = self.remote.lookup_branch('master').head
+    remote_branch = self.remote.lookup_branch(REMOTE_BRANCH)
+    remote_branch_head_before = remote_branch.head
+
+    current_branch = self.repo.current_branch
+    # It is not a ff so it should fail
+    self.assertRaises(core.GlError, current_branch.publish, remote_branch)
+    # Get the changes
+    current_branch.rebase(remote_branch)
+    # Retry (this time it should work)
+    current_branch.publish(remote_branch)
+
+    self.assertItemsEqual(
+        ['master', REMOTE_BRANCH], self.remote.listall_branches())
+    self.assertEqual(
+        master_head_before.id, self.remote.lookup_branch('master').head.id)
+
+    self.assertNotEqual(
+        remote_branch_head_before.id,
+        remote_branch.head.id)
+    self.assertEqual(current_branch.head.id, remote_branch.head.id)

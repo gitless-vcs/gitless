@@ -1,45 +1,43 @@
+# -*- coding: utf-8 -*-
 # Gitless - a version control system built on top of Git.
 # Licensed under GNU GPL v2.
 
 """gl publish - Publish commits upstream."""
 
 
-from gitless.core import sync as sync_lib
+from __future__ import unicode_literals
 
+from . import helpers
 from . import pprint
 
 
 def parser(subparsers):
   """Adds the publish parser to the given subparsers object."""
-  push_parser = subparsers.add_parser(
+  publish_parser = subparsers.add_parser(
       'publish', help='publish commits upstream')
-  push_parser.set_defaults(func=main)
+  publish_parser.add_argument(
+      'branch', nargs='?', help='the branch where to publish commits')
+  publish_parser.set_defaults(func=main)
 
 
-def main(_):
-  ret, out = sync_lib.publish()
-  success = True
+def main(args, repo):
+  current_b = repo.current_branch
 
-  if ret == sync_lib.SUCCESS:
-    # Disable pylint's superflous-parens warning (they are not superflous
-    # in this case -- python 2/3 compatibility).
-    # pylint: disable=C0325
-    print(out)
-  elif ret == sync_lib.UPSTREAM_NOT_SET:
-    pprint.err('Current branch has no upstream set')
-    pprint.err_exp(
-        'to set an upstream branch do gl branch --set-upstream '
-        'remote/remote_branch')
-    success = False
-  elif ret == sync_lib.NOTHING_TO_PUSH:
-    pprint.err('No commits to publish')
-    success = False
-  elif ret == sync_lib.PUSH_FAIL:
-    pprint.err(
-        'Publish failed, there are conflicting changes you need to converge')
-    pprint.err_exp('use gl rebase or gl merge to converge the upstream changes')
-    success = False
+  dst_branch = None
+  if not args.branch:
+    # We use the upstream branch, if any
+    if not current_b.upstream:
+      pprint.err(
+          'No dst branch specified and the current branch has no upstream '
+          'branch set')
+      return False
+    dst_branch = current_b.upstream
+    pprint.msg(
+        'No dst branch specified, defaulted to publishing changes to upstream '
+        'branch {0}'.format(helpers.get_branch_name(dst_branch)))
   else:
-    raise Exception('Unrecognized ret code {0}'.format(ret))
+    dst_branch = helpers.get_branch(args.branch, repo)
 
-  return success
+  repo.current_branch.publish(dst_branch)
+  pprint.msg('Publish succeeded')
+  return True
