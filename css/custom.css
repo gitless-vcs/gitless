@@ -36,6 +36,9 @@ h4 {
   margin:0px 0px .5em 0px;
 }
 
+@media (max-width: 970px) {
+  #ribbon { display: none; }
+}
 
 #header {
   position: relative;

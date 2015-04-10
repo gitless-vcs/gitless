@@ -15,8 +15,13 @@
 </head>
 
 <body>
-
-  <div id="container" >
+  <div id="ribbon">
+  <a href="https://github.com/sdg-mit/gitless">
+    <img style="position: absolute; top: 0; right: 0; border: 0;"
+     src="fork-me.png" alt="Fork me on GitHub">
+  </a>
+  </div>
+  <div id="container">
 
     <div id="header" class="full top_margin_20">
      <img src="gitless-banner.png" alt="gitless" width="600px" />
@@ -97,12 +102,12 @@
         <ul>
           <li>
             <code><a href="#gl-init">gl init</a></code>
-            - create an empty repository or create one from an existing remote
-              repository
+            - create an empty repo or create one from an existing remote
+              repo
           </li>
           <li>
             <code><a href="#gl-status">gl status</a></code>
-            - show status of the repository
+            - show status of the repo
           </li>
           <li>
             <code><a href="#gl-track">gl track</a></code>
@@ -118,7 +123,7 @@
             </a>
           <li>
             <code><a href="#gl-commit">gl commit</a></code>
-            - record changes in the local repository
+            - record changes in the local repo
           </li>
           <li>
             <code><a href="#gl-checkout">gl checkout</a></code>
@@ -171,10 +176,12 @@
       are now ready to start recording changes to files in <code>foo</code>.
       </p>
       <pre>
+      <code>
       $ mdkir foo
       $ cd foo/
       $ gl init
       # Local repo created in '/MyFiles/foo'
+      </code>
       </pre>
       <p>
       In most cases, there's probably already some existing repository that you
@@ -184,12 +191,14 @@
       to the same <code>gl init</code> command. 
       </p>
       <pre>
+      <code>
       $ mkdir experiment
       $ cd experiment/
       $ gl init https://github.com/spderosso/experiment.git
       # Local repo created in '/MyFiles/foo'
       # Initialized from remote
       # 'https://github.com/spderosso/experiment.git'
+      </code>
       </pre>
       </p>
       <a name="file"><h4>File</h4></a>
@@ -226,6 +235,7 @@
       ignored file):
       </p>
       <pre>
+      <code>
       $ ls
       bar.py  foo.py  foo.py~ .gitignore
       $ gl status
@@ -246,6 +256,7 @@
       #   (use gl track &lt;f&gt; if you want to track changes to file f)
       #
       #     bar.py
+      </code>
       </pre>
 
       <p>
@@ -315,15 +326,18 @@
       <a name="gl-switch">gl switch</a> command.
       </p>
       <pre>
+      <code>
       $ gl branch -c my-branch
       # Created new branch my-branch
       $ gl switch my-branch
       # Switched to branch my-branch
+      </code>
       </pre>
       <p>
       To list all available branches:
       </p>
       <pre>
+      <code>
       $ gl branch
       # List of branches:
       #   (do gl branch &lt;b&gt; to create branch b)
@@ -333,6 +347,7 @@
       #
       #     * master
       #       my-branch
+      </code>
       </pre>
 
       <p>
@@ -398,11 +413,13 @@
       For example, let's add my GitHub experiment repository as a remote:
       </p>
       <pre>
+      <code>
       $ gl remote -c experiment https://github.com/spderosso/experiment.git
       # Remote experiment mapping to
       # https://github.com/spderosso/experiment.git created successfully
       #   (to list existing remotes do gl remote)
       #   (to remove experiment do gl remote -d experiment)
+      </code>
       </pre>
       <p>
       And then you can use experiment/branch as a shorthand for referring to a
