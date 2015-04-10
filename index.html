@@ -194,10 +194,9 @@
       <code>
       $ mkdir experiment
       $ cd experiment/
-      $ gl init https://github.com/spderosso/experiment.git
+      $ gl init https://github.com/spderosso/experiment
       # Local repo created in '/MyFiles/foo'
-      # Initialized from remote
-      # 'https://github.com/spderosso/experiment.git'
+      # Initialized from remote 'https://github.com/spderosso/experiment'
       </code>
       </pre>
       </p>
@@ -208,7 +207,7 @@
       </p>
 
       <p>
-      <b>Tracked File</b>
+      <em>Tracked File.</em>
       A tracked file is a file whose changes Gitless will automatically detect.
       Tracked files are automatically considered for commit if they are
       modified. These will appear under the "Tracked files with modifications"
@@ -216,14 +215,14 @@
       command.
       </p>
       <p>
-      <b>Untracked File</b>
+      <em>Untracked File.</em>
       Conversely, an untracked file is a file whose changes Gitless will not
       automatically detect and is listed under the "Untracked files" section of
       the <code>gl status</code> command. These are not automatically considered
       for commit.
       </p>
       <p>
-      <b>Ignored File</b>
+      <em>Ignored File.</em>
       An ignored file is a file that is completely ignored by Gitless. These won't
       even appear in the output of the <code>gl status</code> command.
       </p>
@@ -243,10 +242,8 @@
       #
       # Tracked files with modifications:
       #   (these will be automatically considered for commit)
-      #   (use gl untrack &lt;f&gt; if you don't want to track changes
-      #    to file f)
-      #   (if file f was committed before, use gl checkout &lt;f&gt;
-      #    to discard local changes)
+      #   (use gl untrack &lt;f&gt; if you don't want to track changes to file f)
+      #   (if file f was committed before, use gl checkout &lt;f&gt; to discard local changes)
       #
       #     foo.py
       #
@@ -378,7 +375,7 @@
       Of course, it is also possible to merge or rebase changes from remote
       branches, or branches that are in remote repositories (not in your local
       repository). Let's say "experiment" stands for the remote at 
-      https://github.com/spderosso/experiment.git and that master is a branch
+      https://github.com/spderosso/experiment and that master is a branch
       present in that remote repository. If so, doing
       <code>gl merge experiment/master</code>
       would merge any changes in that remote branch that are not present in your
@@ -414,9 +411,8 @@
       </p>
       <pre>
       <code>
-      $ gl remote -c experiment https://github.com/spderosso/experiment.git
-      # Remote experiment mapping to
-      # https://github.com/spderosso/experiment.git created successfully
+      $ gl remote -c experiment https://github.com/spderosso/experiment
+      # Remote experiment mapping to https://github.com/spderosso/experiment created successfully
       #   (to list existing remotes do gl remote)
       #   (to remove experiment do gl remote -d experiment)
       </code>
