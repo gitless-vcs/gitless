@@ -3,8 +3,6 @@ pre, code {
   font-size: 0.9em;
 }
 
-pre.inline { display: inline; }
-
 a:link, a:visited { color: #00aa00; }
 
 h1 {

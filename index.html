@@ -95,20 +95,67 @@
         command is introduced)
         </p>
         <ul>
-          <li><a href="#gl-init"><pre class="inline">gl init</pre></a></li>
-          <li><a href="#gl-status"><pre class="inline">gl status</pre></a></li>
-          <li><a href="#gl-track"><pre class="inline">gl track</pre></a></li>
-          <li><a href="#gl-untrack"><pre class="inline">gl untrack</pre></a></li>
-          <li><a href="#gl-commit"><pre class="inline">gl commit</pre></a></li>
-          <li><a href="#gl-checkout"><pre class="inline">gl checkout</pre></a></li>
-          <li><a href="#gl-history"><pre class="inline">gl history</pre></a></li>
-          <li><a href="#gl-branch"><pre class="inline">gl branch</pre></a></li>
-          <li><a href="#gl-switch"><pre class="inline">gl switch</pre></a></li>
-          <li><a href="#gl-merge"><pre class="inline">gl merge</pre></a></li>
-          <li><a href="#gl-rebase"><pre class="inline">gl rebase</pre></a></li>
-          <li><a href="#gl-resolve"><pre class="inline">gl resolve</pre></a></li>
-          <li><a href="#gl-publish"><pre class="inline">gl publish</pre></a></li>
-          <li><a href="#gl-remote"><pre class="inline">gl remote</pre></a></li>
+          <li>
+            <code><a href="#gl-init">gl init</a></code>
+            - create an empty repository or create one from an existing remote
+              repository
+          </li>
+          <li>
+            <code><a href="#gl-status">gl status</a></code>
+            - show status of the repository
+          </li>
+          <li>
+            <code><a href="#gl-track">gl track</a></code>
+            - start tracking changes to files
+          </li>
+          <li>
+            <code><a href="#gl-untrack">gl untrack</a></code>
+            - stop tracking changes to files
+          </li>
+          <li>
+            <code><a href="#gl-diff">gl diff</a></code>
+            - show changes to files
+            </a>
+          <li>
+            <code><a href="#gl-commit">gl commit</a></code>
+            - record changes in the local repository
+          </li>
+          <li>
+            <code><a href="#gl-checkout">gl checkout</a></code>
+            - checkout committed versions of files
+          </li>
+          <li>
+            <code><a href="#gl-history">gl history</a></code>
+            - show commit history
+          </li>
+          <li>
+            <code><a href="#gl-branch">gl branch</a></code>
+            - list, create, edit or delete branches
+          </li>
+          <li>
+            <code><a href="#gl-switch">gl switch</a></code>
+            - switch branches
+          </li>
+          <li>
+            <code><a href="#gl-merge">gl merge</a></code>
+            - merge the divergent changes of one branch onto another
+          </li>
+          <li>
+            <code><a href="#gl-rebase">gl rebase</a></code>
+            - rebase the divergent changes of one branch onto another
+          </li>
+          <li>
+            <code><a href="#gl-resolve">gl resolve</a></code>
+            -  mark files with conflicts as resolved
+          </li>
+          <li>
+            <code><a href="#gl-publish">gl publish</a></code>
+            - publish commits upstream
+          </li>
+          <li>
+            <code><a href="#gl-remote">gl remote</a></code>
+            - list, create, edit or delete remotes
+          </li>
         </ul>
       <!-- End Documentation/Commands -->
 
@@ -222,7 +269,9 @@
       automatically a tracked file. You can stop tracking changes to a tracked file
       with the <code><a name="gl-untrack">gl untrack</a></code> command.
       You can always revert a file back to some previous version with the
-      <code><a name="gl-checkout">gl checkout</a></code> command.
+      <code><a name="gl-checkout">gl checkout</a></code> command, and
+      <code><a name="gl-diff">gl diff</a></code> can be used to see the
+      difference between the working and comitted versions of files.
       </p>
       <p>
       As previously said, all tracked and modified files are automatically
