@@ -103,6 +103,7 @@
           <li><a href="#gl-checkout"><pre class="inline">gl checkout</pre></a></li>
           <li><a href="#gl-history"><pre class="inline">gl history</pre></a></li>
           <li><a href="#gl-branch"><pre class="inline">gl branch</pre></a></li>
+          <li><a href="#gl-switch"><pre class="inline">gl switch</pre></a></li>
           <li><a href="#gl-merge"><pre class="inline">gl merge</pre></a></li>
           <li><a href="#gl-rebase"><pre class="inline">gl rebase</pre></a></li>
           <li><a href="#gl-resolve"><pre class="inline">gl resolve</pre></a></li>
@@ -139,6 +140,7 @@
       $ mkdir experiment
       $ cd experiment/
       $ gl init https://github.com/spderosso/experiment.git
+      # Local repo created in '/MyFiles/foo'
       # Initialized from remote
       # 'https://github.com/spderosso/experiment.git'
       </pre>
@@ -239,11 +241,11 @@
         <li>
         But what if you want to commit all of the tracked modified files but
         leave one of them out? Having to list them all seems annoying. You
-        can do <code>gl commit -exc f</code> to exclude that file
+        can do <code>gl commit -e f</code> to exclude that file
         <code>f</code> you don't want to commit right now.
         </li>
         <li>
-        Additionally you can use the <code>-inc</code> flag to include untracked
+        Additionally you can use the <code>-i</code> flag to include untracked
         files in the commit set (it will make them tracked).
         </li>
       </ul>
@@ -260,32 +262,24 @@
       </p>
       <p>A new branch can be created with the
       <a name="gl-branch">gl branch</a>
-      command. Once created you will be automatically switched to that branch.
+      command. To switch to another branch you use the
+      <a name="gl-switch">gl switch</a> command.
       </p>
       <pre>
-      $ gl branch my-branch
+      $ gl branch -c my-branch
       # Created new branch my-branch
+      $ gl switch my-branch
       # Switched to branch my-branch
       </pre>
       <p>
-      If you want to switch to another existing branch called master you can do:
-      </p>
-      <pre>
-      $ gl branch master
-      # Switched to branch master
-      </pre>
-      <p>
-      So, in summary <code>gl branch name</code> switches to branch
-      <code>name</code> and it creates that branch if it doesn't exist. To list all available
-      branches:
+      To list all available branches:
       </p>
       <pre>
       $ gl branch
       # List of branches:
-      #   (do gl branch &lt;b&gt; to create or switch to branch b)
+      #   (do gl branch &lt;b&gt; to create branch b)
       #   (do gl branch -d &lt;b&gt; to delete branch b)
-      #   (do gl branch -su &lt;upstream&gt; to set an upstream for
-      #    the current branch)
+      #   (do gl switch &lt;b&gt; to switch to branch b)
       #   (* = current branch)
       #
       #     * master
@@ -297,7 +291,7 @@
       changes. There are two ways of bringing changes from one branch onto the
       current branch: merge or rebase. (If you have no idea what merge or rebase
       mean, you can take look at Git's documentation.) (This will change
-      in Gitless 1.0 -- which will be released sometime soon.)
+      in Gitless 1.0 ---which will be released sometime soon.)
       </p>
 
       <p>
@@ -355,7 +349,7 @@
       For example, let's add my GitHub experiment repository as a remote:
       </p>
       <pre>
-      $ gl remote experiment https://github.com/spderosso/experiment.git
+      $ gl remote -c experiment https://github.com/spderosso/experiment.git
       # Remote experiment mapping to
       # https://github.com/spderosso/experiment.git created successfully
       #   (to list existing remotes do gl remote)
@@ -373,8 +367,6 @@
     <div class="twothird">
       <a name="vs"><h2>Gitless vs. Git</h2></a>
       <p>Gitless on the left, Git on the right.</p>
-
-      <p>This section is using Gitless v0.7 (which is coming very soon).</p>
 
       <!-- Begin Versus/Changes -->
       <h3>Recording Changes to the Repository</h3>
