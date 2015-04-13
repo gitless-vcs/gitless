@@ -1,17 +1,32 @@
+<!DOCTYPE html>
 <html>
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
   <meta name="description"
-   content="Gitless is an experimental version control system built on top of Git"/>
+   content="Gitless is an experimental version control system built on top of Git" />
   <title>Gitless</title>
-  <link rel="stylesheet" type="text/css" href="css/reset.css"/>
+  <link rel="stylesheet" type="text/css" href="css/reset.css" />
   <link rel="stylesheet" media="screen" href="css/grid960.css" />
   <link rel="stylesheet" type="text/css" href="css/type.css" />
   <link rel="stylesheet" type="text/css" href="css/helpers.css" />
-  <link rel="stylesheet" type="text/css" href="css/custom.css"/>
-  <link href='http://fonts.googleapis.com/css?family=Droid+Serif:400,700,400italic' rel='stylesheet' type='text/css'>
-  <link rel="icon" href="favicon.ico" type="image/x-icon"> 
-  <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+  <link rel="stylesheet" type="text/css" href="css/custom.css" />
+  <link rel="stylesheet" type="text/css"
+   href="http://fonts.googleapis.com/css?family=Droid+Serif:400,700,400italic" />
+  <link rel="icon" type="image/x-icon" href="favicon.ico" />
+  <link rel="shortcut icon" type="image/x-icon" href="favicon.ico" />
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+  <script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-61756998-1', 'auto'); ga('send', 'pageview');
+  </script>
+  <script>
+  $(function(){$('a').click(function(){var href=$(this).attr('href');
+  function load(){document.location=href};ga('send','event','link','click',
+  href,{'hitCallback':load});setTimeout(load,1000);})});
+  </script>
 </head>
 
 <body>
@@ -24,7 +39,7 @@
   <div id="container">
 
     <div id="header" class="full top_margin_20">
-     <img src="gitless-banner.png" alt="gitless" width="600px" />
+     <img src="gitless-banner.png" alt="gitless" width="600" />
     </div>
 
     <div id="sidebar" class="third news">  
@@ -90,7 +105,7 @@
 
     <!-- Begin Documentation -->
     <div class="twothird">
-      <a name="documentation"><h2>Documentation</h2></a>
+      <a id="documentation"><h2>Documentation</h2></a>
 
       <!-- Begin Documentation/Commands -->
 
@@ -120,7 +135,6 @@
           <li>
             <code><a href="#gl-diff">gl diff</a></code>
             - show changes to files
-            </a>
           <li>
             <code><a href="#gl-commit">gl commit</a></code>
             - record changes in the local repo
@@ -167,11 +181,11 @@
       <!-- Begin Documentation/Guide -->
       <h3>Guide</h3>
 
-      <a name="repository"><h4>Repository</h4></a>
+      <a id="repository"><h4>Repository</h4></a>
       <p>
       Say you are in directory <code>foo</code> and you want turn it into a
       local repository. You do this with the
-      <code><a name="gl-init">gl init</a></code> command. This will transform
+      <code><a id="gl-init">gl init</a></code> command. This will transform
       the current working directory into an empty Gitless's repository and you
       are now ready to start recording changes to files in <code>foo</code>.
       </p>
@@ -199,8 +213,7 @@
       # Initialized from remote 'https://github.com/spderosso/experiment'
       </code>
       </pre>
-      </p>
-      <a name="file"><h4>File</h4></a>
+      <a id="file"><h4>File</h4></a>
       <p>
        A file in Gitless is one of the following: a
       "Tracked File," an "Untracked File" or an "Ignored File."
@@ -211,7 +224,7 @@
       A tracked file is a file whose changes Gitless will automatically detect.
       Tracked files are automatically considered for commit if they are
       modified. These will appear under the "Tracked files with modifications"
-      section of the <code><a name="gl-status">gl status</a></code>
+      section of the <code><a id="gl-status">gl status</a></code>
       command.
       </p>
       <p>
@@ -272,22 +285,23 @@
       <p>
       A new file that is not matched by the ignore spec is initially an untracked
       file. If you want to make it a tracked file you can do so with the
-      <code><a name="gl-track">gl track</a></code> command. A file
+      <code><a id="gl-track">gl track</a></code> command. A file
       that has a commited version in the repository is
       automatically a tracked file. You can stop tracking changes to a tracked file
-      with the <code><a name="gl-untrack">gl untrack</a></code> command.
+      with the <code><a id="gl-untrack">gl untrack</a></code> command.
       You can always revert a file back to some previous version with the
-      <code><a name="gl-checkout">gl checkout</a></code> command, and
-      <code><a name="gl-diff">gl diff</a></code> can be used to see the
+      <code><a id="gl-checkout">gl checkout</a></code> command, and
+      <code><a id="gl-diff">gl diff</a></code> can be used to see the
       difference between the working and comitted versions of files.
       </p>
       <p>
       As previously said, all tracked and modified files are automatically
       considered for commit. Doing
-      <code><a name="gl-commit">gl commit</a></code> will commit
+      <code><a id="gl-commit">gl commit</a></code> will commit
       these changes (once you provide a
       commit message). The commit command accepts a bunch of flags to make
       selecting a subset of files to commit super easy:
+      </p>
       <ul>
         <li>
         Doing <code>gl commit f1 f2</code> will only commit files
@@ -306,21 +320,20 @@
         files in the commit set (it will make them tracked).
         </li>
       </ul>
-      </p>
 
-      <a name="branch"><h4>Branch</h4></a>
+      <a id="branch"><h4>Branch</h4></a>
       <p>
       A branch is an independent line of development. Each branch has its own
       history (which you can look at with the
-      <a name="gl-history">gl history</a>
+      <a id="gl-history">gl history</a>
       command). Any changes to
       existing files or new files you create on a branch will not be present on
       the other branch when you switch branches.
       </p>
       <p>A new branch can be created with the
-      <a name="gl-branch">gl branch</a>
+      <a id="gl-branch">gl branch</a>
       command. To switch to another branch you use the
-      <a name="gl-switch">gl switch</a> command.
+      <a id="gl-switch">gl switch</a> command.
       </p>
       <pre>
       <code>
@@ -357,15 +370,15 @@
 
       <p>
       For merging the changes in <code>my-branch</code> onto the current branch you do
-      <code><a name="gl-merge">gl merge my-branch</a></code>,
+      <code><a id="gl-merge">gl merge my-branch</a></code>,
       for rebasing the current branch using as a base <code>my-branch</code> you do
-      <code><a name="gl-rebase">gl rebase my-branch</a></code>.
+      <code><a id="gl-rebase">gl rebase my-branch</a></code>.
       </p>
       <p>
       During this process conflicts could occur. If so, the <code>gl status</code> command will change
       accordingly to indicate the files in conflict. Once you edit those files in
       conflict you mark them as resolved with
-      <code><a name="gl-resolve">gl resolve</a></code> (passing the files to mark as input). Once all
+      <code><a id="gl-resolve">gl resolve</a></code> (passing the files to mark as input). Once all
       conflicts have been resolved
       you do <code>gl commit</code> to commit the merge commit in
       case of a merge or to continue applying any remaining commits in case of
@@ -390,7 +403,7 @@
       </p>
       <p>
       To publish your changes to this upstream branch you can do
-      <code><a name="gl-publish">gl publish</a></code>. If the upstream
+      <code><a id="gl-publish">gl publish</a></code>. If the upstream
       branch doesn't exist in the remote, then the branch will be created in the
       remote after the publish.
       </p>
@@ -400,13 +413,13 @@
       automatically configured to have as upstream their remote counterpart.
       </p>
   
-      <a name="remote"><h4>Remote</h4></a>
+      <a id="remote"><h4>Remote</h4></a>
       <p>
       You can always use the direct url to
       bring in changes to your local repository from a remote repository but
       remembering all those long urls can be annoying. So an easier way is to
       add that repository as a "remote" with the
-      <code><a name="gl-remote">gl remote</a></code> command.
+      <code><a id="gl-remote">gl remote</a></code> command.
       For example, let's add my GitHub experiment repository as a remote:
       </p>
       <pre>
@@ -427,7 +440,7 @@
 
     <!-- Begin Versus -->
     <div class="twothird">
-      <a name="vs"><h2>Gitless vs. Git</h2></a>
+      <a id="vs"><h2>Gitless vs. Git</h2></a>
       <p>Gitless on the left, Git on the right.</p>
 
       <!-- Begin Versus/Changes -->
@@ -563,8 +576,8 @@
         # ...
         #   foo (exists at head)
         # ...
-        </pre>
         </code>
+        </pre>
         <pre class="git">
         <code>
         <span class="comment">Say we have committed file `foo` with
@@ -849,8 +862,8 @@
         $ git rebase develop
         ... <span class="comment">same conflict as before</span>
         $ <span class="comment">Copy back the changes we saved</span>
-        </pre>
         </code>
+        </pre>
         <div style="clear:both"></div>
       </div>
       <!-- End Versus/Branching -->
@@ -980,11 +993,4 @@
     <!-- End Footer -->
   </div>
 </body>
-<script>
-(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
-ga('create', 'UA-61756998-1', 'auto'); ga('send', 'pageview');
-</script>
 </html>
