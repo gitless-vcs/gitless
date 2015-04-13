@@ -23,7 +23,7 @@
   ga('create', 'UA-61756998-1', 'auto'); ga('send', 'pageview');
   </script>
   <script>
-  $(function(){$('a').click(function(){var href=$(this).attr('href');
+  $(function(){$('a').click(function(e){e.preventDefault();var href=$(this).attr('href');
   function load(){document.location=href};ga('send','event','link','click',
   href,{'hitCallback':load});setTimeout(load,1000);})});
   </script>
