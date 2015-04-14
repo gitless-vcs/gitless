@@ -491,7 +491,8 @@ class Branch(object):
         'in_conflict'])
 
   def _au_files(self):
-    for f_out in stdout(git('ls-files', '-v', _cwd=self.gl_repo.root)).splitlines():
+    for f_out in stdout(
+        git('ls-files', '-v', _cwd=self.gl_repo.root)).splitlines():
       if f_out[0] == 'h':
         yield f_out[2:].strip()
 

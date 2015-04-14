@@ -32,7 +32,8 @@ class TestNotInRepo(utils.TestBase):
   def test_not_in_repo(self):
     def assert_not_in_repo(*cmds):
       for cmd in cmds:
-        self.assertRaisesRegexp(ErrorReturnCode, 'not in a Gitless\'s repository', cmd)
+        self.assertRaisesRegexp(
+            ErrorReturnCode, 'not in a Gitless\'s repository', cmd)
 
     assert_not_in_repo(
       gl.status, gl.diff, gl.commit, gl.branch, gl.merge, gl.rebase, gl.remote,
