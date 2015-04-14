@@ -422,7 +422,8 @@ class Branch(object):
         self.branch_name, pygit2.GIT_BRANCH_LOCAL)
 
   def history(self):
-    return self.gl_repo.git_repo.walk(self.target, pygit2.GIT_SORT_TIME)
+    return self.gl_repo.git_repo.walk(
+        self.target, pygit2.GIT_SORT_TOPOLOGICAL | pygit2.GIT_SORT_TIME)
 
   def diff_commits(self, c1, c2):
     return c1.tree.diff_to_tree(c2.tree)

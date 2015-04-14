@@ -31,15 +31,20 @@ def main(args, repo):
   curr_b = repo.current_branch
   with tempfile.NamedTemporaryFile(mode='w', delete=False) as tf:
     for ci in curr_b.history():
-      pprint.puts(colored.yellow(
-        'Commit Id: {0}'.format(ci.id)), stream=tf.write)
-      pprint.puts(colored.yellow(
-        'Author:    {0} <{1}>'.format(ci.author.name, ci.author.email)),
-        stream=tf.write)
+      merge_commit = len(ci.parent_ids) > 1
+      color = colored.magenta if merge_commit else colored.yellow
+      if merge_commit:
+        pprint.puts(color('Merge commit'), stream=tf.write)
+        merges_str = ' '.join(str(oid)[:7] for oid in ci.parent_ids)
+        pprint.puts(color('Merges:    {0}'.format(merges_str)), stream=tf.write)
+      pprint.puts(color('Commit Id: {0}'.format(ci.id)), stream=tf.write)
+      pprint.puts(
+          color('Author:    {0} <{1}>'.format(ci.author.name, ci.author.email)),
+          stream=tf.write)
       ci_author_dt = datetime.fromtimestamp(
           ci.author.time, FixedOffset(ci.author.offset))
-      pprint.puts(colored.yellow(
-        'Date:      {0:%c %z}'.format(ci_author_dt)), stream=tf.write)
+      pprint.puts(
+          color('Date:      {0:%c %z}'.format(ci_author_dt)), stream=tf.write)
 
       pprint.puts(stream=tf.write)
       with indent(4):
