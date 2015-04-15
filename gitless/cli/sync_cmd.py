@@ -36,7 +36,7 @@ def main(subcmd):
       else:
         current_b.abort_rebase()
 
-      pprint.msg('{0} aborted successfully'.format(subcmd.capitalize()))
+      pprint.ok('{0} aborted successfully'.format(subcmd.capitalize()))
       return True
 
     src_branch = None
@@ -58,6 +58,6 @@ def main(subcmd):
       current_b.merge(src_branch)
     else:
       current_b.rebase(src_branch)
-    pprint.msg('{0} succeeded'.format(subcmd.capitalize()))
+    pprint.ok('{0} succeeded'.format(subcmd.capitalize()))
     return True
   return f

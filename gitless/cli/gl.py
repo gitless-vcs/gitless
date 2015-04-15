@@ -73,8 +73,8 @@ def main():
     return SUCCESS
   except core.NotInRepoError as e:
     pprint.err(e)
-    pprint.err_exp('do gl init to make this directory a repository')
-    pprint.err_exp('do gl init remote_repo for cloning an existing repository')
+    pprint.err_exp('do gl init to turn this directory into an empty repository')
+    pprint.err_exp('do gl init remote_repo to clone an existing repository')
     return NOT_IN_GL_REPO
   except (ValueError, pygit2.GitError, core.GlError) as e:
     pprint.err(e)
@@ -83,9 +83,9 @@ def main():
     pprint.err(e.stderr)
     return ERRORS_FOUND
   except:
-    pprint.err(
-        'Oops...something went wrong (recall that Gitless is in beta). If you '
-        'want to help, see {0} for info on how to report bugs and include the '
-        'following information:\n\n{1}\n\n{2}'.format(
+    pprint.err('Some internal error occurred')
+    pprint.err_exp(
+        'If you want to help, see {0} for info on how to report bugs and '
+        'include the following information:\n\n{1}\n\n{2}'.format(
             URL, VERSION, traceback.format_exc()))
     return INTERNAL_ERROR

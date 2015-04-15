@@ -34,7 +34,7 @@ def main(subcmd):
     for fp in args.files:
       try:
         getattr(curr_b, subcmd + '_file')(os.path.relpath(fp, root))
-        pprint.msg(
+        pprint.ok(
             'File {0} is now a{1} {2}{3}d file'.format(
               fp, 'n' if subcmd.startswith(VOWELS) else '', subcmd,
               '' if subcmd.endswith('e') else 'e'))

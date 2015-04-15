@@ -86,7 +86,7 @@ def _do_create(create_b, dp, repo):
   for b_name in create_b:
     try:
       repo.create_branch(b_name, target)
-      pprint.msg('Created new branch "{0}"'.format(b_name))
+      pprint.ok('Created new branch {0}'.format(b_name))
     except ValueError as e:
       pprint.err(e)
       errors_found = True
@@ -100,7 +100,7 @@ def _do_delete(delete_b, repo):
   for b_name in delete_b:
     b = repo.lookup_branch(b_name)
     if not b:
-      pprint.err('Branch "{0}" doesn\'t exist'.format(b_name))
+      pprint.err('Branch {0} doesn\'t exist'.format(b_name))
       pprint.err_exp('do gl branch to list existing branches')
       errors_found = True
       continue
@@ -111,7 +111,7 @@ def _do_delete(delete_b, repo):
 
     try:
       b.delete()
-      pprint.msg('Branch {0} removed successfully'.format(b_name))
+      pprint.ok('Branch {0} removed successfully'.format(b_name))
     except core.BranchIsCurrentError as e:
       pprint.err(e)
       pprint.err_exp(
@@ -123,13 +123,15 @@ def _do_delete(delete_b, repo):
 
 
 def _do_set_upstream(upstream, repo):
-  repo.current_branch.upstream = helpers.get_branch(upstream, repo)
-  pprint.msg('Current branch {0} set to track {1}'.format(
-      colored.green(repo.current_branch.branch_name), upstream))
+  curr_b = repo.current_branch
+  curr_b.upstream = helpers.get_branch(upstream, repo)
+  pprint.ok('Current branch {0} set to track {1}'.format(
+      curr_b.branch_name, upstream))
   return True
 
 
 def _do_unset_upstream(repo):
-  repo.current_branch.upstream = None
-  pprint.msg('Upstream unset for current branch')
+  curr_b = repo.current_branch
+  curr_b.upstream = None
+  pprint.ok('Upstream unset for current branch {0}'.format(curr_b.branch_name))
   return True

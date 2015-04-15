@@ -48,7 +48,6 @@ def main(args, repo):
   commit_files = _compute_fs(only_files, exc_files, inc_files, curr_b)
 
   if not commit_files:
-    pprint.err('Commit aborted')
     pprint.err('No files to commit')
     pprint.err_exp('use gl track <f> if you want to track changes to file f')
     return False
@@ -59,7 +58,7 @@ def main(args, repo):
 
   _auto_track(commit_files, curr_b)
   curr_b.create_commit(commit_files, msg)
-  pprint.msg('Commit succeeded')
+  pprint.ok('Commit succeeded')
   return True
 
 
@@ -78,10 +77,9 @@ def _valid_input(only_files, exc_files, inc_files, curr_b):
     True if the input is valid, False if otherwise.
   """
   if only_files and (exc_files or inc_files):
-    pprint.err('Commit aborted')
     pprint.err(
         'You provided a list of filenames to be committed only but also '
-        'provided a list of files to be excluded or included.')
+        'provided a list of files to be excluded or included')
     return False
 
   ret = True
@@ -130,7 +128,6 @@ def _valid_input(only_files, exc_files, inc_files, curr_b):
         ret = False
 
   if not ret:  # Some error occured
-    pprint.err('Commit aborted')
     for e in err:
       pprint.err(e)
 

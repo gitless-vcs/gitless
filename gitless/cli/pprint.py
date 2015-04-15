@@ -12,7 +12,7 @@ from locale import getpreferredencoding
 import re
 import sys
 
-from clint.textui import colored
+from clint.textui import colored, indent
 from clint.textui import puts as clint_puts
 
 
@@ -34,47 +34,62 @@ def puts(s='', newline=True, stream=sys.stdout.write):
   clint_puts(s, newline=newline, stream=stream)
 
 
-# Stdout.
-
-def blank(p=sys.stdout.write):
-  puts('#', stream=p)
+# Stdout
 
 
-def msg(text, p=sys.stdout.write):
-  puts('# {0}'.format(text), stream=p)
+def ok(text):
+  puts(colored.green('✔ {0}'.format(text)))
 
 
-def exp(text, p=sys.stdout.write):
-  puts('#   ({0})'.format(text), stream=p)
+def warn(text):
+  puts(colored.yellow('! {0}'.format(text)))
 
 
-def item(i, opt_text='', p=sys.stdout.write):
-  puts('#     {0}{1}'.format(i, opt_text), stream=p)
+def msg(text, stream=sys.stdout.write):
+  puts(text, stream=stream)
 
 
-def sep(p=sys.stdout.write):
-  puts(SEP, stream=p)
+def exp(text, stream=sys.stdout.write):
+  with indent(2):
+    puts('➜ {0}'.format(text), stream=stream)
 
 
-# Err.
+def item(i, opt_text='', stream=sys.stdout.write):
+  with indent(4):
+    puts('{0}{1}'.format(i, opt_text), stream=stream)
+
+
+def blank(stream=sys.stdout.write):
+  puts('', stream=stream)
+
+
+def sep(stream=sys.stdout.write):
+  puts(SEP, stream=stream)
+
+
+# Err
 
 def err(text):
-  msg(text, p=sys.stderr.write)
+  puts(colored.red('✘ {0}'.format(text)), stream=sys.stderr.write)
+
+
+def err_msg(text):
+  msg(text, stream=sys.stderr.write)
 
 
 def err_exp(text):
-  exp(text, p=sys.stderr.write)
+  exp(text, stream=sys.stderr.write)
 
 
 def err_blank():
-  blank(p=sys.stderr.write)
+  blank(stream=sys.stderr.write)
 
 
 def err_item(i, opt_text=''):
-  item(i, opt_text, p=sys.stderr.write)
+  item(i, opt_text, stream=sys.stderr.write)
 
 
-# Misc.
+# Misc
 
 def conf_dialog(text):
   """Gets confirmation from the user.

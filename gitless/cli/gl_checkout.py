@@ -50,7 +50,7 @@ def main(args, repo):
     try:
       curr_b.checkout_file(fp, repo.revparse_single(cp))
       pprint.msg(
-          'File {0} checked out sucessfully to its state at {1}'.format(
+          'File {0} checked out successfully to its state at {1}'.format(
               fp, cp))
     except KeyError:
       pprint.err('Checkout aborted')

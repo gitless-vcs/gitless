@@ -34,8 +34,8 @@ def main(args, repo):
         if f.type == core.GL_STATUS_TRACKED and f.modified]
     files.sort()
     if not files:
-      pprint.msg(
-          'Nothing to diff (there are no tracked files with modifications).')
+      pprint.warn(
+          'Nothing to diff (there are no tracked files with modifications)')
       return True
   else:
     files = args.files
@@ -54,7 +54,7 @@ def main(args, repo):
       continue
 
     if (not patch.additions) and (not patch.deletions):
-      pprint.msg('No diffs to output for {0}'.format(fp))
+      pprint.warn('No diffs to output for {0}'.format(fp))
       continue
 
     with tempfile.NamedTemporaryFile(mode='w', delete=False) as tf:
