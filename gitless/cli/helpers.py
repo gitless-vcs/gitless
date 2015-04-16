@@ -9,6 +9,8 @@ from __future__ import unicode_literals
 
 import argparse
 import os
+import subprocess
+import sys
 
 
 def get_branch_name(branch):
@@ -38,6 +40,10 @@ def get_branch(branch_name, repo):
       raise ValueError('Branch "{0}" doesn\'t exist in remote "{1}"'.format(
           remote_branch, remote))
   return b
+
+
+def page(fp):
+  subprocess.call(['less', '-r', '-f', fp], stdin=sys.stdin, stdout=sys.stdout)
 
 
 class PathProcessor(argparse.Action):

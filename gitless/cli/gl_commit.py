@@ -57,8 +57,11 @@ def main(args, repo):
     raise ValueError('Missing commit message')
 
   _auto_track(commit_files, curr_b)
-  curr_b.create_commit(commit_files, msg)
+  ci = curr_b.create_commit(commit_files, msg)
   pprint.ok('Commit succeeded')
+  if ci:
+    pprint.blank()
+    pprint.commit(ci)
   return True
 
 

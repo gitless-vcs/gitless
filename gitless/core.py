@@ -761,7 +761,7 @@ class Branch(object):
 
 
     if not (self.merge_in_progress or self.rebase_in_progress):
-      self.gl_repo.git_repo.create_commit(
+      ci_oid = self.gl_repo.git_repo.create_commit(
           # the name of the reference to update (it will point to the new
           # commit)
           self.git_branch.name,
@@ -769,7 +769,7 @@ class Branch(object):
           msg,
           get_tree_and_update_index(),  # the commit tree
           [self.git_branch.target])
-      return
+      return self.gl_repo.git_repo[ci_oid]
 
     # There's a merge/rebase in progress
     index = self._index
@@ -783,7 +783,7 @@ class Branch(object):
         raise GlError(stderr(e))
     else:
       # do the merge commit
-      self.gl_repo.git_repo.create_commit(
+      ci_oid = self.gl_repo.git_repo.create_commit(
           self.git_branch.name,  # the reference name
           author, author,  # use author for committer field as well
           msg,
@@ -791,6 +791,7 @@ class Branch(object):
           [self.git_branch.target,
            self.gl_repo.git_repo.lookup_reference('MERGE_HEAD').target])
       self.gl_repo.git_repo.state_cleanup()
+      return self.gl_repo.git_repo[ci_oid]
 
 
   def publish(self, branch):

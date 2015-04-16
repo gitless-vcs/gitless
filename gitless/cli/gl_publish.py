@@ -39,5 +39,5 @@ def main(args, repo):
     dst_branch = helpers.get_branch(args.branch, repo)
 
   repo.current_branch.publish(dst_branch)
-  pprint.msg('Publish succeeded')
+  pprint.ok('Publish succeeded')
   return True

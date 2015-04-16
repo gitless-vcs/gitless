@@ -8,6 +8,7 @@
 from __future__ import unicode_literals
 
 from collections import namedtuple
+from datetime import datetime, tzinfo, timedelta
 from locale import getpreferredencoding
 import re
 import sys
@@ -122,6 +123,31 @@ def get_user_input(text='> '):
   return input(text)
 
 
+def commit(ci, color=colored.yellow, stream=sys.stdout.write):
+  puts(color('Commit Id: {0}'.format(ci.id)), stream=stream)
+  puts(
+      color('Author:    {0} <{1}>'.format(ci.author.name, ci.author.email)),
+      stream=stream)
+  ci_author_dt = datetime.fromtimestamp(
+      ci.author.time, FixedOffset(ci.author.offset))
+  puts(color('Date:      {0:%c %z}'.format(ci_author_dt)), stream=stream)
+  puts(stream=stream)
+  with indent(4):
+    puts(ci.message, stream=stream)
+
+
+class FixedOffset(tzinfo):
+
+  def __init__(self, offset):
+    self.__offset = timedelta(minutes=offset)
+
+  def utcoffset(self, _):
+    return self.__offset
+
+  def dst(self, _):
+    return timedelta(0)
+
+
 def diff(patch, stream=sys.stdout.write):
   # Diff header
 
@@ -151,6 +177,9 @@ def diff(patch, stream=sys.stdout.write):
   for hunk in patch.hunks:
     puts(stream=stream)
     _hunk(hunk, stream=stream)
+
+  puts(stream=stream)
+  puts(stream=stream)
 
 
 LineData = namedtuple(

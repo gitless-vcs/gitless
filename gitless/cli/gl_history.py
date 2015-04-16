@@ -7,14 +7,12 @@
 
 from __future__ import unicode_literals
 
-from datetime import datetime, tzinfo, timedelta
 import os
-import subprocess
 import tempfile
 
-from clint.textui import colored, indent
+from clint.textui import colored
 
-from . import pprint
+from . import helpers, pprint
 
 
 def parser(subparsers):
@@ -37,36 +35,12 @@ def main(args, repo):
         pprint.puts(color('Merge commit'), stream=tf.write)
         merges_str = ' '.join(str(oid)[:7] for oid in ci.parent_ids)
         pprint.puts(color('Merges:    {0}'.format(merges_str)), stream=tf.write)
-      pprint.puts(color('Commit Id: {0}'.format(ci.id)), stream=tf.write)
-      pprint.puts(
-          color('Author:    {0} <{1}>'.format(ci.author.name, ci.author.email)),
-          stream=tf.write)
-      ci_author_dt = datetime.fromtimestamp(
-          ci.author.time, FixedOffset(ci.author.offset))
-      pprint.puts(
-          color('Date:      {0:%c %z}'.format(ci_author_dt)), stream=tf.write)
-
-      pprint.puts(stream=tf.write)
-      with indent(4):
-        pprint.puts(ci.message, stream=tf.write)
+      pprint.commit(ci, color=color, stream=tf.write)
       pprint.puts(stream=tf.write)
       pprint.puts(stream=tf.write)
       if args.verbose and len(ci.parents) == 1:  # TODO: merge commits diffs
         for patch in curr_b.diff_commits(ci.parents[0], ci):
           pprint.diff(patch, stream=tf.write)
-          pprint.puts(stream=tf.write)
-  subprocess.call('less -r -f {0}'.format(tf.name), shell=True)
+  helpers.page(tf.name)
   os.remove(tf.name)
   return True
-
-
-class FixedOffset(tzinfo):
-
-  def __init__(self, offset):
-    self.__offset = timedelta(minutes=offset)
-
-  def utcoffset(self, _):
-    return self.__offset
-
-  def dst(self, _):
-    return timedelta(0)

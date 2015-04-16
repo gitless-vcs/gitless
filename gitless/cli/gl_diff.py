@@ -8,12 +8,11 @@
 from __future__ import unicode_literals
 
 import os
-import subprocess
 import tempfile
 
 from gitless import core
 
-from . import pprint
+from . import helpers, pprint
 
 
 def parser(subparsers):
@@ -41,26 +40,26 @@ def main(args, repo):
     files = args.files
 
   success = True
-  for fp in files:
-    try:
-      patch = curr_b.diff_file(os.path.relpath(fp, repo.root))
-    except KeyError:
-      pprint.err('Can\'t diff non-existent file {0}'.format(fp))
-      success = False
-      continue
+  with tempfile.NamedTemporaryFile(mode='w', delete=False) as tf:
+    for fp in files:
+      try:
+        patch = curr_b.diff_file(os.path.relpath(fp, repo.root))
+      except KeyError:
+        pprint.err('Can\'t diff non-existent file {0}'.format(fp))
+        success = False
+        continue
 
-    if patch.is_binary:
-      pprint.msg('Not showing diffs for binary file {0}'.format(fp))
-      continue
+      if patch.is_binary:
+        pprint.msg('Not showing diffs for binary file {0}'.format(fp))
+        continue
 
-    if (not patch.additions) and (not patch.deletions):
-      pprint.warn('No diffs to output for {0}'.format(fp))
-      continue
+      if (not patch.additions) and (not patch.deletions):
+        pprint.warn('No diffs to output for {0}'.format(fp))
+        continue
 
-    with tempfile.NamedTemporaryFile(mode='w', delete=False) as tf:
       pprint.diff(patch, stream=tf.write)
 
-    subprocess.call('less -r -f {0}'.format(tf.name), shell=True)
-    os.remove(tf.name)
+  helpers.page(tf.name)
+  os.remove(tf.name)
 
   return success
