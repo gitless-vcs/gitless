@@ -43,9 +43,14 @@ h4 {
 
 #header {
   position: relative;
-  margin-top: 30px;
-  margin-bottom: 10px;
+  margin-top: 40px;
+  margin-bottom: 30px;
+  font-size: 2.9em;
+  font-family: 'Droid Sans', Arial, Helvetica, sans-serif;
+  letter-spacing: normal;
 }
+
+.header-gl { font-weight: bold; }
 
 .vs { width: 780px; }
 .vs .gl { float: left; width: 300px; }
@@ -103,7 +108,8 @@ li { margin-bottom: 5px; }
 
 #footer {
   position: relative;
-  font-family: 'Droid Sans', Verdana, Arial, Helvetica, sans-serif; letter-spacing: -.03em;
+  font-family: 'Droid Serif', Verdana, Arial, Helvetica, sans-serif;
+  letter-spacing: -.03em;
   font-size: 80%; 
   padding-bottom: 20px;
   padding-top: 10px;
