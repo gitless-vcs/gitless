@@ -6,8 +6,9 @@ pre, code {
 a:link, a:visited { color: #00aa00; }
 
 h1 {
-  font-size:2em;
-  line-height:1.74em;
+  color: #333;
+  font-size:1.4em;
+  line-height:2em;
   letter-spacing:-.03em;
   margin:0px 0px .5em 0px;
 }
@@ -63,9 +64,9 @@ li { margin-bottom: 5px; }
 
 #sidebar .top { margin-top: .69em; }
 
-.news h2 { text-align: center; }
+.news h1 { text-align: center; }
 
-.news h2 span {
+.news h1 span {
   text-align: center;
   background-color: white;
   z-index: 100;
@@ -76,8 +77,7 @@ li { margin-bottom: 5px; }
 
 .news div {
   position: relative;
-  /*top: -1.67em;*/
-  top: -1.5em;
+  top: -2em;
   width: 295px;
   border: 1px solid white;
   border-radius: 15px;
