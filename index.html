@@ -187,14 +187,12 @@
       the current working directory into an empty Gitless's repository and you
       are now ready to start recording changes to files in <code>foo</code>.
       </p>
-      <pre>
-      <code>
-      $ mdkir foo
-      $ cd foo/
-      $ gl init
-      # Local repo created in '/MyFiles/foo'
-      </code>
-      </pre>
+      <div class="code">
+      <pre><code>$ mdkir foo
+$ cd foo/
+$ gl init
+# Local repo created in '/MyFiles/foo'</code></pre>
+      </div>
       <p>
       In most cases, there's probably already some existing repository that you
       want to start working on instead of creating an empty repository (maybe
@@ -202,15 +200,13 @@
       local clone of a remote repository you can give the url of the repository
       to the same <code>gl init</code> command. 
       </p>
-      <pre>
-      <code>
-      $ mkdir experiment
-      $ cd experiment/
-      $ gl init https://github.com/spderosso/experiment
-      # Local repo created in '/MyFiles/foo'
-      # Initialized from remote 'https://github.com/spderosso/experiment'
-      </code>
-      </pre>
+      <div class="code">
+      <pre><code>$ mkdir experiment
+$ cd experiment/
+$ gl init https://github.com/spderosso/experiment
+# Local repo created in '/MyFiles/foo'
+# Initialized from remote 'https://github.com/spderosso/experiment'</code></pre>
+      </div>
       <a id="file"><h3>File</h3></a>
       <p>
        A file in Gitless is one of the following: a
@@ -244,28 +240,26 @@
       <code>bar.py</code> is an untracked file and <code>foo.py~</code> is an
       ignored file):
       </p>
-      <pre>
-      <code>
-      $ ls
-      bar.py  foo.py  foo.py~ .gitignore
-      $ gl status
-      # On branch master, repo-directory //
-      #
-      # Tracked files with modifications:
-      #   (these will be automatically considered for commit)
-      #   (use gl untrack &lt;f&gt; if you don't want to track changes to file f)
-      #   (if file f was committed before, use gl checkout &lt;f&gt; to discard local changes)
-      #
-      #     foo.py
-      #
-      #
-      # Untracked files:
-      #   (these won't be considered for commit)
-      #   (use gl track &lt;f&gt; if you want to track changes to file f)
-      #
-      #     bar.py
-      </code>
-      </pre>
+      <div class="code">
+      <pre><code>$ ls
+bar.py  foo.py  foo.py~ .gitignore
+$ gl status
+# On branch master, repo-directory //
+#
+# Tracked files with modifications:
+#   (these will be automatically considered for commit)
+#   (use gl untrack &lt;f&gt; if you don't want to track changes to file f)
+#   (if file f was committed before, use gl checkout &lt;f&gt; to discard local changes)
+#
+#     foo.py
+#
+#
+# Untracked files:
+#   (these won't be considered for commit)
+#   (use gl track &lt;f&gt; if you want to track changes to file f)
+#
+#     bar.py</code></pre>
+      </div>
 
       <p>
       Now, how do files move between these three different <em>disjoint</em>
@@ -333,30 +327,28 @@
       command. To switch to another branch you use the
       <a id="gl-switch">gl switch</a> command.
       </p>
-      <pre>
-      <code>
-      $ gl branch -c my-branch
-      # Created new branch my-branch
-      $ gl switch my-branch
-      # Switched to branch my-branch
-      </code>
-      </pre>
+      <div class="code">
+      <pre><code>$ gl branch -c my-branch
+# Created new branch my-branch
+$ gl switch my-branch
+# Switched to branch my-branch
+</code></pre>
+      </div>
       <p>
       To list all available branches:
       </p>
-      <pre>
-      <code>
-      $ gl branch
-      # List of branches:
-      #   (do gl branch &lt;b&gt; to create branch b)
-      #   (do gl branch -d &lt;b&gt; to delete branch b)
-      #   (do gl switch &lt;b&gt; to switch to branch b)
-      #   (* = current branch)
-      #
-      #     * master
-      #       my-branch
-      </code>
-      </pre>
+      <div class="code">
+      <pre><code>$ gl branch
+# List of branches:
+#   (do gl branch &lt;b&gt; to create branch b)
+#   (do gl branch -d &lt;b&gt; to delete branch b)
+#   (do gl switch &lt;b&gt; to switch to branch b)
+#   (* = current branch)
+#
+#     * master
+#       my-branch
+</code></pre>
+      </div>
 
       <p>
       Eventually what will happen is that branches will end up having divergent
@@ -420,14 +412,12 @@
       <code><a id="gl-remote">gl remote</a></code> command.
       For example, let's add my GitHub experiment repository as a remote:
       </p>
-      <pre>
-      <code>
-      $ gl remote -c experiment https://github.com/spderosso/experiment
-      # Remote experiment mapping to https://github.com/spderosso/experiment created successfully
-      #   (to list existing remotes do gl remote)
-      #   (to remove experiment do gl remote -d experiment)
-      </code>
-      </pre>
+      <div class="code"><pre><code>$ gl remote -c experiment https://github.com/spderosso/experiment
+# Remote experiment mapping to https://github.com/spderosso/experiment created
+# successfully
+#   (to list existing remotes do gl remote)
+#   (to remove experiment do gl remote -d experiment)
+</code></pre></div>
       <p>
       And then you can use experiment/branch as a shorthand for referring to a
       branch in the experiment repository.
@@ -448,7 +438,7 @@
       straightforward:
       </p>
 
-      <div class="vs">
+      <div class="code vs">
         <pre class="gl"><code><span class="task">Commit all modified tracked files</span>
 $ gl commit
 ...
@@ -525,7 +515,7 @@ $ git commit foo3 bar3 foo4
       untracked or ignored, it doesn't matter whether the file exists at head
       or not:
       </p>
-      <div class="vs">
+      <div class="code vs">
         <pre class="gl"><code><span class="comment">Say we have committed file `foo` with modifications</span>
 $ gl status
 # ...
@@ -604,7 +594,7 @@ $ git status
       be untracked on some branch but tracked on another and Gitless will
       remember this):
       </p>
-      <div class="vs">
+      <div class="code vs">
         <pre class="gl"><code><span class="comment">Say we have committed file `foo` with modifications</span>
 $ gl status
 # ...
@@ -683,7 +673,7 @@ $ git checkout master
       This means that in Gitless you don't have to worry about uncommitted
       changes conflicting with the changes in the destination branch:
       </p>
-      <div class="vs">
+      <div class="code vs">
         <pre class="gl"><code><span class="comment">Say we have uncomitted changes to `foo` which
 conflict with the state of `foo` in branch `develop`</span>
 
@@ -722,7 +712,7 @@ Switched to branch 'develop'
       <p>
       (Not yet implemented, coming soon)
       </p>
-      <div class="vs">
+      <div class="code vs">
         <pre class="gl"><code>$ gl rebase develop
 # There are conflicts you need to resolve
 $ gl status
@@ -847,7 +837,7 @@ $ <span class="comment">Copy back the changes we saved</span>
       Syncing with other repositories in Gitless works quite similar to
       Git:
       </p>
-      <div class="vs">
+      <div class="code vs">
         <pre class="gl"><code><span class="task">Configure a new remote `experiment`</span>
 $ gl remote -c experiment
 https://github.com/spderosso/experiment
