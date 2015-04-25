@@ -52,9 +52,27 @@ h4 {
 
 .header-gl { font-weight: bold; }
 
-.vs { width: 780px; }
-.vs .gl { float: left; width: 300px; }
-.vs .git { float: right; width: 400px; }
+.vs {
+  width: 780px;
+  border: 1px solid silver;
+  margin-bottom: 1.5em;
+  -webkit-box-shadow: 0px 0px 4px rgba(0,0,0,0.5);
+  -moz-box-shadow: 0px 0px 4px rgba(0,0,0,0.5);
+  box-shadow: 0px 0px 4px rgba(0,0,0,0.5);
+}
+
+.vs .gl { 
+  float: left;
+  width: 370px;
+  margin: 10px 0 10px 10px;
+}
+.vs .git {
+  float: left;
+  width: 370px;
+  border-left: 1px dotted gray;
+  margin: 10px 0 10px 10px;
+  padding: 0 0 0 10px;
+}
 .vs .comment { color: silver; }
 .vs .task { color: gray; font-weight: bold; }
 
