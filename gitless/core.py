@@ -68,7 +68,7 @@ def init_repository(url=None):
     except ErrorReturnCode as e:
       raise GlError(stderr(e))
 
-    # We get all remote branches as well and create local equivalents.
+    # We get all remote branches as well and create local equivalents
     repo = Repository()
     remote = repo.remotes['origin']
     for rb in (remote.lookup_branch(bn) for bn in remote.listall_branches()):
@@ -115,8 +115,7 @@ class Repository(object):
     return '' if ret == '.' else ret
 
   def revparse_single(self, revision):
-    if '/' in revision:
-      # Might be a remote branch
+    if '/' in revision:  # might be a remote branch
       remote, remote_branch = revision.split('/', 1)
       try:
         return self.remotes[remote].lookup_branch(remote_branch).head
@@ -347,6 +346,9 @@ class RemoteBranch(object):
     self.git_branch = self.gl_repo.git_repo.lookup_branch(
         self.remote_name + '/' + self.branch_name, pygit2.GIT_BRANCH_REMOTE)
 
+  def __str__(self):
+    return self.remote_name + '/' + self.branch_name
+
 
 class Branch(object):
   """An independent line of development.
@@ -427,6 +429,9 @@ class Branch(object):
 
   def diff_commits(self, c1, c2):
     return c1.tree.diff_to_tree(c2.tree)
+
+  def __str__(self):
+    return self.branch_name
 
   @property
   def _index(self):

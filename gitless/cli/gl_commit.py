@@ -16,28 +16,32 @@ from . import helpers, pprint
 def parser(subparsers):
   """Adds the commit parser to the given subparsers object."""
   commit_parser = subparsers.add_parser(
-      'commit', help='record changes in the local repository')
+      'commit', help='record changes in the local repository',
+      description=(
+        'By default all tracked modified files are committed. To customize the'
+        ' set of files to be committed you can use the only, exclude, and '
+        'include flags'))
   commit_parser.add_argument(
-      'only_files', nargs='*',
-      help='only the files listed as arguments will be committed (files could '
-           'be tracked or untracked files)', action=helpers.PathProcessor)
+      '-o', '--only', nargs='+',
+      help=(
+        'commit only the files given (files could be tracked modified or'
+        ' untracked files)'),
+      dest='only_files', action=helpers.PathProcessor, metavar='file')
   commit_parser.add_argument(
       '-e', '--exclude', nargs='+',
-      help=('files listed as arguments will be excluded from the commit (files '
-            'must be tracked files)'),
-      dest='exc_files', action=helpers.PathProcessor)
+      help='exclude files given (files must be tracked modified files)',
+      dest='exc_files', action=helpers.PathProcessor, metavar='file')
   commit_parser.add_argument(
       '-i', '--include', nargs='+',
-      help=('files listed as arguments will be included to the commit (files '
-            'must be untracked files)'),
-      dest='inc_files', action=helpers.PathProcessor)
+      help='include files given (files must be untracked files)',
+      dest='inc_files', action=helpers.PathProcessor, metavar='file')
   commit_parser.add_argument(
       '-m', '--message', help='Commit message', dest='m')
   commit_parser.set_defaults(func=main)
 
 
 def main(args, repo):
-  only_files = frozenset(args.only_files)
+  only_files = frozenset(args.only_files if args.only_files else [])
   exc_files = frozenset(args.exc_files if args.exc_files else [])
   inc_files = frozenset(args.inc_files if args.inc_files else [])
 

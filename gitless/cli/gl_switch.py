@@ -34,5 +34,5 @@ def main(args, repo):
     return False
 
   repo.switch_current_branch(b, move_over=args.move_over)
-  pprint.msg('Switched to branch {0}'.format(colored.green(args.branch)))
+  pprint.ok('Switched to branch {0}'.format(args.branch))
   return True
