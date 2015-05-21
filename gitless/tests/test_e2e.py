@@ -148,11 +148,11 @@ class TestCommit(TestEndToEnd):
     self.__assert_commit(self.TRACKED_FP)
 
   def test_commit_only(self):
-    gl.commit(self.TRACKED_FP, m='msg')
+    gl.commit(o=self.TRACKED_FP, m='msg')
     self.__assert_commit(self.TRACKED_FP)
 
   def test_commit_only_untrack(self):
-    gl.commit(self.UNTRACKED_FP, m='msg')
+    gl.commit(o=self.UNTRACKED_FP, m='msg')
     self.__assert_commit(self.UNTRACKED_FP)
 
   def test_commit_include(self):
@@ -167,7 +167,7 @@ class TestCommit(TestEndToEnd):
   def test_commit_no_files(self):
     self.assertRaises(
         ErrorReturnCode, gl.commit, m='msg', exclude=self.TRACKED_FP)
-    self.assertRaises(ErrorReturnCode, gl.commit, 'non-existent', m='msg')
+    self.assertRaises(ErrorReturnCode, gl.commit, o='non-existent', m='msg')
     self.assertRaises(
         ErrorReturnCode, gl.commit, m='msg', exclude='non-existent')
     self.assertRaises(
@@ -176,7 +176,7 @@ class TestCommit(TestEndToEnd):
   def test_commit_dir(self):
     fp = 'dir/f'
     utils.write_file(fp)
-    gl.commit(fp, m='msg')
+    gl.commit(o=fp, m='msg')
     self.__assert_commit('dir/f')
 
   def __assert_commit(self, *expected_committed):
@@ -203,7 +203,7 @@ class TestStatus(TestEndToEnd):
     super(TestStatus, self).setUp()
     utils.write_file(self.TRACKED_DIR_FP)
     utils.write_file(self.UNTRACKED_DIR_FP)
-    gl.commit(self.TRACKED_DIR_FP, m='commit')
+    gl.commit(o=self.TRACKED_DIR_FP, m='commit')
 
   def test_status_relative(self):
     utils.write_file(self.TRACKED_DIR_FP, contents='some modifications')
@@ -232,7 +232,7 @@ class TestBranch(TestEndToEnd):
   def setUp(self):
     super(TestBranch, self).setUp()
     utils.write_file('f')
-    gl.commit('f', m='commit')
+    gl.commit(o='f', m='commit')
 
   def test_create(self):
     gl.branch(c=self.BRANCH_1)
@@ -267,7 +267,7 @@ class TestDiffFile(TestEndToEnd):
   def setUp(self):
     super(TestDiffFile, self).setUp()
     utils.write_file(self.TRACKED_FP)
-    gl.commit(self.TRACKED_FP, m="commit")
+    gl.commit(o=self.TRACKED_FP, m='commit')
     utils.write_file(self.UNTRACKED_FP)
 
   def test_empty_diff(self):
@@ -351,7 +351,7 @@ class TestPerformance(TestEndToEnd):
     """Assert that switching branches is not too slow."""
     MAX_TOLERANCE = 100
 
-    gl.commit('f1', m='commit')
+    gl.commit(o='f1', m='commit')
 
     t = time.time()
     gl.branch(c='develop')
