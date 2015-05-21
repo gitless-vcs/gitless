@@ -51,6 +51,7 @@ class TestBase(unittest.TestCase):
   def assertRaisesRegexp(self, exc, r, fun, *args, **kwargs):
     try:
       fun(*args, **kwargs)
+      self.fail('Exception not raised')
     except exc as e:
       msg = stderr(e) if isinstance(e, ErrorReturnCode) else str(e)
       if not re.search(r, msg):
