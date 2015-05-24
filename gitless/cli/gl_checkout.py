@@ -47,7 +47,7 @@ def main(args, repo):
 
     try:
       curr_b.checkout_file(fp, repo.revparse_single(cp))
-      pprint.msg(
+      pprint.ok(
           'File {0} checked out successfully to its state at {1}'.format(
               fp, cp))
     except KeyError:

@@ -56,7 +56,7 @@ def _do_list(remotes):
 
 def _do_create(rn, ru, remotes):
   remotes.create(rn, ru)
-  pprint.msg('Remote {0} mapping to {1} created successfully'.format(rn, ru))
+  pprint.ok('Remote {0} mapping to {1} created successfully'.format(rn, ru))
   pprint.exp('to list existing remotes do gl remote')
   pprint.exp('to remove {0} do gl remote -d {1}'.format(rn, rn))
   return True
@@ -68,7 +68,7 @@ def _do_delete(delete_r, remotes):
   for r in delete_r:
     try:
       remotes.delete(r)
-      pprint.msg('Remote {0} removed successfully'.format(r))
+      pprint.ok('Remote {0} removed successfully'.format(r))
     except KeyError:
       pprint.err('Remote \'{0}\' doesn\'t exist'.format(r))
       errors_found = True
