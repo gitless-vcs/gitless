@@ -15,7 +15,7 @@ from clint.textui import colored
 from . import helpers, pprint
 
 
-def parser(subparsers):
+def parser(subparsers, _):
   """Adds the history parser to the given subparsers object."""
   history_parser = subparsers.add_parser(
       'history', help='show commit history')

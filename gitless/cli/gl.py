@@ -59,7 +59,7 @@ def main():
       gl_checkout, gl_merge, gl_resolve, gl_rebase, gl_remote, gl_publish,
       gl_switch, gl_init, gl_history]
   for sub_cmd in sub_cmds:
-    sub_cmd.parser(subparsers)
+    sub_cmd.parser(subparsers, repo)
 
   args = parser.parse_args()
   try:

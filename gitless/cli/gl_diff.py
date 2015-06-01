@@ -10,47 +10,39 @@ from __future__ import unicode_literals
 import os
 import tempfile
 
-from gitless import core
-
 from . import helpers, pprint
 
 
-def parser(subparsers):
+def parser(subparsers, repo):
   """Adds the diff parser to the given subparsers object."""
   diff_parser = subparsers.add_parser(
-      'diff', help='show changes in files')
-  diff_parser.add_argument(
-      'files', nargs='*', help='the files to diff')
+      'diff', help='show changes in files',
+      description=(
+        'By default all tracked modified files are diffed. To customize the '
+        ' set of files to diff you can use the only, exclude, and include '
+        'flags'))
+  helpers.oei_flags(diff_parser, repo)
   diff_parser.set_defaults(func=main)
 
 
 def main(args, repo):
-  curr_b = repo.current_branch
-  if not args.files:
-    # Tracked modified files.
-    files = [
-        f.fp for f in curr_b.status()
-        if f.type == core.GL_STATUS_TRACKED and f.modified]
-    files.sort()
-    if not files:
-      pprint.warn(
-          'Nothing to diff (there are no tracked files with modifications)')
-      return True
-  else:
-    files = args.files
+  files = helpers.oei_fs(args, repo)
+  if not files:
+    pprint.warn('No files to diff')
 
   success = True
+  curr_b = repo.current_branch
   with tempfile.NamedTemporaryFile(mode='w', delete=False) as tf:
     for fp in files:
       try:
-        patch = curr_b.diff_file(os.path.relpath(fp, repo.root))
+        patch = curr_b.diff_file(fp)
       except KeyError:
         pprint.err('Can\'t diff non-existent file {0}'.format(fp))
         success = False
         continue
 
       if patch.is_binary:
-        pprint.msg('Not showing diffs for binary file {0}'.format(fp))
+        pprint.warn('Not showing diffs for binary file {0}'.format(fp))
         continue
 
       if (not patch.additions) and (not patch.deletions):

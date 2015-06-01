@@ -11,7 +11,7 @@ from . import helpers
 from . import pprint
 
 
-def parser(subparsers):
+def parser(subparsers, _):
   """Adds the publish parser to the given subparsers object."""
   publish_parser = subparsers.add_parser(
       'publish', help='publish commits upstream')

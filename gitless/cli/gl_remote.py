@@ -10,7 +10,7 @@ from __future__ import unicode_literals
 from . import pprint
 
 
-def parser(subparsers):
+def parser(subparsers, _):
   """Adds the remote parser to the given subparsers object."""
   remote_parser = subparsers.add_parser(
       'remote', help='list, create, edit or delete remotes')

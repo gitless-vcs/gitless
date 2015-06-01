@@ -133,40 +133,60 @@ class TestBasic(TestEndToEnd):
 class TestCommit(TestEndToEnd):
 
   TRACKED_FP = 'file1'
+  DIR_TRACKED_FP = 'dir/dir_file'
   UNTRACKED_FP = 'file2'
-  FPS = [TRACKED_FP, UNTRACKED_FP]
+  FPS = [TRACKED_FP, DIR_TRACKED_FP, UNTRACKED_FP]
+  DIR = 'dir'
 
   def setUp(self):
     super(TestCommit, self).setUp()
     utils.write_file(self.TRACKED_FP)
+    utils.write_file(self.DIR_TRACKED_FP)
     utils.write_file(self.UNTRACKED_FP)
-    gl.track(self.TRACKED_FP)
+    gl.track(self.TRACKED_FP, self.DIR_TRACKED_FP)
 
-  # Happy paths
   def test_commit(self):
     gl.commit(m='msg')
-    self.__assert_commit(self.TRACKED_FP)
+    self.__assert_commit(self.TRACKED_FP, self.DIR_TRACKED_FP)
+
+  def test_commit_relative(self):
+    os.chdir(self.DIR)
+    gl.commit(m='msg')
+    self.__assert_commit(self.TRACKED_FP, self.DIR_TRACKED_FP)
 
   def test_commit_only(self):
     gl.commit(o=self.TRACKED_FP, m='msg')
+    self.__assert_commit(self.TRACKED_FP)
+
+  def test_commit_only_relative(self):
+    os.chdir(self.DIR)
+    self.assertRaises(ErrorReturnCode, gl.commit, o=self.TRACKED_FP, m='msg')
+    gl.commit(o='../' + self.TRACKED_FP, m='msg')
     self.__assert_commit(self.TRACKED_FP)
 
   def test_commit_only_untrack(self):
     gl.commit(o=self.UNTRACKED_FP, m='msg')
     self.__assert_commit(self.UNTRACKED_FP)
 
+  def test_commit_only_untrack_relative(self):
+    os.chdir(self.DIR)
+    self.assertRaises(ErrorReturnCode, gl.commit, o=self.UNTRACKED_FP, m='msg')
+    gl.commit(o='../' + self.UNTRACKED_FP, m='msg')
+    self.__assert_commit(self.UNTRACKED_FP)
+
   def test_commit_include(self):
     gl.commit(m='msg', include=self.UNTRACKED_FP)
-    self.__assert_commit(self.TRACKED_FP, self.UNTRACKED_FP)
+    self.__assert_commit(
+        self.TRACKED_FP, self.DIR_TRACKED_FP, self.UNTRACKED_FP)
 
   def test_commit_exclude_include(self):
     gl.commit(m='msg', include=self.UNTRACKED_FP, exclude=self.TRACKED_FP)
-    self.__assert_commit(self.UNTRACKED_FP)
+    self.__assert_commit(self.UNTRACKED_FP, self.DIR_TRACKED_FP)
 
-  # Error paths
   def test_commit_no_files(self):
     self.assertRaises(
-        ErrorReturnCode, gl.commit, m='msg', exclude=self.TRACKED_FP)
+        ErrorReturnCode, gl.commit, '--exclude',
+        self.TRACKED_FP, self.DIR_TRACKED_FP, m='msg')
     self.assertRaises(ErrorReturnCode, gl.commit, o='non-existent', m='msg')
     self.assertRaises(
         ErrorReturnCode, gl.commit, m='msg', exclude='non-existent')
@@ -180,15 +200,14 @@ class TestCommit(TestEndToEnd):
     self.__assert_commit('dir/f')
 
   def __assert_commit(self, *expected_committed):
-    st = utils.stdout(gl.status(_tty_out=False))
     h = utils.stdout(gl.history(v=True, _tty_out=False))
     for fp in expected_committed:
-      if fp in st or fp not in h:
+      if fp not in h:
         self.fail('{0} was apparently not committed!'.format(fp))
     expected_not_committed = [
         fp for fp in self.FPS if fp not in expected_committed]
     for fp in expected_not_committed:
-      if fp not in st or fp in h:
+      if fp in h:
         self.fail('{0} was apparently committed!'.format(fp))
 
 
@@ -262,21 +281,24 @@ class TestBranch(TestEndToEnd):
 class TestDiffFile(TestEndToEnd):
 
   TRACKED_FP = 't_fp'
+  DIR_TRACKED_FP = 'dir/t_fp'
   UNTRACKED_FP = 'u_fp'
+  DIR = 'dir'
 
   def setUp(self):
     super(TestDiffFile, self).setUp()
     utils.write_file(self.TRACKED_FP)
-    gl.commit(o=self.TRACKED_FP, m='commit')
+    utils.write_file(self.DIR_TRACKED_FP)
+    gl.commit('-o', self.TRACKED_FP, self.DIR_TRACKED_FP, m='commit')
     utils.write_file(self.UNTRACKED_FP)
 
   def test_empty_diff(self):
-    if 'Nothing to diff' not in utils.stdout(gl.diff(_tty_out=False)):
+    if 'No files to diff' not in utils.stdout(gl.diff(_tty_out=False)):
       self.fail()
 
   def test_diff_nonexistent_fp(self):
-    err = utils.stderr(gl.diff('file', _ok_code=[1], _tty_out=False))
-    if 'non-existent' not in err:
+    err = utils.stderr(gl.diff(o='file', _ok_code=[1], _tty_out=False))
+    if 'doesn\'t exist' not in err:
       self.fail()
 
   def test_basic_diff(self):
@@ -284,15 +306,29 @@ class TestDiffFile(TestEndToEnd):
     out1 = utils.stdout(gl.diff(_tty_out=False))
     if '+contents' not in out1:
       self.fail()
-    out2 = utils.stdout(gl.diff(self.TRACKED_FP, _tty_out=False))
+    out2 = utils.stdout(gl.diff(o=self.TRACKED_FP, _tty_out=False))
     if '+contents' not in out2:
       self.fail()
     self.assertEqual(out1, out2)
 
+  def test_basic_diff_relative(self):
+    utils.write_file(self.TRACKED_FP, contents='contents_tracked')
+    utils.write_file(self.DIR_TRACKED_FP, contents='contents_dir_tracked')
+    os.chdir(self.DIR)
+    out1 = utils.stdout(gl.diff(_tty_out=False))
+    if '+contents_tracked' not in out1:
+      self.fail()
+    if '+contents_dir_tracked' not in out1:
+      self.fail()
+    rel_dir_tracked_fp = os.path.relpath(self.DIR_TRACKED_FP, self.DIR)
+    out2 = utils.stdout(gl.diff(o=rel_dir_tracked_fp, _tty_out=False))
+    if '+contents_dir_tracked' not in out2:
+      self.fail()
+
   def test_diff_dir(self):
     fp = 'dir/dir/f'
     utils.write_file(fp, contents='contents')
-    out = utils.stdout(gl.diff(fp, _tty_out=False))
+    out = utils.stdout(gl.diff(o=fp, _tty_out=False))
     if '+contents' not in out:
       self.fail()
 
@@ -302,7 +338,7 @@ class TestDiffFile(TestEndToEnd):
     out1 = utils.stdout(gl.diff(_tty_out=False))
     if '+' + contents not in out1:
       self.fail('out is ' + out1)
-    out2 = utils.stdout(gl.diff(self.TRACKED_FP, _tty_out=False))
+    out2 = utils.stdout(gl.diff(o=self.TRACKED_FP, _tty_out=False))
     if '+' + contents not in out2:
       self.fail('out is ' + out2)
     self.assertEqual(out1, out2)

@@ -14,18 +14,18 @@ from gitless import core
 from . import pprint
 
 
-def parser(subparsers):
+def parser(subparsers, _):
   """Adds the init parser to the given subparsers object."""
   init_parser = subparsers.add_parser(
       'init',
       help=(
           'create an empty Gitless\'s repository or create one from an '
-          'existing remote repository.'))
+          'existing remote repository'))
   init_parser.add_argument(
       'repo', nargs='?',
       help=(
           'an optional remote repo address from where to read to create the'
-          'local repo.'))
+          'local repo'))
   init_parser.set_defaults(func=main)
 
 

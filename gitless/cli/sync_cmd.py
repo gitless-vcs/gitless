@@ -12,7 +12,7 @@ from . import pprint
 
 
 def parser(subcmd):
-  def f(subparsers):
+  def f(subparsers, _):
     sync_parser = subparsers.add_parser(
         subcmd,
         help='{0} the divergent changes of one branch onto another'.format(

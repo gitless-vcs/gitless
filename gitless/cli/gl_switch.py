@@ -12,7 +12,7 @@ from clint.textui import colored
 from . import pprint
 
 
-def parser(subparsers):
+def parser(subparsers, _):
   """Adds the switch parser to the given subparsers object."""
   switch_parser = subparsers.add_parser(
       'switch', help='switch branches')

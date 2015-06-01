@@ -16,13 +16,13 @@ from gitless import core
 from . import helpers, pprint
 
 
-def parser(subparsers):
+def parser(subparsers, repo):
   """Adds the status parser to the given subparsers object."""
   status_parser = subparsers.add_parser(
       'status', help='show status of the repo')
   status_parser.add_argument(
       'paths', nargs='*', help='the specific path(s) to status',
-      action=helpers.PathProcessor)
+      action=helpers.PathProcessor, repo=repo)
   status_parser.set_defaults(func=main)
 
 
@@ -40,7 +40,7 @@ def main(args, repo):
 
   tracked_mod_list = []
   untracked_list = []
-  paths = frozenset(args.paths) if args.paths else None
+  paths = frozenset(args.paths)
   for f in curr_b.status():
     if paths and (f.fp not in paths):
       continue

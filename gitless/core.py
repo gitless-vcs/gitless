@@ -741,7 +741,8 @@ class Branch(object):
       def update(index):
         """Add/remove files to the given index."""
         for f in files:
-          if not os.path.exists(f):
+          assert not os.path.isabs(f)
+          if not os.path.exists(os.path.join(self.gl_repo.root, f)):
             index.remove(f)
           else:
             index.add(f)

@@ -7,14 +7,12 @@
 
 from __future__ import unicode_literals
 
-import os
-
 from gitless import core
 
 from . import helpers, pprint
 
 
-def parser(subparsers):
+def parser(subparsers, repo):
   """Adds the checkout parser to the given subparsers object."""
   checkout_parser = subparsers.add_parser(
       'checkout', help='checkout committed versions of files')
@@ -24,7 +22,7 @@ def parser(subparsers):
       dest='cp', default='HEAD')
   checkout_parser.add_argument(
       'files', nargs='+', help='the file(s) to checkout',
-      action=helpers.PathProcessor)
+      action=helpers.PathProcessor, repo=repo)
   checkout_parser.set_defaults(func=main)
 
 
@@ -39,7 +37,7 @@ def main(args, repo):
         'You have uncomitted changes in "{0}" that could be overwritten by '
         'checkout'.format(fp))
     try:
-      f = curr_b.status_file(os.path.relpath(fp, repo.root))
+      f = curr_b.status_file(fp)
       if f.type == core.GL_STATUS_TRACKED and f.modified and (
           not pprint.conf_dialog(conf_msg)):
         pprint.err('Checkout aborted')
