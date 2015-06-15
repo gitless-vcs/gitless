@@ -43,9 +43,15 @@ def main(args, repo):
   _auto_track(commit_files, curr_b)
   ci = curr_b.create_commit(commit_files, msg)
   pprint.ok('Commit succeeded')
-  if ci:
-    pprint.blank()
-    pprint.commit(ci)
+
+  pprint.blank()
+  pprint.commit(ci)
+
+  if curr_b.fuse_in_progress:
+    curr_b.fuse_continue(
+        on_apply_ok=pprint.apply_ok, on_apply_err=pprint.apply_err)
+    pprint.ok('Fuse succeeded')
+
   return True
 
 

@@ -9,6 +9,7 @@ from __future__ import unicode_literals
 
 import logging
 import os
+import re
 import time
 
 from sh import ErrorReturnCode, gl, git
@@ -21,6 +22,7 @@ class TestEndToEnd(utils.TestBase):
   def setUp(self):
     super(TestEndToEnd, self).setUp('gl-e2e-test')
     gl.init()
+    git.config('color.ui', False)
     utils.set_test_config()
 
 
@@ -36,12 +38,8 @@ class TestNotInRepo(utils.TestBase):
             ErrorReturnCode, 'not in a Gitless\'s repository', cmd)
 
     assert_not_in_repo(
-      gl.status, gl.diff, gl.commit, gl.branch, gl.merge, gl.rebase, gl.remote,
+      gl.status, gl.diff, gl.commit, gl.branch, gl.merge, gl.fuse, gl.remote,
       gl.publish, gl.history)
-
-
-# TODO(sperezde): add dialog related tests.
-# TODO(sperezde): add checkout related tests.
 
 
 class TestBasic(TestEndToEnd):
@@ -85,10 +83,13 @@ class TestBasic(TestEndToEnd):
     gl.branch(c='branch-conflict2')
     gl.commit(m='New contents commit')
 
-    # Rebase
+    # Fuse
     gl.switch('branch1')
-    self.assertRaises(ErrorReturnCode, gl.rebase)  # no upstream set
-    gl.rebase('master')
+    self.assertRaises(ErrorReturnCode, gl.fuse)  # no upstream set
+    try:
+      gl.fuse('master')
+    except ErrorReturnCode as e:
+      self.fail(utils.stderr(e))
     if 'file1 commit' not in utils.stdout(gl.history(_tty_out=False)):
       self.fail()
 
@@ -99,11 +100,11 @@ class TestBasic(TestEndToEnd):
     if 'file1 commit' not in utils.stdout(gl.history(_tty_out=False)):
       self.fail()
 
-    # Conflicting rebase
+    # Conflicting fuse
     gl.switch('branch-conflict1')
     utils.write_file('file1', 'Conflicting changes to file1')
     gl.commit(m='changes in branch-conflict1')
-    err = utils.stderr(gl.rebase('master', _tty_out=False, _ok_code=[1]))
+    err = utils.stderr(gl.fuse('master', _tty_out=False, _ok_code=[1]))
     if 'conflict' not in err:
       self.fail()
     out = utils.stdout(gl.status(_tty_out=False))
@@ -111,12 +112,12 @@ class TestBasic(TestEndToEnd):
       self.fail()
 
     # Try aborting
-    gl.rebase('--abort')
+    gl.fuse('--abort')
     if 'file1' in utils.stdout(gl.status(_tty_out=False)):
       self.fail()
 
     # Ok, now let's fix the conflicts
-    err = utils.stderr(gl.rebase('master', _tty_out=False, _ok_code=[1]))
+    err = utils.stderr(gl.fuse('master', _tty_out=False, _ok_code=[1]))
     if 'conflict' not in err:
       self.fail()
     out = utils.stdout(gl.status(_tty_out=False))
@@ -343,6 +344,132 @@ class TestDiffFile(TestEndToEnd):
       self.fail('out is ' + out2)
     self.assertEqual(out1, out2)
 
+
+class TestFuse(TestEndToEnd):
+
+  COMMITS_NUMBER = 3
+
+  def setUp(self):
+    super(TestFuse, self).setUp()
+
+    self.commits = {}
+    def create_commits(branch_name, fp):
+      self.commits[branch_name] = []
+      utils.append_to_file(fp, contents='contents {0}\n'.format(0))
+      out = utils.stdout(gl.commit(m='ci 0 in {0}'.format(branch_name), inc=fp))
+      self.commits[branch_name].append(
+          re.search(r'Commit Id: (.*)', out, re.UNICODE).group(1))
+      for i in range(1, self.COMMITS_NUMBER):
+        utils.append_to_file(fp, contents='contents {0}\n'.format(i))
+        out = utils.stdout(gl.commit(m='ci {0} in {1}'.format(i, branch_name)))
+        self.commits[branch_name].append(
+            re.search(r'Commit Id: (.*)', out, re.UNICODE).group(1))
+
+    gl.branch(c='other')
+    create_commits('master', 'master_file')
+    gl.switch('other')
+    create_commits('other', 'other_file')
+    gl.switch('master')
+
+  def __assert_history(self, expected):
+    out = utils.stdout(gl.history(_tty_out=False))
+    cids = list(reversed(re.findall(r'ci (.*) in (.*)', out, re.UNICODE)))
+    self.assertEqual(
+        cids, expected, 'cids is ' + str(cids) + ' exp ' + str(expected))
+
+  def __build(self, branch_name, cids=None):
+    if not cids:
+      cids = range(self.COMMITS_NUMBER)
+    return [(unicode(ci), branch_name) for ci in cids]
+
+  def test_basic(self):
+    gl.fuse('other')
+    self.__assert_history(self.__build('other') + self.__build('master'))
+
+  def test_only_errors(self):
+    self.assertRaises(ErrorReturnCode, gl.fuse, 'other', o='non-existent-id')
+    self.assertRaises(
+        ErrorReturnCode, gl.fuse, 'other', o=self.commits['master'][1])
+
+  def test_only_one(self):
+    gl.fuse('other', o=self.commits['other'][0])
+    self.__assert_history(
+        self.__build('other', cids=[0]) + self.__build('master'))
+
+  def test_only_some(self):
+    gl.fuse('other', '-o', self.commits['other'][:2])
+    self.__assert_history(
+        self.__build('other', [0, 1]) + self.__build('master'))
+
+  def test_exclude_errors(self):
+    self.assertRaises(ErrorReturnCode, gl.fuse, 'other', e='non-existent-id')
+    self.assertRaises(
+        ErrorReturnCode, gl.fuse, 'other', e=self.commits['master'][1])
+
+  def test_exclude_one(self):
+    gl.fuse('other', e=self.commits['other'][2])
+    self.__assert_history(
+        self.__build('other', [0, 1]) + self.__build('master'))
+
+  def test_exclude_some(self):
+    gl.fuse('other', '-e', self.commits['other'][1:])
+    self.__assert_history(
+        self.__build('other', cids=[0]) + self.__build('master'))
+
+  def test_ip_dp(self):
+    gl.fuse('other', insertion_point='dp')
+    self.__assert_history(self.__build('other') + self.__build('master'))
+
+  def test_ip_head(self):
+    gl.fuse('other', insertion_point='HEAD')
+    self.__assert_history(self.__build('master') + self.__build('other'))
+
+  def test_ip_commit(self):
+    gl.fuse('other', insertion_point=self.commits['master'][1])
+    self.__assert_history(
+        self.__build('master', [0, 1]) + self.__build('other') +
+        self.__build('master', [2]))
+
+  def test_conflicts(self):
+    def trigger_conflicts():
+      try:
+        gl.fuse('other', e=self.commits['other'][0])
+        self.fail()
+      except ErrorReturnCode as e:
+        self.assertTrue('conflicts' in utils.stderr(e))
+
+    # Abort
+    trigger_conflicts()
+    gl.fuse('-a')
+    self.__assert_history(self.__build('master'))
+
+    # Fix conflicts
+    trigger_conflicts()
+    gl.resolve('other_file')
+    gl.commit(m='ci 1 in other')
+    self.__assert_history(
+        self.__build('other', [1, 2]) + self.__build('master'))
+
+  def test_nothing_to_fuse(self):
+    try:
+      gl.fuse('other', '-e', *self.commits['other'])
+      self.fail()
+    except ErrorReturnCode as e:
+      self.assertTrue('No commits to fuse' in utils.stderr(e))
+
+  def test_ff(self):
+    gl.branch(c='tmp', divergent_point='HEAD~2')
+    gl.switch('tmp')
+
+    gl.fuse('master')
+    self.__assert_history(self.__build('master'))
+
+  def test_ff_ip_head(self):
+    gl.branch(c='tmp', divergent_point='HEAD~2')
+    gl.switch('tmp')
+
+    gl.fuse('master', insertion_point='HEAD')
+    self.__assert_history(self.__build('master'))
 
 
 class TestPerformance(TestEndToEnd):

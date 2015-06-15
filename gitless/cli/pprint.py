@@ -136,9 +136,24 @@ def commit(ci, color=colored.yellow, stream=sys.stdout.write):
     puts(ci.message, stream=stream)
 
 
+def apply_ok(ci):
+  ok('Insertion of {0} succeeded'.format(ci.id))
+  blank()
+  commit(ci)
+  blank()
+
+
+def apply_err(ci):
+  err('Insertion of {0} failed'.format(ci.id))
+  blank()
+  commit(ci)
+  blank()
+
+
 class FixedOffset(tzinfo):
 
   def __init__(self, offset):
+    super(FixedOffset, self).__init__()
     self.__offset = timedelta(minutes=offset)
 
   def utcoffset(self, _):

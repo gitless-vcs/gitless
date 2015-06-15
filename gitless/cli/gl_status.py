@@ -34,9 +34,9 @@ def main(args, repo):
   if curr_b.merge_in_progress:
     pprint.blank()
     _print_conflict_exp('merge')
-  elif curr_b.rebase_in_progress:
+  elif curr_b.fuse_in_progress:
     pprint.blank()
-    _print_conflict_exp('rebase')
+    _print_conflict_exp('fuse')
 
   tracked_mod_list = []
   untracked_list = []

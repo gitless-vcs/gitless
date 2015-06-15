@@ -7,8 +7,6 @@
 
 from __future__ import unicode_literals
 
-from clint.textui import colored
-
 from . import pprint
 
 

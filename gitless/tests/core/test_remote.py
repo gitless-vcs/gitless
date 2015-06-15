@@ -108,13 +108,13 @@ class TestSync(TestRemote):
     remote_branch = self.remote.lookup_branch(REMOTE_BRANCH)
     remote_branch_head_before = remote_branch.head
 
-    current_branch = self.repo.current_branch
+    current_b = self.repo.current_branch
     # It is not a ff so it should fail
-    self.assertRaises(core.GlError, current_branch.publish, remote_branch)
+    self.assertRaises(core.GlError, current_b.publish, remote_branch)
     # Get the changes
-    current_branch.rebase(remote_branch)
+    git.rebase(remote_branch)
     # Retry (this time it should work)
-    current_branch.publish(remote_branch)
+    current_b.publish(remote_branch)
 
     self.assertItemsEqual(
         ['master', REMOTE_BRANCH], self.remote.listall_branches())
@@ -124,4 +124,4 @@ class TestSync(TestRemote):
     self.assertNotEqual(
         remote_branch_head_before.id,
         remote_branch.head.id)
-    self.assertEqual(current_branch.head.id, remote_branch.head.id)
+    self.assertEqual(current_b.head.id, remote_branch.head.id)

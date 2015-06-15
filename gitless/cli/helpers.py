@@ -17,13 +17,6 @@ from gitless import core
 from . import pprint
 
 
-def get_branch_name(branch):
-  try:
-    return branch.remote_name + '/' + branch.branch_name
-  except AttributeError:
-    return branch.branch_name
-
-
 def get_branch(branch_name, repo):
   b = repo.lookup_branch(branch_name)
   if not b:
@@ -46,6 +39,23 @@ def get_branch(branch_name, repo):
   return b
 
 
+def get_branch_or_use_upstream(branch_name, arg, repo):
+  if not branch_name: # use upstream branch
+    current_b = repo.current_branch
+    upstream_b = current_b.upstream
+    if not upstream_b:
+      raise ValueError(
+          'No {0} branch specified and the current branch has no upstream '
+          'branch set'.format(arg))
+
+    ret = current_b.upstream
+    pprint.warn(
+        'No {0} branch specified, using upstream branch {1}'.format(arg, ret))
+  else:
+    ret = get_branch(branch_name, repo)
+  return ret
+
+
 def page(fp):
   subprocess.call(['less', '-r', '-f', fp], stdin=sys.stdin, stdout=sys.stdout)
 
@@ -57,17 +67,28 @@ class PathProcessor(argparse.Action):
     super(PathProcessor, self).__init__(option_strings, dest, **kwargs)
 
   def __call__(self, parser, namespace, paths, option_string=None):
-    setattr(namespace, self.dest, self.__process_path(paths))
+    def process_paths():
+      for path in paths:
+        path = os.path.normpath(path)
+        if os.path.isdir(path):
+          for curr_dir, _, fps in os.walk(path):
+            for fp in fps:
+              yield os.path.relpath(os.path.join(curr_dir, fp), self.root)
+        else:
+          yield os.path.relpath(path, self.root)
 
-  def __process_path(self, paths):
-    for path in paths:
-      path = os.path.normpath(path)
-      if os.path.isdir(path):
-        for curr_dir, _, fps in os.walk(path):
-          for fp in fps:
-            yield os.path.relpath(os.path.join(curr_dir, fp), self.root)
-      else:
-        yield os.path.relpath(path, self.root)
+    setattr(namespace, self.dest, process_paths())
+
+
+class CommitIdProcessor(argparse.Action):
+
+  def __init__(self, option_strings, dest, repo=None, **kwargs):
+    self.repo = repo
+    super(CommitIdProcessor, self).__init__(option_strings, dest, **kwargs)
+
+  def __call__(self, parser, namespace, revs, option_string=None):
+    cids = (self.repo.revparse_single(rev).id for rev in revs)
+    setattr(namespace, self.dest, cids)
 
 
 def oei_flags(subparsers, repo):
@@ -86,7 +107,7 @@ def oei_flags(subparsers, repo):
 
 
 def oei_fs(args, repo):
-  """Compute the final fileset to commit per oei flags."""
+  """Compute the final fileset per oei flags."""
   only = frozenset(args.only if args.only else [])
   exclude = frozenset(args.exclude if args.exclude else [])
   include = frozenset(args.include if args.include else [])
@@ -111,7 +132,7 @@ def oei_fs(args, repo):
 
 
 def _oei_validate(only, exclude, include, curr_b):
-  """Validates user input.
+  """Validates user input per oei flags.
 
   This function will print to stderr in case user-provided values are invalid
   (and return False).

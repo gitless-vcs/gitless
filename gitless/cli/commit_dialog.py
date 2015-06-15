@@ -39,13 +39,12 @@ def show(files, repo):
     cf = io.open(_commit_file(repo), mode='wb')
   else:
     cf = io.open(_commit_file(repo), mode='w', encoding=ENCODING)
-  if repo.current_branch.merge_in_progress:
+
+  curr_b = repo.current_branch
+  if curr_b.merge_in_progress or curr_b.fuse_in_progress:
     merge_msg = io.open(
         _merge_msg_file(repo), mode='r', encoding=ENCODING).read()
     cf.write(merge_msg)
-  elif repo.current_branch.rebase_in_progress:
-    pprint.msg(
-        'The commit will have the original commit message', stream=cf.write)
   cf.write('\n')
   pprint.sep(stream=cf.write)
   pprint.msg(
