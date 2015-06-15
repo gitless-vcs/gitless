@@ -10,6 +10,12 @@ from __future__ import unicode_literals
 import collections
 import io
 import itertools
+
+try:
+  import itertools.izip as zip
+except ImportError:
+  pass
+
 from locale import getpreferredencoding
 import os
 import re
@@ -756,7 +762,7 @@ class Branch(object):
     # commits and the commits to fuse diverge
     detach_point = ip
     if ip == mb:
-      for ci, fuse_ci in itertools.izip(divergent_commits, fuse_commits):
+      for ci, fuse_ci in zip(divergent_commits, fuse_commits):
         if ci.id != fuse_ci.id:
           fuse_commits = itertools.chain([fuse_ci], fuse_commits)
           break
