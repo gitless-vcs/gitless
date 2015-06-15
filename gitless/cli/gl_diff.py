@@ -51,7 +51,8 @@ def main(args, repo):
 
       pprint.diff(patch, stream=tf.write)
 
-  helpers.page(tf.name)
+  if os.path.getsize(tf.name) > 0:
+    helpers.page(tf.name)
   os.remove(tf.name)
 
   return success
