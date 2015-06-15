@@ -29,7 +29,7 @@ def main(args, repo):
   b = repo.lookup_branch(args.branch)
 
   if not b:
-    pprint.err('Branch {0} doesn\'t exist'.format(colored.green(args.branch)))
+    pprint.err('Branch {0} doesn\'t exist'.format(args.branch))
     pprint.err_exp('to list existing branches do gl branch')
     return False
 
