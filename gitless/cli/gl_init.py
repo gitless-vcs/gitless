@@ -24,7 +24,7 @@ def parser(subparsers, _):
   init_parser.add_argument(
       'repo', nargs='?',
       help=(
-          'an optional remote repo address from where to read to create the'
+          'an optional remote repo address from where to read to create the '
           'local repo'))
   init_parser.set_defaults(func=main)
 
