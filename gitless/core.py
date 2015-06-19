@@ -261,6 +261,13 @@ class RemoteCollection(object):
   def __getitem__(self, name):
     return Remote(self.git_remote_collection.__getitem__(name), self.gl_repo)
 
+  def __contains__(self, name):
+    try:
+      self.git_remote_collection.__getitem__(name)
+      return True
+    except KeyError:
+      return False
+
   def create(self, name, url):
     if '/' in name:
       raise ValueError(
@@ -293,6 +300,30 @@ class Remote(object):
     self.gl_repo = gl_repo
     self.name = self.git_remote.name
     self.url = self.git_remote.url
+
+
+  def create_branch(self, name, commit):
+    """Create a new branch in the remote repository.
+
+    Args:
+      name: the name of the new branch.
+      commit: the commit that is to become the "head" of the new branch.
+    """
+    if self.lookup_branch(name):
+      raise GlError(
+          'Branch {0} already exists in remote repository {1}'.format(
+              name, self.name))
+    # Push won't let us push the creation of a new branch from a SHA. So we
+    # create a temporary local ref, make it point to the commit, and do the
+    # push
+    tmp_b = self.gl_repo.create_branch('gl_tmp_ref', commit)
+    try:
+      git.push(self.name, '{0}:{1}'.format(tmp_b, name))
+      return self.lookup_branch(name)
+    except ErrorReturnCode as e:
+      raise GlError(stderr(e))
+    finally:
+      tmp_b.delete()
 
 
   def listall_branches(self):
@@ -331,6 +362,13 @@ class RemoteBranch(object):
     self.gl_repo = gl_repo
     self.remote_name = self.git_branch.remote_name
     self.branch_name = self.git_branch.branch_name[len(self.remote_name) + 1:]
+
+
+  def delete(self):
+    try:
+      git.push(self.remote_name, ':{0}'.format(self.branch_name))
+    except ErrorReturnCode as e:
+      raise GlError(stderr(e))
 
   @property
   def target(self):

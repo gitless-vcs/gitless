@@ -20,6 +20,11 @@ def parser(subparsers, _):
   branch_parser = subparsers.add_parser(
       'branch', help='list, create, edit or delete branches')
   branch_parser.add_argument(
+      '-r', '--remote',
+      help='list remote branches in addition to local branches',
+      action='store_true')
+
+  branch_parser.add_argument(
       '-c', '--create', nargs='+', help='create branch(es)', dest='create_b')
   branch_parser.add_argument(
       '-dp', '--divergent-point',
@@ -28,6 +33,7 @@ def parser(subparsers, _):
       dest='dp')
   branch_parser.add_argument(
       '-d', '--delete', nargs='+', help='delete branch(es)', dest='delete_b')
+
   branch_parser.add_argument(
       '-su', '--set-upstream',
       help='set the upstream branch of the current branch',
@@ -50,12 +56,12 @@ def main(args, repo):
   elif args.unset_upstream:
     ret = _do_unset_upstream(repo)
   else:
-    _do_list(repo)
+    _do_list(repo, args.remote)
 
   return ret
 
 
-def _do_list(repo):
+def _do_list(repo, list_remote):
   pprint.msg('List of branches:')
   pprint.exp('do gl branch -c <b> to create branch b')
   pprint.exp('do gl branch -d <b> to delete branch b')
@@ -74,6 +80,11 @@ def _do_list(repo):
     pprint.item(
         '{0} {1} {2}'.format(current_str, color(b.branch_name), upstream_str))
 
+  if list_remote:
+    for r in repo.remotes:
+      for b in (r.lookup_branch(n) for n in r.listall_branches()):
+        pprint.item('  {0}'.format(colored.yellow(b.branch_name)))
+
 
 def _do_create(create_b, dp, repo):
   errors_found = False
@@ -84,9 +95,24 @@ def _do_create(create_b, dp, repo):
     raise ValueError('Invalid divergent point "{0}"'.format(dp))
 
   for b_name in create_b:
+    r = repo
+    remote_str = ''
+    if '/' in b_name:  # might want to create a remote branch
+      maybe_remote, maybe_remote_branch = b_name.split('/', 1)
+      if maybe_remote in repo.remotes:
+        r = repo.remotes[maybe_remote]
+        b_name = maybe_remote_branch
+        conf_msg = 'Branch {0} will be created in remote repository {1}'.format(
+            b_name, maybe_remote)
+        if not pprint.conf_dialog(conf_msg):
+          pprint.msg(
+              'Aborted: creation of branch {0} in remote repository {1}'.format(
+                  b_name, maybe_remote))
+          continue
+        remote_str = ' in remote repository {0}'.format(maybe_remote)
     try:
-      repo.create_branch(b_name, target)
-      pprint.ok('Created new branch {0}'.format(b_name))
+      r.create_branch(b_name, target)
+      pprint.ok('Created new branch {0}{1}'.format(b_name, remote_str))
     except ValueError as e:
       pprint.err(e)
       errors_found = True
@@ -98,25 +124,26 @@ def _do_delete(delete_b, repo):
   errors_found = False
 
   for b_name in delete_b:
-    b = repo.lookup_branch(b_name)
-    if not b:
-      pprint.err('Branch {0} doesn\'t exist'.format(b_name))
-      pprint.err_exp('do gl branch to list existing branches')
-      errors_found = True
-      continue
-
-    if not pprint.conf_dialog('Branch {0} will be removed'.format(b_name)):
-      pprint.msg('Aborted: removal of branch {0}'.format(b_name))
-      continue
-
     try:
+      b = helpers.get_branch(b_name, repo)
+
+      branch_str = 'Branch {0} will be removed'.format(b.branch_name)
+      remote_str = ''
+      if isinstance(b, core.RemoteBranch):
+        remote_str = 'from remote repository {0}'.format(b.remote_name)
+      if not pprint.conf_dialog('{0} {1}'.format(branch_str, remote_str)):
+        pprint.msg('Aborted: removal of branch {0}'.format(b))
+        continue
+
       b.delete()
-      pprint.ok('Branch {0} removed successfully'.format(b_name))
+      pprint.ok('Branch {0} removed successfully'.format(b))
+    except ValueError:
+      errors_found = True
     except core.BranchIsCurrentError as e:
       pprint.err(e)
       pprint.err_exp(
           'do gl branch <b> to create or switch to another branch b and then '
-          'gl branch -d {0} to remove branch {0}'.format(b_name))
+          'gl branch -d {0} to remove branch {0}'.format(b))
       errors_found = True
 
   return not errors_found
@@ -125,13 +152,12 @@ def _do_delete(delete_b, repo):
 def _do_set_upstream(upstream, repo):
   curr_b = repo.current_branch
   curr_b.upstream = helpers.get_branch(upstream, repo)
-  pprint.ok('Current branch {0} set to track {1}'.format(
-      curr_b.branch_name, upstream))
+  pprint.ok('Current branch {0} set to track {1}'.format(curr_b, upstream))
   return True
 
 
 def _do_unset_upstream(repo):
   curr_b = repo.current_branch
   curr_b.upstream = None
-  pprint.ok('Upstream unset for current branch {0}'.format(curr_b.branch_name))
+  pprint.ok('Upstream unset for current branch {0}'.format(curr_b))
   return True
