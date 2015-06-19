@@ -28,14 +28,17 @@ def parser(subparsers, _):
   history_parser.add_argument(
       '-c', '--compact', help='output history in a compact format',
       action='store_true', default=False)
+  history_parser.add_argument(
+      '-b', '--branch', nargs='?', metavar='branch_name', dest='b',
+      help='the branch to show history of (defaults to the current branch)')
   history_parser.set_defaults(func=main)
 
 
 def main(args, repo):
-  curr_b = repo.current_branch
+  b = helpers.get_branch(args.b, repo) if args.b else repo.current_branch
   with tempfile.NamedTemporaryFile(mode='w', delete=False) as tf:
     count = 0
-    for ci in curr_b.history():
+    for ci in b.history():
       if args.limit and count == args.limit:
         break
       merge_commit = len(ci.parent_ids) > 1
@@ -49,7 +52,7 @@ def main(args, repo):
         pprint.puts(stream=tf.write)
         pprint.puts(stream=tf.write)
       if args.verbose and len(ci.parents) == 1:  # TODO: merge commits diffs
-        for patch in curr_b.diff_commits(ci.parents[0], ci):
+        for patch in b.diff_commits(ci.parents[0], ci):
           pprint.diff(patch, stream=tf.write)
 
       count += 1
