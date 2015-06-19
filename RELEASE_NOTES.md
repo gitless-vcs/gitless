@@ -2,8 +2,8 @@ Gitless's Release Notes
 =======================
 
 
-04/09/2015 - v0.7
------------------
+9th Apr 2015 - v0.7
+-------------------
 
 * new backend that uses pygit2
 * some ui changes

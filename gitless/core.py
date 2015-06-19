@@ -773,10 +773,9 @@ class Branch(object):
     if mb == src.target:  # either self is ahead or both branches are equal
       raise GlError('No commits to fuse')
 
-    # Walk from the mb forward towards src's head
-    walker = src.history(reverse=True)
-    walker.hide(mb)
-    divergent_commits, fuse_commits = itertools.tee(walker, 2)
+    mb_to_src = src.history(reverse=True)
+    mb_to_src.hide(mb)
+    divergent_commits, fuse_commits = itertools.tee(mb_to_src, 2)
 
     if only:
       fuse_commits = (ci for ci in fuse_commits if ci.id in only)

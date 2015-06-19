@@ -91,16 +91,14 @@ Contribute
 
 There are several ways you can contribute to the project:
 
-- Design: if you have any feedback about Gitless's design we would love to
-hear from you. You can create an issue in the project with your
-feedback/questions/suggestions or shoot us an email.
 - Reporting bugs: did you find a bug? create an issue for it and we'll fix it
 ASAP.
 - Code: you can browse through the open issues and see if there's something
 there you would like to hack on. Is something missing? feel free to propose it!
+- Design: if you have any feedback about Gitless's design we would love to
+hear from you. You can create an issue in the project with your
+feedback/questions/suggestions or shoot us an email.
 
-After you've contributed you can send us a pull request adding yourself to the
-AUTHORS file if you want to.
 
 If you're planning on submitting code here are some useful things to know:
 
