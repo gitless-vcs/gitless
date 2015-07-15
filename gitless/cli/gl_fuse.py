@@ -7,6 +7,8 @@
 
 from __future__ import unicode_literals
 
+from gitless import core
+
 from . import helpers, pprint
 
 
@@ -85,8 +87,12 @@ def main(args, repo):
   else:
     insertion_point = repo.revparse_single(args.insertion_point).id
 
-  current_b.fuse(
-      src_branch, insertion_point, only=only, exclude=exclude,
-      on_apply_ok=pprint.apply_ok, on_apply_err=pprint.apply_err)
-  pprint.ok('Fuse succeeded')
+  try:
+    current_b.fuse(
+        src_branch, insertion_point, only=only, exclude=exclude,
+        on_apply_ok=pprint.apply_ok, on_apply_err=pprint.apply_err)
+    pprint.ok('Fuse succeeded')
+  except core.ApplyFailedError as e:
+    pprint.ok('Fuse succeeded')
+    raise e
   return True

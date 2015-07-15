@@ -348,6 +348,9 @@ class TestDiffFile(TestEndToEnd):
 class TestFuse(TestEndToEnd):
 
   COMMITS_NUMBER = 3
+  OTHER = 'other'
+  MASTER_FILE = 'master_file'
+  OTHER_FILE = 'other_file'
 
   def setUp(self):
     super(TestFuse, self).setUp()
@@ -365,10 +368,10 @@ class TestFuse(TestEndToEnd):
         self.commits[branch_name].append(
             re.search(r'Commit Id: (.*)', out, re.UNICODE).group(1))
 
-    gl.branch(c='other')
-    create_commits('master', 'master_file')
-    gl.switch('other')
-    create_commits('other', 'other_file')
+    gl.branch(c=self.OTHER)
+    create_commits('master', self.MASTER_FILE)
+    gl.switch(self.OTHER)
+    create_commits(self.OTHER, self.OTHER_FILE)
     gl.switch('master')
 
   def __assert_history(self, expected):
@@ -383,57 +386,57 @@ class TestFuse(TestEndToEnd):
     return [(unicode(ci), branch_name) for ci in cids]
 
   def test_basic(self):
-    gl.fuse('other')
-    self.__assert_history(self.__build('other') + self.__build('master'))
+    gl.fuse(self.OTHER)
+    self.__assert_history(self.__build(self.OTHER) + self.__build('master'))
 
   def test_only_errors(self):
-    self.assertRaises(ErrorReturnCode, gl.fuse, 'other', o='non-existent-id')
+    self.assertRaises(ErrorReturnCode, gl.fuse, self.OTHER, o='non-existent-id')
     self.assertRaises(
-        ErrorReturnCode, gl.fuse, 'other', o=self.commits['master'][1])
+        ErrorReturnCode, gl.fuse, self.OTHER, o=self.commits['master'][1])
 
   def test_only_one(self):
-    gl.fuse('other', o=self.commits['other'][0])
+    gl.fuse(self.OTHER, o=self.commits[self.OTHER][0])
     self.__assert_history(
-        self.__build('other', cids=[0]) + self.__build('master'))
+        self.__build(self.OTHER, cids=[0]) + self.__build('master'))
 
   def test_only_some(self):
-    gl.fuse('other', '-o', self.commits['other'][:2])
+    gl.fuse(self.OTHER, '-o', self.commits[self.OTHER][:2])
     self.__assert_history(
-        self.__build('other', [0, 1]) + self.__build('master'))
+        self.__build(self.OTHER, [0, 1]) + self.__build('master'))
 
   def test_exclude_errors(self):
-    self.assertRaises(ErrorReturnCode, gl.fuse, 'other', e='non-existent-id')
+    self.assertRaises(ErrorReturnCode, gl.fuse, self.OTHER, e='non-existent-id')
     self.assertRaises(
-        ErrorReturnCode, gl.fuse, 'other', e=self.commits['master'][1])
+        ErrorReturnCode, gl.fuse, self.OTHER, e=self.commits['master'][1])
 
   def test_exclude_one(self):
-    gl.fuse('other', e=self.commits['other'][2])
+    gl.fuse(self.OTHER, e=self.commits[self.OTHER][2])
     self.__assert_history(
-        self.__build('other', [0, 1]) + self.__build('master'))
+        self.__build(self.OTHER, [0, 1]) + self.__build('master'))
 
   def test_exclude_some(self):
-    gl.fuse('other', '-e', self.commits['other'][1:])
+    gl.fuse(self.OTHER, '-e', self.commits[self.OTHER][1:])
     self.__assert_history(
-        self.__build('other', cids=[0]) + self.__build('master'))
+        self.__build(self.OTHER, cids=[0]) + self.__build('master'))
 
   def test_ip_dp(self):
-    gl.fuse('other', insertion_point='dp')
-    self.__assert_history(self.__build('other') + self.__build('master'))
+    gl.fuse(self.OTHER, insertion_point='dp')
+    self.__assert_history(self.__build(self.OTHER) + self.__build('master'))
 
   def test_ip_head(self):
-    gl.fuse('other', insertion_point='HEAD')
-    self.__assert_history(self.__build('master') + self.__build('other'))
+    gl.fuse(self.OTHER, insertion_point='HEAD')
+    self.__assert_history(self.__build('master') + self.__build(self.OTHER))
 
   def test_ip_commit(self):
-    gl.fuse('other', insertion_point=self.commits['master'][1])
+    gl.fuse(self.OTHER, insertion_point=self.commits['master'][1])
     self.__assert_history(
-        self.__build('master', [0, 1]) + self.__build('other') +
+        self.__build('master', [0, 1]) + self.__build(self.OTHER) +
         self.__build('master', [2]))
 
   def test_conflicts(self):
     def trigger_conflicts():
       try:
-        gl.fuse('other', e=self.commits['other'][0])
+        gl.fuse(self.OTHER, e=self.commits[self.OTHER][0])
         self.fail()
       except ErrorReturnCode as e:
         self.assertTrue('conflicts' in utils.stderr(e))
@@ -448,11 +451,11 @@ class TestFuse(TestEndToEnd):
     gl.resolve('other_file')
     gl.commit(m='ci 1 in other')
     self.__assert_history(
-        self.__build('other', [1, 2]) + self.__build('master'))
+        self.__build(self.OTHER, [1, 2]) + self.__build('master'))
 
   def test_nothing_to_fuse(self):
     try:
-      gl.fuse('other', '-e', *self.commits['other'])
+      gl.fuse(self.OTHER, '-e', *self.commits[self.OTHER])
       self.fail()
     except ErrorReturnCode as e:
       self.assertTrue('No commits to fuse' in utils.stderr(e))
@@ -470,6 +473,47 @@ class TestFuse(TestEndToEnd):
 
     gl.fuse('master', insertion_point='HEAD')
     self.__assert_history(self.__build('master'))
+
+  def test_uncommitted_changes(self):
+    utils.write_file(self.MASTER_FILE, contents='uncommitted')
+    utils.write_file('master_untracked', contents='uncommitted')
+    gl.fuse(self.OTHER)
+    self.assertEqual('uncommitted', utils.read_file(self.MASTER_FILE))
+    self.assertEqual('uncommitted', utils.read_file('master_untracked'))
+
+  def test_uncommitted_tracked_changes_that_conflict(self):
+    gl.branch(c='tmp', divergent_point='HEAD~1')
+    gl.switch('tmp')
+    utils.write_file(self.MASTER_FILE, contents='uncommitted')
+    try:
+      gl.fuse('master', insertion_point='HEAD')
+      self.fail()
+    except ErrorReturnCode as e:
+      self.assertTrue('failed to apply' in utils.stderr(e))
+    contents = utils.read_file(self.MASTER_FILE)
+    self.assertTrue('uncommitted' in contents)
+    self.assertTrue('contents 2' in contents)
+
+  def test_uncommitted_tracked_changes_that_conflict_append(self):
+    gl.branch(c='tmp', divergent_point='HEAD~1')
+    gl.switch('tmp')
+    utils.append_to_file(self.MASTER_FILE, contents='uncommitted')
+    try:
+      gl.fuse('master', insertion_point='HEAD')
+      self.fail()
+    except ErrorReturnCode as e:
+      self.assertTrue('failed to apply' in utils.stderr(e))
+    contents = utils.read_file(self.MASTER_FILE)
+    self.assertTrue('uncommitted' in contents)
+    self.assertTrue('contents 2' in contents)
+
+#  def test_uncommitted_untracked_changes_that_conflict(self):
+#    utils.write_file(self.OTHER_FILE, contents='uncommitted in master')
+#    try:
+#      gl.fuse(self.OTHER)
+#      self.fail()
+#    except ErrorReturnCode as e:
+#      self.assertTrue('failed to apply' in utils.stderr(e))
 
 
 class TestPerformance(TestEndToEnd):

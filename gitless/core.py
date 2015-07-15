@@ -30,9 +30,7 @@ class NotInRepoError(GlError): pass
 
 class BranchIsCurrentError(GlError): pass
 
-class MergeInProgressError(GlError): pass
-
-class FuseInProgressError(GlError): pass
+class ApplyFailedError(GlError): pass
 
 
 # File status
@@ -194,7 +192,7 @@ class Repository(object):
 
     curr_b = self.current_branch
 
-    # TODO: let the user switch even if a merge or rebase is in progress
+    # TODO: let the user switch even if a fuse or merge is in progress
     curr_b._check_op_not_in_progress()
 
     # Helper functions for switch
@@ -807,7 +805,8 @@ class Branch(object):
     commits = itertools.chain(fuse_commits, after_commits)
     commits, _commits = itertools.tee(commits, 2)
     if not any(_commits):  # it's a ff
-      repo.git_repo.reset(detach_point, pygit2.GIT_RESET_HARD)
+      self._safe_reset(detach_point)
+      self._safe_restore()
       return
 
     # We are going to have to do some cherry-picking
@@ -820,7 +819,7 @@ class Branch(object):
     # Detach head so that reset doesn't reset master and instead
     # resets the head ref
     repo.git_repo.set_head(repo.git_repo.head.peel().id)
-    repo.git_repo.reset(detach_point, pygit2.GIT_RESET_HARD)
+    self._safe_reset(detach_point)
 
     self._fuse(commits, on_apply_ok=on_apply_ok, on_apply_err=on_apply_err)
 
@@ -857,6 +856,7 @@ class Branch(object):
     orig_branch_ref.set_target(git_repo.head.target)
     git_repo.set_head(orig_branch_ref.name)
     git_repo.state_cleanup()
+    self._safe_restore()
 
   @property
   def fuse_in_progress(self):
@@ -871,6 +871,30 @@ class Branch(object):
 
     os.remove(self._fuse_commits_fp)
     git_repo.state_cleanup()
+    self._safe_restore()
+
+  def _safe_reset(self, cid):
+    git_repo = self.gl_repo.git_repo
+    tree = git_repo[cid].tree
+    try:
+      git_repo.checkout_tree(tree)
+    except pygit2.GitError:  # conflicts prevent checkout
+      # TODO: this hack will cover most cases, but it won't help if the conflict
+      # is caused by untracked files (nonetheless `stash pop` won't work in that
+      # case either so we need to find an alternative way of doing this)
+      git.stash.save('--', _stash_msg_fuse(self))
+      git_repo.checkout_tree(tree)
+    git_repo.reset(cid, pygit2.GIT_RESET_SOFT)
+
+  def _safe_restore(self):
+    s_id = _stash_id(_stash_msg_fuse(self))
+    if s_id:
+      try:
+        git.stash.pop(s_id)
+      except ErrorReturnCode:
+        raise ApplyFailedError(
+            'Uncommitted changes failed to apply onto the new head of the '
+            'branch')
 
 
   def create_commit(self, files, msg, author=None):
@@ -960,7 +984,7 @@ class Branch(object):
     except ErrorReturnCode as e:
       err_msg = stderr(e)
       if 'Updates were rejected' in err_msg:
-        raise GlError('There are changes you need to rebase/merge')
+        raise GlError('There are changes you need to fuse/merge')
       raise GlError(err_msg)
 
 
@@ -968,9 +992,9 @@ class Branch(object):
 
   def _check_op_not_in_progress(self):
     if self.merge_in_progress:
-      raise MergeInProgressError('Merge in progress')
+      raise GlError('Merge in progress')
     if self.fuse_in_progress:
-      raise FuseInProgressError('Fuse in progress')
+      raise GlError('Fuse in progress')
 
   def _check_is_current(self):
     if not self.is_current:
@@ -1003,8 +1027,11 @@ def _stash_id(msg):
 
 
 def _stash_msg(name):
-  """Computes the stash msg to use for stashing changes in branch name."""
+  """Computes the stash msg to use for stashing changes with the given name."""
   return '---gl-{0}---'.format(name)
+
+def _stash_msg_fuse(name):
+  return _stash_msg('fuse-{0}'.format(name))
 
 
 # Misc
