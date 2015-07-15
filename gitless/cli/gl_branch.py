@@ -11,8 +11,7 @@ from clint.textui import colored
 
 from gitless import core
 
-from . import pprint
-from . import helpers
+from . import helpers, pprint
 
 
 def parser(subparsers, _):
