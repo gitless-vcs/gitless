@@ -7,7 +7,6 @@
 
 from __future__ import unicode_literals
 
-from collections import namedtuple
 from datetime import datetime, tzinfo, timedelta
 from locale import getpreferredencoding
 import re
@@ -166,22 +165,23 @@ class FixedOffset(tzinfo):
 def diff(patch, stream=sys.stdout.write):
   # Diff header
 
-  puts('Diff of file "{0}"'.format(patch.old_file_path), stream=stream)
-  if patch.old_file_path != patch.new_file_path:
-    puts(colored.cyan(
-        ' (renamed to {0})'.format(patch.new_file_path)), stream=stream)
+  old_fp = patch.delta.old_file.path
+  new_fp = patch.delta.new_file.path
+  puts('Diff of file "{0}"'.format(old_fp), stream=stream)
+  if old_fp != new_fp:
+    puts(colored.cyan(' (renamed to {0})'.format(new_fp)), stream=stream)
     puts(stream=stream)
 
-  if patch.is_binary:
+  if patch.delta.is_binary:
     puts('Not showing diffs for binary file', stream=stream)
     return
 
-  if (not patch.additions) and (not patch.deletions):
+  additions = patch.line_stats[1]
+  deletions = patch.line_stats[2]
+  if (not additions) and (not deletions):
     puts('No diffs to output for file', stream=stream)
     return
 
-  additions = patch.additions
-  deletions = patch.deletions
   put_s = lambda num: '' if num == 1 else 's'
   puts('{0} line{1} added'.format(additions, put_s(additions)), stream=stream)
   puts('{0} line{1} removed'.format(deletions, put_s(deletions)), stream=stream)
@@ -197,10 +197,6 @@ def diff(patch, stream=sys.stdout.write):
   puts(stream=stream)
 
 
-LineData = namedtuple(
-  'LineData', ['st', 'line', 'old_line_number', 'new_line_number'])
-
-
 def _hunk(hunk, stream=sys.stdout.write):
   puts(colored.cyan('@@ -{0},{1} +{2},{3} @@'.format(
       hunk.old_start, hunk.old_lines, hunk.new_start, hunk.new_lines)),
@@ -208,33 +204,25 @@ def _hunk(hunk, stream=sys.stdout.write):
   padding = _padding(hunk)
 
   del_line, add_line, maybe_bold, saw_add = None, None, False, False
-  old_line_number, new_line_number = hunk.old_start, hunk.new_start
-
-  ld = lambda st, line: LineData(st, line, old_line_number, new_line_number)
-
-  for st, line in hunk.lines:
-    assert not IS_PY2 or isinstance(line, unicode)
-    line = line.rstrip('\n')
+  for diff_line in hunk.lines:
+    assert not IS_PY2 or isinstance(diff_line.content, unicode)
+    st = diff_line.origin
 
     if st == '-' and not maybe_bold:
       maybe_bold = True
-      del_line = ld(st, line)
-      old_line_number += 1
+      del_line = diff_line
     elif st == '+' and maybe_bold and not saw_add:
       saw_add = True
-      add_line = ld(st, line)
-      new_line_number += 1
+      add_line = diff_line
     elif st == ' ' and maybe_bold and saw_add:
-      bold1, bold2 = _highlight(del_line.line, add_line.line)
+      bold1, bold2 = _highlight(del_line.content, add_line.content)
 
       puts(_format_line(del_line, padding, bold_delim=bold1), stream=stream)
       puts(_format_line(add_line, padding, bold_delim=bold2), stream=stream)
 
       del_line, add_line, maybe_bold, saw_add = None, None, False, False
 
-      puts(_format_line(ld(st, line), padding), stream=stream)
-      old_line_number += 1
-      new_line_number += 1
+      puts(_format_line(diff_line, padding), stream=stream)
     else:
       if del_line:
         puts(_format_line(del_line, padding), stream=stream)
@@ -243,19 +231,11 @@ def _hunk(hunk, stream=sys.stdout.write):
 
       del_line, add_line, maybe_bold, saw_add = None, None, False, False
 
-      puts(_format_line(ld(st, line), padding), stream=stream)
-
-      if st == '-':
-        old_line_number += 1
-      elif st == '+':
-        new_line_number += 1
-      else:
-        old_line_number += 1
-        new_line_number += 1
+      puts(_format_line(diff_line, padding), stream=stream)
 
 
   if maybe_bold and saw_add:
-    bold1, bold2 = _highlight(del_line.line, add_line.line)
+    bold1, bold2 = _highlight(del_line.content, add_line.content)
 
     puts(_format_line(del_line, padding, bold_delim=bold1), stream=stream)
     puts(_format_line(add_line, padding, bold_delim=bold2), stream=stream)
@@ -275,13 +255,13 @@ def _padding(hunk):
   return max(MIN_LINE_PADDING, max_line_digits + 1)
 
 
-def _format_line(line_data, padding, bold_delim=None):
+def _format_line(diff_line, padding, bold_delim=None):
   """Format a standard diff line.
 
   Returns:
     a colored version of the diff line using ANSI control characters.
   """
-  # Color constants.
+  # Color constants
   GREEN = '\033[32m'
   GREEN_BOLD = '\033[1;32m'
   RED = '\033[31m'
@@ -289,16 +269,16 @@ def _format_line(line_data, padding, bold_delim=None):
   CLEAR = '\033[0m'
 
   formatted = ''
-  line = line_data.st + line_data.line
+  st = diff_line.origin
+  line = st + diff_line.content.rstrip('\n')
+  old_lineno = diff_line.old_lineno
+  new_lineno = diff_line.new_lineno
 
-  if line_data.st == ' ':
+  if st == ' ':
     formatted = (
-        str(line_data.old_line_number).ljust(padding) +
-        str(line_data.new_line_number).ljust(padding) + line)
-  elif line_data.st == '+':
-    formatted = (
-        ' ' * padding + GREEN +
-        str(line_data.new_line_number).ljust(padding))
+        str(old_lineno).ljust(padding) + str(new_lineno).ljust(padding) + line)
+  elif st == '+':
+    formatted = ' ' * padding + GREEN + str(new_lineno).ljust(padding)
     if not bold_delim:
       formatted += line
     else:
@@ -306,17 +286,15 @@ def _format_line(line_data, padding, bold_delim=None):
       formatted += (
           line[:bold_start] + GREEN_BOLD + line[bold_start:bold_end] + CLEAR +
           GREEN + line[bold_end:])
-  elif line_data.st == '-':
-    formatted = (
-        RED + str(line_data.old_line_number).ljust(padding) +
-        ' ' * padding)
+  elif st == '-':
+    formatted = RED + str(old_lineno).ljust(padding) + ' ' * padding
     if not bold_delim:
       formatted += line
     else:
       bold_start, bold_end = bold_delim
       formatted += (
-          line[:bold_start] + RED_BOLD + line[bold_start:bold_end] +
-          CLEAR + RED + line[bold_end:])
+          line[:bold_start] + RED_BOLD + line[bold_start:bold_end] + CLEAR +
+          RED + line[bold_end:])
 
   return formatted + CLEAR
 
@@ -329,7 +307,7 @@ def _highlight(line1, line2):
     of the line that should be bolded for line1 and line2 respectively.
    """
   start1 = start2 = 0
-  match = re.search(r'\S', line1)  # ignore leading whitespace.
+  match = re.search(r'\S', line1)  # ignore leading whitespace
   if match:
     start1 = match.start()
   match = re.search(r'\S', line2)
@@ -342,7 +320,7 @@ def _highlight(line1, line2):
          line1[bold_start1] == line2[bold_start2]):
     bold_start1 += 1
     bold_start2 += 1
-  match = re.search(r'\s*$', line1)  # ignore trailing whitespace.
+  match = re.search(r'\s*$', line1)  # ignore trailing whitespace
   bold_end1 = match.start() - 1
   match = re.search(r'\s*$', line2)
   bold_end2 = match.start() - 1

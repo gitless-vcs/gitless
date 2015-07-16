@@ -41,11 +41,13 @@ def main(args, repo):
         success = False
         continue
 
-      if patch.is_binary:
+      if patch.delta.is_binary:
         pprint.warn('Not showing diffs for binary file {0}'.format(fp))
         continue
 
-      if (not patch.additions) and (not patch.deletions):
+      additions = patch.line_stats[1]
+      deletions = patch.line_stats[2]
+      if (not additions) and (not deletions):
         pprint.warn('No diffs to output for {0}'.format(fp))
         continue
 
