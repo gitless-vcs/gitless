@@ -127,16 +127,17 @@ class Repository(object):
   def merge_base(self, *args, **kwargs):
     return self.git_repo.merge_base(*args, **kwargs)
 
+  @property
+  def _fuse_commits_fp(self):
+    return os.path.join(self.path, 'gl_fuse_commits')
+
 
   # Branch related methods
-
 
   @property
   def current_branch(self):
     if self.git_repo.head_is_detached:
-      fuse_in_progress = os.path.exists(
-          os.path.join(self.path, 'gl_fuse_commits'))
-      if fuse_in_progress:
+      if os.path.exists(self._fuse_commits_fp):  # fuse in progress
         b_name = self.git_repo.lookup_reference('ORIG_HEAD').resolve().shorthand
       else:
         raise Exception('Gl confused')
@@ -732,12 +733,20 @@ class Branch(object):
 
   @property
   def _fuse_commits_fp(self):
-    return os.path.join(self.gl_repo.path, 'gl_fuse_commits')
+    return self.gl_repo._fuse_commits_fp
 
   def _save_fuse_commits(self, commits):
-    with io.open(self._fuse_commits_fp, mode='w', encoding=ENCODING) as f:
+    path = self._fuse_commits_fp
+    using_tmp = False
+    if os.path.exists(path):
+      path = path + '_tmp'
+      using_tmp = True
+    with io.open(path, mode='w', encoding=ENCODING) as f:
       for ci in commits:
         f.write(ci.id.hex + '\n')
+    if using_tmp:
+      shutil.move(path, self._fuse_commits_fp)
+
 
   def _load_fuse_commits(self):
     git_repo = self.gl_repo.git_repo
@@ -745,11 +754,9 @@ class Branch(object):
       for ci_id in f:
         ci_id = ci_id.strip()
         yield git_repo[ci_id]
+    os.remove(self._fuse_commits_fp)
 
-
-  def fuse(
-      self, src, ip, only=None, exclude=None,
-      on_apply_ok=None, on_apply_err=None):
+  def fuse(self, src, ip, only=None, exclude=None, fuse_cb=None):
     """Fuse the given commits onto this branch.
 
     Args:
@@ -759,8 +766,7 @@ class Branch(object):
         divergent commits from self or the divergent point.
       only: ids of commits to use only.
       exclude: ids of commtis to exclude.
-      on_apply_ok: fn to call after the successful application of a commit.
-      on_apply_err: fn to call after the application of a commit failed.
+      fuse_cb: see FuseCb.
     """
     self._check_is_current()
     self._check_op_not_in_progress()
@@ -796,8 +802,8 @@ class Branch(object):
           fuse_commits = itertools.chain([fuse_ci], fuse_commits)
           break
         detach_point = ci.id
-        if on_apply_ok:
-          on_apply_ok(ci)
+        if fuse_cb and fuse_cb.apply_ok:
+          fuse_cb.apply_ok(ci)
 
 
     after_commits = self.history(reverse=True)
@@ -805,8 +811,8 @@ class Branch(object):
     commits = itertools.chain(fuse_commits, after_commits)
     commits, _commits = itertools.tee(commits, 2)
     if not any(_commits):  # it's a ff
-      self._safe_reset(detach_point)
-      self._safe_restore()
+      self._safe_reset(detach_point, fuse_cb=fuse_cb)
+      self._safe_restore(fuse_cb=fuse_cb)
       return
 
     # We are going to have to do some cherry-picking
@@ -819,18 +825,19 @@ class Branch(object):
     # Detach head so that reset doesn't reset master and instead
     # resets the head ref
     repo.git_repo.set_head(repo.git_repo.head.peel().id)
-    self._safe_reset(detach_point)
+    self._safe_reset(detach_point, fuse_cb=fuse_cb)
 
-    self._fuse(commits, on_apply_ok=on_apply_ok, on_apply_err=on_apply_err)
+    self._fuse(commits, fuse_cb=fuse_cb)
 
 
-  def fuse_continue(self, on_apply_ok=None, on_apply_err=None):
+  def fuse_continue(self, fuse_cb=None):
     """Resume a fuse in progress."""
+    if not self.fuse_in_progress:
+      raise GlError('No fuse in progress, nothing to continue')
     commits = self._load_fuse_commits()
-    self._fuse(commits, on_apply_ok=on_apply_ok, on_apply_err=on_apply_err)
-    os.remove(self._fuse_commits_fp)
+    self._fuse(commits, fuse_cb=fuse_cb)
 
-  def _fuse(self, commits, on_apply_ok=None, on_apply_err=None):
+  def _fuse(self, commits, fuse_cb=None):
     git_repo = self.gl_repo.git_repo
     committer = git_repo.default_signature
 
@@ -838,13 +845,13 @@ class Branch(object):
       git_repo.cherrypick(ci.id)
       index = self._index
       if index.conflicts:
-        if on_apply_err:
-          on_apply_err(ci)
+        if fuse_cb and fuse_cb.apply_err:
+          fuse_cb.apply_err(ci)
         self._save_fuse_commits(commits)
         raise GlError('There are conflicts you need to resolve')
 
-      if on_apply_ok:
-        on_apply_ok(ci)
+      if fuse_cb and fuse_cb.apply_ok:
+        fuse_cb.apply_ok(ci)
       tree_oid = index.write_tree(git_repo)
       git_repo.create_commit(
           'HEAD',  # the name of the reference to update
@@ -856,13 +863,15 @@ class Branch(object):
     orig_branch_ref.set_target(git_repo.head.target)
     git_repo.set_head(orig_branch_ref.name)
     git_repo.state_cleanup()
-    self._safe_restore()
+    self._safe_restore(fuse_cb=fuse_cb)
 
   @property
   def fuse_in_progress(self):
+    # We could check if ORIG_HEAD exists but lots of git commands use ORIG_HEAD
+    # so we might get confused and think that we are in a fuse when we are not.
     return os.path.exists(self._fuse_commits_fp)
 
-  def abort_fuse(self):
+  def abort_fuse(self, fuse_cb=None):
     if not self.fuse_in_progress:
       raise GlError('No fuse in progress, nothing to abort')
     git_repo = self.gl_repo.git_repo
@@ -871,9 +880,9 @@ class Branch(object):
 
     os.remove(self._fuse_commits_fp)
     git_repo.state_cleanup()
-    self._safe_restore()
+    self._safe_restore(fuse_cb=fuse_cb)
 
-  def _safe_reset(self, cid):
+  def _safe_reset(self, cid, fuse_cb=None):
     git_repo = self.gl_repo.git_repo
     tree = git_repo[cid].tree
     try:
@@ -882,15 +891,19 @@ class Branch(object):
       # TODO: this hack will cover most cases, but it won't help if the conflict
       # is caused by untracked files (nonetheless `stash pop` won't work in that
       # case either so we need to find an alternative way of doing this)
+      if fuse_cb and fuse_cb.save:
+        fuse_cb.save()
       git.stash.save('--', _stash_msg_fuse(self))
       git_repo.checkout_tree(tree)
     git_repo.reset(cid, pygit2.GIT_RESET_SOFT)
 
-  def _safe_restore(self):
+  def _safe_restore(self, fuse_cb=None):
     s_id = _stash_id(_stash_msg_fuse(self))
     if s_id:
       try:
         git.stash.pop(s_id)
+        if fuse_cb and fuse_cb.restore_ok:
+          fuse_cb.restore_ok()
       except ErrorReturnCode:
         raise ApplyFailedError(
             'Uncommitted changes failed to apply onto the new head of the '
@@ -1035,6 +1048,10 @@ def _stash_msg_fuse(name):
 
 
 # Misc
+
+FuseCb = collections.namedtuple(
+    'FuseCb', ['apply_ok', 'apply_err', 'save', 'restore_ok'])
+
 
 def stdout(p):
   return p.stdout.decode(ENCODING)

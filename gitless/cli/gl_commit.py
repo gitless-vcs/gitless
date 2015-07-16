@@ -48,9 +48,13 @@ def main(args, repo):
   pprint.commit(ci)
 
   if curr_b.fuse_in_progress:
-    curr_b.fuse_continue(
-        on_apply_ok=pprint.apply_ok, on_apply_err=pprint.apply_err)
-    pprint.ok('Fuse succeeded')
+    pprint.blank()
+    try:
+      curr_b.fuse_continue(fuse_cb=pprint.FUSE_CB)
+      pprint.ok('Fuse succeeded')
+    except core.ApplyFailedError as e:
+      pprint.ok('Fuse succeeded')
+      raise e
 
   return True
 

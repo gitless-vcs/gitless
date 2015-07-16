@@ -90,15 +90,17 @@ class TestBasic(TestEndToEnd):
       gl.fuse('master')
     except ErrorReturnCode as e:
       self.fail(utils.stderr(e))
-    if 'file1 commit' not in utils.stdout(gl.history(_tty_out=False)):
-      self.fail()
+    out = utils.stdout(gl.history(_tty_out=False))
+    if 'file1 commit' not in out:
+      self.fail(out)
 
     # Merge
     gl.switch('branch2')
     self.assertRaises(ErrorReturnCode, gl.merge)  # no upstream set
     gl.merge('master')
-    if 'file1 commit' not in utils.stdout(gl.history(_tty_out=False)):
-      self.fail()
+    out = utils.stdout(gl.history(_tty_out=False))
+    if 'file1 commit' not in out:
+      self.fail(out)
 
     # Conflicting fuse
     gl.switch('branch-conflict1')
@@ -106,23 +108,24 @@ class TestBasic(TestEndToEnd):
     gl.commit(m='changes in branch-conflict1')
     err = utils.stderr(gl.fuse('master', _tty_out=False, _ok_code=[1]))
     if 'conflict' not in err:
-      self.fail()
+      self.fail(err)
     out = utils.stdout(gl.status(_tty_out=False))
     if 'file1 (with conflicts)' not in out:
-      self.fail()
+      self.fail(out)
 
     # Try aborting
     gl.fuse('--abort')
-    if 'file1' in utils.stdout(gl.status(_tty_out=False)):
-      self.fail()
+    out = utils.stdout(gl.status(_tty_out=False))
+    if 'file1' in out:
+      self.fail(out)
 
     # Ok, now let's fix the conflicts
     err = utils.stderr(gl.fuse('master', _tty_out=False, _ok_code=[1]))
     if 'conflict' not in err:
-      self.fail()
+      self.fail(err)
     out = utils.stdout(gl.status(_tty_out=False))
     if 'file1 (with conflicts)' not in out:
-      self.fail()
+      self.fail(out)
 
     utils.write_file('file1', 'Fixed conflicts!')
     self.assertRaises(ErrorReturnCode, gl.commit, m='resolve not called')
@@ -347,7 +350,7 @@ class TestDiffFile(TestEndToEnd):
 
 class TestFuse(TestEndToEnd):
 
-  COMMITS_NUMBER = 3
+  COMMITS_NUMBER = 4
   OTHER = 'other'
   MASTER_FILE = 'master_file'
   OTHER_FILE = 'other_file'
@@ -380,6 +383,9 @@ class TestFuse(TestEndToEnd):
     self.assertEqual(
         cids, expected, 'cids is ' + str(cids) + ' exp ' + str(expected))
 
+    st_out = utils.stdout(gl.status())
+    self.assertFalse('fuse' in st_out)
+
   def __build(self, branch_name, cids=None):
     if not cids:
       cids = range(self.COMMITS_NUMBER)
@@ -410,9 +416,10 @@ class TestFuse(TestEndToEnd):
         ErrorReturnCode, gl.fuse, self.OTHER, e=self.commits['master'][1])
 
   def test_exclude_one(self):
-    gl.fuse(self.OTHER, e=self.commits[self.OTHER][2])
+    last_ci = self.COMMITS_NUMBER - 1
+    gl.fuse(self.OTHER, e=self.commits[self.OTHER][last_ci])
     self.__assert_history(
-        self.__build(self.OTHER, [0, 1]) + self.__build('master'))
+        self.__build(self.OTHER, range(0, last_ci)) + self.__build('master'))
 
   def test_exclude_some(self):
     gl.fuse(self.OTHER, '-e', self.commits[self.OTHER][1:])
@@ -431,15 +438,13 @@ class TestFuse(TestEndToEnd):
     gl.fuse(self.OTHER, insertion_point=self.commits['master'][1])
     self.__assert_history(
         self.__build('master', [0, 1]) + self.__build(self.OTHER) +
-        self.__build('master', [2]))
+        self.__build('master', range(2, self.COMMITS_NUMBER)))
 
   def test_conflicts(self):
     def trigger_conflicts():
-      try:
-        gl.fuse(self.OTHER, e=self.commits[self.OTHER][0])
-        self.fail()
-      except ErrorReturnCode as e:
-        self.assertTrue('conflicts' in utils.stderr(e))
+      self.assertRaisesRegexp(
+          ErrorReturnCode, 'conflicts', gl.fuse,
+          self.OTHER, e=self.commits[self.OTHER][0])
 
     # Abort
     trigger_conflicts()
@@ -448,17 +453,55 @@ class TestFuse(TestEndToEnd):
 
     # Fix conflicts
     trigger_conflicts()
-    gl.resolve('other_file')
+    gl.resolve(self.OTHER_FILE)
     gl.commit(m='ci 1 in other')
     self.__assert_history(
-        self.__build(self.OTHER, [1, 2]) + self.__build('master'))
+        self.__build(self.OTHER, range(1, self.COMMITS_NUMBER)) +
+        self.__build('master'))
+
+  def test_conflicts_multiple(self):
+    gl.branch(c='tmp', divergent_point='HEAD~2')
+    gl.switch('tmp')
+    utils.append_to_file(self.MASTER_FILE, contents='conflict')
+    gl.commit(m='will conflict 0')
+    utils.append_to_file(self.MASTER_FILE, contents='conflict')
+    gl.commit(m='will conflict 1')
+
+    self.assertRaisesRegexp(ErrorReturnCode, 'conflicts', gl.fuse, 'master')
+    gl.resolve(self.MASTER_FILE)
+    self.assertRaisesRegexp(
+        ErrorReturnCode, 'conflicts', gl.commit, m='ci 0 in tmp')
+    gl.resolve(self.MASTER_FILE)
+    gl.commit(m='ci 1 in tmp')  # this one should finalize the fuse
+
+    self.__assert_history(
+        self.__build('master') + self.__build('tmp', range(2)))
+
+  def test_conflicts_multiple_uncommitted_changes(self):
+    gl.branch(c='tmp', divergent_point='HEAD~2')
+    gl.switch('tmp')
+    utils.append_to_file(self.MASTER_FILE, contents='conflict')
+    gl.commit(m='will conflict 0')
+    utils.append_to_file(self.MASTER_FILE, contents='conflict')
+    gl.commit(m='will conflict 1')
+    utils.write_file(self.MASTER_FILE, contents='uncommitted')
+
+    self.assertRaisesRegexp(ErrorReturnCode, 'conflicts', gl.fuse, 'master')
+    gl.resolve(self.MASTER_FILE)
+    self.assertRaisesRegexp(
+        ErrorReturnCode, 'conflicts', gl.commit, m='ci 0 in tmp')
+    gl.resolve(self.MASTER_FILE)
+    self.assertRaisesRegexp(
+        ErrorReturnCode, 'failed to apply', gl.commit, m='ci 1 in tmp')
+
+    self.__assert_history(
+        self.__build('master') + self.__build('tmp', range(2)))
+    self.assertTrue('Stashed' in utils.read_file(self.MASTER_FILE))
 
   def test_nothing_to_fuse(self):
-    try:
-      gl.fuse(self.OTHER, '-e', *self.commits[self.OTHER])
-      self.fail()
-    except ErrorReturnCode as e:
-      self.assertTrue('No commits to fuse' in utils.stderr(e))
+    self.assertRaisesRegexp(
+        ErrorReturnCode, 'No commits to fuse', gl.fuse,
+        self.OTHER, '-e', *self.commits[self.OTHER])
 
   def test_ff(self):
     gl.branch(c='tmp', divergent_point='HEAD~2')
@@ -485,11 +528,9 @@ class TestFuse(TestEndToEnd):
     gl.branch(c='tmp', divergent_point='HEAD~1')
     gl.switch('tmp')
     utils.write_file(self.MASTER_FILE, contents='uncommitted')
-    try:
-      gl.fuse('master', insertion_point='HEAD')
-      self.fail()
-    except ErrorReturnCode as e:
-      self.assertTrue('failed to apply' in utils.stderr(e))
+    self.assertRaisesRegexp(
+        ErrorReturnCode, 'failed to apply', gl.fuse,
+        'master', insertion_point='HEAD')
     contents = utils.read_file(self.MASTER_FILE)
     self.assertTrue('uncommitted' in contents)
     self.assertTrue('contents 2' in contents)
@@ -498,11 +539,9 @@ class TestFuse(TestEndToEnd):
     gl.branch(c='tmp', divergent_point='HEAD~1')
     gl.switch('tmp')
     utils.append_to_file(self.MASTER_FILE, contents='uncommitted')
-    try:
-      gl.fuse('master', insertion_point='HEAD')
-      self.fail()
-    except ErrorReturnCode as e:
-      self.assertTrue('failed to apply' in utils.stderr(e))
+    self.assertRaisesRegexp(
+        ErrorReturnCode, 'failed to apply', gl.fuse,
+        'master', insertion_point='HEAD')
     contents = utils.read_file(self.MASTER_FILE)
     self.assertTrue('uncommitted' in contents)
     self.assertTrue('contents 2' in contents)

@@ -15,6 +15,8 @@ import sys
 from clint.textui import colored, indent
 from clint.textui import puts as clint_puts
 
+from gitless import core
+
 
 SEP = (
     '##########################################################################'
@@ -134,6 +136,7 @@ def commit(ci, color=colored.yellow, stream=sys.stdout.write):
   with indent(4):
     puts(ci.message, stream=stream)
 
+# Fuse Callbacks
 
 def apply_ok(ci):
   ok('Insertion of {0} succeeded'.format(ci.id))
@@ -141,12 +144,19 @@ def apply_ok(ci):
   commit(ci)
   blank()
 
-
 def apply_err(ci):
   err('Insertion of {0} failed'.format(ci.id))
   blank()
   commit(ci)
   blank()
+
+def save():
+  warn('Uncommitted changes would prevent fuse, temporarily saving them')
+
+def restore_ok():
+  ok('Uncommitted changes applied successfully to the new head of the branch')
+
+FUSE_CB = core.FuseCb(apply_ok, apply_err, save, restore_ok)
 
 
 class FixedOffset(tzinfo):
