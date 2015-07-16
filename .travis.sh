@@ -2,7 +2,7 @@
 
 cd ~
 
-git clone --depth=1 -b maint/v0.23 https://github.com/libgit2/libgit2.git
+git clone --depth=1 -b maint/v0.22 https://github.com/libgit2/libgit2.git
 cd libgit2/
 
 mkdir build && cd build
@@ -11,4 +11,3 @@ cmake --build . --target install
 ls -la ..
 
 cd ~
-pip install git+https://github.com/libgit/pygit2.git@c5eae8942d53b48b8715d84abed9a44b82cdd51b
