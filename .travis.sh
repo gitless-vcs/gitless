@@ -11,3 +11,4 @@ cmake --build . --target install
 ls -la ..
 
 cd ~
+pip install git+https://github.com/libgit/pygit2.git@c5eae8942d53b48b8715d84abed9a44b82cdd51b
