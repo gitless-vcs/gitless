@@ -34,7 +34,7 @@ def main(args, repo):
     pprint.err('You are already in a Gitless repository')
     return False
   core.init_repository(url=args.repo)
-  pprint.ok('Local repo created in "{0}"'.format(os.getcwd()))
+  pprint.ok('Local repo created in {0}'.format(os.getcwd()))
   if args.repo:
-    pprint.ok('Initialized from remote "{0}"'.format(args.repo))
+    pprint.ok('Initialized from remote {0}'.format(args.repo))
   return True
