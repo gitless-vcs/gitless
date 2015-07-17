@@ -3,6 +3,12 @@ pre, code {
   font-size: 0.9em;
 }
 
+.ansi-green { color: green }
+.ansi-yellow { color: rgb(180, 180, 0) }
+.ansi-blue { color: blue }
+.ansi-red { color: red }
+
+
 a:link, a:visited { color: #00aa00; }
 
 h1 {

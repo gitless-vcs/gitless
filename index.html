@@ -180,21 +180,21 @@
       <a id="repository"><h3>Repository</h3></a>
       <p>
       Say you are in directory <code>foo</code> and you want turn it into a
-      local repository. You do this with the
-      <code><a id="gl-init">gl init</a></code> command. This will transform
-      the current working directory into an empty Gitless's repository and you
+      repository. You do this with the
+      <code><a id="gl-init">gl init</a></code> command. This transforms
+      the current working directory into an empty repository and you
       are now ready to start recording changes to files in <code>foo</code>.
       </p>
       <div class="code">
       <pre><code>$ mdkir foo
 $ cd foo/
 $ gl init
-# Local repo created in '/MyFiles/foo'</code></pre>
+<span class="ansi-green">✔ Local repo created in /MyFiles/foo</span></code></pre>
       </div>
       <p>
-      In most cases, there's probably already some existing repository that you
-      want to start working on instead of creating an empty repository (maybe
-      you just created a GitHub repo you want to now start using). To make a
+      In most cases there's already some some existing repository you
+      want to work on instead of starting with an empty repository (maybe
+      you just created a GitHub repo). To make a
       local clone of a remote repository you can give the url of the repository
       to the same <code>gl init</code> command. 
       </p>
@@ -202,13 +202,14 @@ $ gl init
       <pre><code>$ mkdir experiment
 $ cd experiment/
 $ gl init https://github.com/spderosso/experiment
-# Local repo created in '/MyFiles/foo'
-# Initialized from remote 'https://github.com/spderosso/experiment'</code></pre>
+<span class="ansi-green">✔ Local repo created in /MyFiles/foo</span>
+<span class="ansi-green">✔ Initialized from remote https://github.com/spderosso/experiment</span></code></pre>
       </div>
       <a id="file"><h3>File</h3></a>
       <p>
-       A file in Gitless is one of the following: a
-      "Tracked File," an "Untracked File" or an "Ignored File."
+      Now that you have your local repository, it's time to start recording
+      changes to files. A file in Gitless can be <em>tracked</em>,
+      <em>untracked</em> or <em>ignored</em>.
       </p>
 
       <p>
@@ -242,23 +243,22 @@ $ gl init https://github.com/spderosso/experiment
       <pre><code>$ ls
 bar.py  foo.py  foo.py~ .gitignore
 $ gl status
-# On branch master, repo-directory //
-#
-# Tracked files with modifications:
-#   (these will be automatically considered for commit)
-#   (use gl untrack &lt;f&gt; if you don't want to track changes to file f)
-#   (if file f was committed before, use gl checkout &lt;f&gt; to discard local changes)
-#
-#     foo.py
-#
-#
-# Untracked files:
-#   (these won't be considered for commit)
-#   (use gl track &lt;f&gt; if you want to track changes to file f)
-#
-#     bar.py</code></pre>
-      </div>
+On branch <span class="ansi-green">master</span>, repo-directory <span class="ansi-green">//</span>
 
+Tracked files with modifications:
+  ➜ these will be automatically considered for commit
+  ➜ use gl untrack &lt;f&gt; if you don't want to track changes to file f
+  ➜ if file f was committed before, use gl checkout &lt;f&gt; to discard local changes
+
+    <span class="ansi-yellow">foo.py</span>
+
+
+Untracked files:
+  ➜ these won't be considered for commit)
+  ➜ use gl track &lt;f&gt; if you want to track changes to file f
+
+    <span class="ansi-blue">bar.py</span></code></pre>
+      </div>
       <p>
       Now, how do files move between these three different <em>disjoint</em>
       states?
@@ -295,7 +295,8 @@ $ gl status
       <ul>
         <li>
         Doing <code>gl commit f1 f2</code> will only commit files
-        <code>f1</code> and <code>f2</code>. If they are untracked it will make them tracked.
+        <code>f1</code> and <code>f2</code>. If they are untracked, it will make
+        them tracked.
         Since only those files specified will be commited this is a handy way
         of leaving other tracked modified files out of the commit.
         </li>
@@ -327,9 +328,9 @@ $ gl status
       </p>
       <div class="code">
       <pre><code>$ gl branch -c my-branch
-# Created new branch my-branch
+<span class="ansi-green">✔ Created new branch my-branch</span>
 $ gl switch my-branch
-# Switched to branch my-branch
+<span class="ansi-green">✔ Switched to branch my-branch</span>
 </code></pre>
       </div>
       <p>
@@ -337,14 +338,14 @@ $ gl switch my-branch
       </p>
       <div class="code">
       <pre><code>$ gl branch
-# List of branches:
-#   (do gl branch &lt;b&gt; to create branch b)
-#   (do gl branch -d &lt;b&gt; to delete branch b)
-#   (do gl switch &lt;b&gt; to switch to branch b)
-#   (* = current branch)
-#
-#     * master
-#       my-branch
+List of branches:
+  ➜ do gl branch &lt;b&gt; to create branch b
+  ➜ do gl branch -d &lt;b&gt; to delete branch b
+  ➜ do gl switch &lt;b&gt; to switch to branch b
+  ➜ * = current branch
+
+    <span class="ansi-green">* master</span>
+      <span class="ansi-yellow">my-branch</span>
 </code></pre>
       </div>
 
@@ -405,16 +406,16 @@ $ gl switch my-branch
       <p>
       You can always use the direct url to
       bring in changes to your local repository from a remote repository but
-      remembering all those long urls can be annoying. So an easier way is to
-      add that repository as a "remote" with the
+      remembering all those long urls can be annoying. So an easier way to do it
+      is to add a repository as a "remote" with the
       <code><a id="gl-remote">gl remote</a></code> command.
       For example, let's add my GitHub experiment repository as a remote:
       </p>
       <div class="code"><pre><code>$ gl remote -c experiment https://github.com/spderosso/experiment
-# Remote experiment mapping to https://github.com/spderosso/experiment created
-# successfully
-#   (to list existing remotes do gl remote)
-#   (to remove experiment do gl remote -d experiment)
+<span class="ansi-green">✔ Remote experiment mapping to https://github.com/spderosso/experiment created
+successfully</span>
+  ➜ to list existing remotes do gl remote
+  ➜ to remove experiment do gl remote -d experiment
 </code></pre></div>
       <p>
       And then you can use experiment/branch as a shorthand for referring to a
@@ -516,42 +517,42 @@ $ git commit foo3 bar3 foo4
       <div class="code vs">
         <pre class="gl"><code><span class="comment">Say we have committed file `foo` with modifications</span>
 $ gl status
-# ...
-# Tracked files with modifications:
-# ...
-#   foo
-# ...
+...
+Tracked files with modifications:
+...
+  <span class="ansi-yellow">foo</span>
+...
 
 <span class="task">Stop tracking changes to `foo`</span>
 $ gl untrack foo
-# File foo is now an untracked file
+<span class="ansi-green">✔ File foo is now an untracked file</span>
 <span class="comment">Now `foo` won't be automatically considered for
 commit</span>
 $ gl status
-# ...
-# Untracked files:
-# ...
-#   foo (exists at head)
-# ...
+...
+Untracked files:
+...
+  <span class="ansi-blue">foo (exists at head)</span>
+...
 
 <span class="task">Start tracking changes to `foo` again</span>
 $ gl track foo
-# File foo is now a tracked file
+<span class="ansi-green">✔ File foo is now a tracked file</span>
 <span class="comment">Now `foo` will be automatically considered for commit</span>
 $ gl status
-# ...
-# Tracked files with modifications:
-# ...
-#   foo (exists at head)
-# ...
+...
+Tracked files with modifications:
+...
+  <span class="ansi-yellow">foo</span>
+...
 </code></pre>
 <pre class="git"><code><span class="comment">Say we have committed file `foo` with modifications</span>
 $ git status
-# ...
-# Changes not staged for commit:
-# ...
-#   modified: foo
-# ...
+...
+Changes not staged for commit:
+...
+  <span class="ansi-red">modified: foo</span>
+...
 
 <span class="task">Stop tracking changes to `foo`</span>
 <span class="comment">No way to do this, if you want to prevent accidental
@@ -568,11 +569,11 @@ $ git status
 <span class="task">Start tracking changes to `foo` again</span>
 $ git update-index --no-assume-unchanged foo
 $ git status
-# ...
-# Changes not staged for commit:
-# ...
-#   modified: foo
-# ...
+...
+Changes not staged for commit:
+...
+  <span class="ansi-red">modified: foo</span>
+...
 
 
 </code></pre>
@@ -595,34 +596,34 @@ $ git status
       <div class="code vs">
         <pre class="gl"><code><span class="comment">Say we have committed file `foo` with modifications</span>
 $ gl status
-# ...
-# Tracked files with modifications:
-# ...
-#   foo
-# ...
+...
+Tracked files with modifications:
+...
+  <span class="ansi-yellow">foo</span>
+...
 
 <span class="task">Create new branch `develop`</span>
 $ gl branch -c develop
-# Created new branch "develop"
+<span class="ansi-green">✔ Created new branch develop</span>
 
 <span class="task">Switch to `develop`</span>
 $ gl switch develop
-# Switched to branch develop
+<span class="ansi-green">✔ Switched to branch develop</span>
 $ gl status
-# ...
-# Tracked files with modifications:
-# ... no changes to foo here
+...
+Tracked files with modifications:
+... no changes to foo here
 
 
 <span class="task">Switch back to `master`</span>
 $ gl switch master
-# Switched to branch master
+<span class="ansi-green">✔ Switched to branch master</span>
 $ gl status
-# ...
-# Tracked files with modifications:
-# ...
-#   foo
-# ...
+...
+Tracked files with modifications:
+...
+  <span class="ansi-yellow">foo</span>
+...
 
 <span class="comment">If you want the uncommitted changes to follow you
 into the new branch you can use the -mo/--move-over
@@ -631,11 +632,11 @@ to the destination branch</span>
 </code></pre>
 <pre class="git"><code><span class="comment">Say we have committed file `foo` with modifications</span>
 $ git status
-# ...
-# Changes not staged for commit:
-# ...
-#   modified: foo
-# ...
+...
+Changes not staged for commit:
+...
+  <span class="ansi-red">modified: foo</span>
+...
 
 <span class="task">Create new branch `develop`</span>
 $ git branch develop
@@ -644,19 +645,19 @@ $ git branch develop
 <span class="task">Switch to `develop`</span>
 $ git checkout develop
 $ git status
-# ...
-# Changes not staged for commit:
-# ...
-#   modified: foo
-# ...
+...
+Changes not staged for commit:
+...
+  <span class="ansi-red">modified: foo</span>
+...
 
 <span class="task">Switch back to `master`</span>
 $ git checkout master
-# ...
-# Changes not staged for commit:
-# ...
-#   modified: foo
-# ...
+...
+Changes not staged for commit:
+...
+  <span class="ansi-red">modified: foo</span>
+...
 
 
 
@@ -677,7 +678,7 @@ conflict with the state of `foo` in branch `develop`</span>
 
 <span class="task">Switch to `develop`</span>
 $ gl switch develop
-# Switched to branch develop
+<span class="ansi-green">✔ Switched to branch develop</span>
 </code>
 </pre>
 <pre class="git">
@@ -698,8 +699,7 @@ master: fbe3b8c ...
 HEAD is now at fbe3b8c ...
 $ git checkout develop
 Switched to branch 'develop'
-</code>
-</pre>
+</code></pre>
 <div style="clear:both"></div>
       </div>
       <p>
@@ -712,17 +712,17 @@ Switched to branch 'develop'
       </p>
       <div class="code vs">
         <pre class="gl"><code>$ gl rebase develop
-# There are conflicts you need to resolve
+<span class="ansi-red">✘  There are conflicts you need to resolve</span>
 $ gl status
-# On branch master, repo-directory //
-#
-# You are in the middle of a rebase; all conflicts
-# must be resolved before commiting
-# ...
-# Tracked files with modifications:
-#      ...
-#     foo (with conflicts)
-#
+On branch master, repo-directory //
+
+You are in the middle of a rebase; all
+conflicts must be resolved before
+commiting
+...
+Tracked files with modifications:
+...
+  <span class="ansi-red">foo (with conflicts)</span>
 ...
 
 
@@ -736,7 +736,7 @@ $ gl status
 
 <span class="task">Switch to `bugfix`</span>
 $ gl switch bugfix
-# Switched to branch bugfix
+<span class="ansi-green">✔ Switched to branch bugfix</span>
 <span class="comment">No conflicts here</span>
 
 
@@ -755,17 +755,17 @@ $ gl switch bugfix
 
 <span class="task">Switch back to `develop`</span>
 $ gl switch develop
-# Switched to branch develop
+<span class="ansi-green">✔ Switched to branch develop</span>
 $ gl status
-# On branch master, repo-directory //
-#
-# You are in the middle of a rebase; all conflicts
-# must be resolved before commiting
-# ...
-# Tracked files with modifications:
-#     ...
-#     foo (with conflicts)
-#
+On branch master, repo-directory //
+
+You are in the middle of a rebase; all
+conflicts must be resolved before
+commiting
+...
+Tracked files with modifications:
+...
+  <span class="ansi-red">foo (with conflicts)</span>
 ...
 </code></pre>
 <pre class="git"><code>$ git rebase develop
@@ -839,31 +839,34 @@ $ <span class="comment">Copy back the changes we saved</span>
         <pre class="gl"><code><span class="task">Configure a new remote `experiment`</span>
 $ gl remote -c experiment
 https://github.com/spderosso/experiment
-# Remote experiment mapping to
-# https://github.com/spderosso/experiment
-# created successfully
-#   (to list existing remotes do gl remote)
-#   (to remove experiment do gl remote -d experiment)
+<span class="ansi-green">✔ Remote experiment mapping to
+https://github.com/spderosso/experiment
+created successfully</span>
+  ➜ to list existing remotes do gl remote
+  ➜ to remove experiment do gl remote -d experiment
 
 <span class="task">Download and apply changes from a branch in
 `experiment`</span>
 $ gl rebase experiment/master
-# Rebase succeeded
-<span class="comment">If you instead want to merge the changes, you can do
-`gl merge experiment/master`</span>
+<span class="ansi-green">✔ Rebase succeeded</span>
+<span class="comment">If you instead want to merge the changes, you
+can do `gl merge experiment/master`</span>
 
 <span class="comment">You can also set an upstream for the current branch</span>
 $ gl branch -su experiment/master
-# Current branch master set to track experiment/master
+<span class="ansi-green">✔ Current branch master set to track
+experiment/master</span>
 $ gl rebase
-# No src branch specified, defaulted to getting
-# changes from upstream branch experiment/master
+<span class="ansi-yellow">! No src branch specified, defaulted to getting
+changes from upstream branch experiment/master</span>
+<span class="ansi-green">✔ Rebase succeeded</span>
 
 <span class="task">Send changes to the remote</span>
 $ gl publish
-# No src branch specified, defaulted to sending
-# changes to upstream branch experiment/master
-# Publish succeeded
+<span class="ansi-yellow">! No src branch specified, defaulted to sending
+changes to upstream branch experiment/master</span>
+<span class="ansi-green">✔ Publish succeeded</span>
+
 <span class="comment">Only the changes in the current branch are uploaded</span>
 </code></pre>
 <pre class="git">
@@ -890,10 +893,13 @@ $ git pull
 
 
 
+
+
 <span class="task">Send changes to the remote</span>
 $ git push
 <span class="comment">What happens when you do a push depends on the value
 of the `push.default` config variable</span>
+
 
 
 </code></pre>
