@@ -124,8 +124,11 @@ class Repository(object):
     except (KeyError, ValueError):
       raise ValueError('No commit found for {0}'.format(revision))
 
-  def merge_base(self, *args, **kwargs):
-    return self.git_repo.merge_base(*args, **kwargs)
+  def merge_base(self, b1, b2):
+    try:
+      return self.git_repo.merge_base(b1.target, b2.target)
+    except KeyError:
+      raise GlError('No common commit found between {0} and {1}'.format(b1, b2))
 
   @property
   def _fuse_commits_fp(self):
@@ -772,7 +775,7 @@ class Branch(object):
     self._check_op_not_in_progress()
 
     repo = self.gl_repo
-    mb = repo.merge_base(self.target, src.target)
+    mb = repo.merge_base(self, src)
 
     if mb == src.target:  # either self is ahead or both branches are equal
       raise GlError('No commits to fuse')

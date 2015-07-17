@@ -55,7 +55,7 @@ def main(args, repo):
     return True
 
   src_branch = helpers.get_branch_or_use_upstream(args.src, 'src', repo)
-  dp = repo.merge_base(current_b.target, src_branch.target)
+  dp = repo.merge_base(current_b, src_branch)
 
   def valid_input(inp):
     walker = src_branch.history()
