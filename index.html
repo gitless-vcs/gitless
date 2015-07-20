@@ -486,14 +486,13 @@ modified tracked files</span>
 <span class="task">Leave some modified tracked files (`foo`, `bar`)
 out of the commit</span>
 <span class="shell">$</span> gl commit -e foo bar
-<span class="comment">-e/--exclude excludes files from the default set
+<span class="comment">e/exclude excludes files from the default set
 of files to be committed</span>
 
 <span class="task">Include some untracked files in the commit</span>
 <span class="shell">$</span> gl commit -i foo2 bar2
-<span class="comment">-i/--include includes files to the default set
+<span class="comment">i/include includes files to the default set
 of files to be committed</span>
-<span class="comment">-i and -e can be combined together</span>
 
 <span class="task">Commit only some of the modified tracked files</span>
 <span class="shell">$</span> gl commit -o foo3 bar3
@@ -520,7 +519,6 @@ out of the commit</span>
 <span class="task">Include some untracked files in the commit</span>
 <span class="shell">$</span> git add foo2 bar2 <span class="comment">+ other files you want to commit</span>
 <span class="shell">$</span> git commit
-
 
 
 <span class="task">Commit only some of the modified tracked files</span>
@@ -652,7 +650,6 @@ Tracked files with modifications:
 ...
   <span class="ansi-yellow">foo</span>
 ...
-
 <span class="comment">If you want the uncommitted changes to follow you
 into the new branch you can use the -mo/--move-over
 flag to move over the changes in the current branch
@@ -686,7 +683,6 @@ Changes not staged for commit:
 ...
   <span class="ansi-red">modified: foo</span>
 ...
-
 
 
 
@@ -740,6 +736,7 @@ Switched to branch 'develop'
       </p>
       <div class="code vs">
         <pre class="gl"><code><span class="shell">$</span> gl fuse develop
+...
 <span class="ansi-red">✘  There are conflicts you need to resolve</span>
 <span class="shell">$</span> gl status
 On branch master, repo-directory //
@@ -752,7 +749,6 @@ Tracked files with modifications:
 ...
   <span class="ansi-red">foo (with conflicts)</span>
 ...
-
 
 
 
@@ -876,6 +872,7 @@ created successfully</span>
 <span class="task">Download and apply changes from a branch in
 `experiment`</span>
 <span class="shell">$</span> gl fuse experiment/master
+...
 <span class="ansi-green">✔ Fuse succeeded</span>
 <span class="comment">If you instead want to merge the changes, you
 can do `gl merge experiment/master`</span>
@@ -887,6 +884,7 @@ experiment/master</span>
 <span class="shell">$</span> gl fuse 
 <span class="ansi-yellow">! No src branch specified, getting changes from
 upstream branch experiment/master</span>
+...
 <span class="ansi-green">✔ Fuse succeeded</span>
 
 <span class="task">Send changes to the remote</span>
@@ -894,9 +892,7 @@ upstream branch experiment/master</span>
 <span class="ansi-yellow">! No src branch specified, sending changes to
 upstream branch experiment/master</span>
 <span class="ansi-green">✔ Publish succeeded</span>
-
-<span class="comment">Only the changes in the current branch are uploaded</span>
-</code></pre>
+<span class="comment">Only the changes in the current branch are uploaded</span></code></pre>
 <pre class="git">
 <code><span class="task">Configure a new remote `experiment`</span>
 <span class="shell">$</span> git remote add experiment
@@ -923,11 +919,12 @@ https://github.com/spderosso/experiment
 
 
 
+
+
 <span class="task">Send changes to the remote</span>
 <span class="shell">$</span> git push
 <span class="comment">What happens when you do a push depends on the value
 of the `push.default` config variable</span>
-
 
 
 </code></pre>
@@ -960,7 +957,7 @@ of the `push.default` config variable</span>
     <!-- Begin Footer -->
     <div id="footer" class="full top_margin_20">
       <p>
-      &copy; 2015 Santiago Perez De Rosso
+      &copy; 2015 <a href="http://people.csail.mit.edu/sperezde">Santiago Perez De Rosso</a>
       </p>
       <p>
       <em>Acknowledgements.</em> Gitless is part of a research project exploring
