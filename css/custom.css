@@ -3,10 +3,11 @@ pre, code {
   font-size: 0.9em;
 }
 
-.ansi-green { color: green }
-.ansi-yellow { color: rgb(180, 180, 0) }
-.ansi-blue { color: blue }
-.ansi-red { color: red }
+.ansi-green { color: #008080; }
+.ansi-yellow { color: #bb8844; }
+.ansi-blue { color: #445588; }
+.ansi-red { color: #990000; }
+.shell { color: #1475a2; }
 
 
 a:link, a:visited { color: #00aa00; }
@@ -59,14 +60,16 @@ h4 {
 .header-gl { font-weight: bold; }
 
 .code {
-  border: 1px solid silver;
+  border: 1px solid rgba(0,0,0,0.8);;
   margin-bottom: 1.5em;
   -webkit-box-shadow: 0px 0px 4px rgba(0,0,0,0.5);
   -moz-box-shadow: 0px 0px 4px rgba(0,0,0,0.5);
   box-shadow: 0px 0px 4px rgba(0,0,0,0.5);
+  background-color: rgba(0,0,0,0.8);
 }
 
 .code pre { margin: 10px 0 10px 10px; }
+.code code { color: white; }
 
 .vs { width: 780px; }
 
@@ -82,7 +85,7 @@ h4 {
   padding: 0 0 0 10px;
 }
 
-.vs .comment { color: silver; }
+.vs .comment { color: #999988; }
 .vs .task { color: gray; font-weight: bold; }
 
 li { margin-bottom: 5px; }
