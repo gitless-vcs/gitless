@@ -156,8 +156,8 @@
             - merge the divergent changes of one branch onto another
           </li>
           <li>
-            <code><a href="#gl-rebase">gl rebase</a></code>
-            - rebase the divergent changes of one branch onto another
+            <code><a href="#gl-fuse">gl fuse</a></code>
+            - fuse the divergent changes of one branch onto another
           </li>
           <li>
             <code><a href="#gl-resolve">gl resolve</a></code>
@@ -251,7 +251,6 @@ Tracked files with modifications:
   ➜ if file f was committed before, use gl checkout &lt;f&gt; to discard local changes
 
     <span class="ansi-yellow">foo.py</span>
-
 
 Untracked files:
   ➜ these won't be considered for commit)
@@ -350,31 +349,70 @@ List of branches:
       </div>
 
       <p>
-      Eventually what will happen is that branches will end up having divergent
+      Eventually branches will end up having divergent
       changes. There are two ways of bringing changes from one branch onto the
-      current branch: merge or rebase. (If you have no idea what merge or rebase
-      mean, you can take look at Git's documentation.) (This will change
-      in Gitless 1.0 ---which will be released sometime soon.)
+      current branch: <em>merge</em> or <em>fuse</em>.
+      </p>
+      <p>
+      <em>Merging branches.</em>
+      For merging the changes in <code>my-branch</code> onto the current branch
+      you do <code><a id="gl-merge">gl merge my-branch</a></code>. This creates
+      a new merge commit that includes the changes in "my-branch" in addition
+      to those changes in the current branch:
+      <div class="fig">
+        <img src="merge.png" alt="merge">
+      </div>
       </p>
 
+
       <p>
-      For merging the changes in <code>my-branch</code> onto the current branch you do
-      <code><a id="gl-merge">gl merge my-branch</a></code>,
-      for rebasing the current branch using as a base <code>my-branch</code> you do
-      <code><a id="gl-rebase">gl rebase my-branch</a></code>.
+      <em>Fusing branches.</em> Fusing branches gives you more control than
+      merging. When you fuse changes from some branch onto the
+      current branch you can specify the commits to fuse and the insertion
+      point. By default, all divergent commits are fused and the insertion
+      point is the divergent point (the point where the source branch diverged
+      from the current).
+      For example, the following figure depicts a situation in which there are
+      two branches, <code>master</code> (the current branch) and
+      <code>develop</code>. The last commit these two branches have in common is
+      <code>A</code>. This commit is the "divergent point" (because
+      it is the point at which <code>master</code> and <code>develop</code>
+      diverged).
+      After doing <code><a id="gl-fuse">gl fuse develop</a></code>, the commits
+      in <code>develop</code> are inserted in <code>master</code> after the
+      divergent point:
+      <div class="fig">
+        <img src="fuse.png" alt="fuse" class="fig">
+      </div>
       </p>
       <p>
+      To choose other insertion points you use the
+      <code>ip/insertion-point</code> flag. You can give a commit id as input,
+      <code>head</code> or <code>dp/divergent-point</code>:
+      <div class="fig">
+        <img src="fuse_ip.png" alt="fuse with insertion point specified">
+      </div>
+      </p>
+      <p>
+      The <code>o/only</code> and <code>e/exclude</code> flags can be used to
+      customize the set of commits to be fused:
+      <div class="fig">
+        <img src="fuse_ip_o.png"
+         alt="fuse with insertion point and commit specified">
+      </div>
+      </p>
+      <p>
+      <em>Conflict resolution.</em>
       During this process conflicts could occur. If so, the <code>gl status</code> command will change
       accordingly to indicate the files in conflict. Once you edit those files in
       conflict you mark them as resolved with
       <code><a id="gl-resolve">gl resolve</a></code> (passing the files to mark as input). Once all
       conflicts have been resolved
-      you do <code>gl commit</code> to commit the merge commit in
-      case of a merge or to continue applying any remaining commits in case of
-      a rebase.
+      you do <code>gl commit</code> to commit to continue with the fuse or
+      merge.
       </p>
       <p>
-      Of course, it is also possible to merge or rebase changes from remote
+      Of course, it is also possible to fuse or merge changes from remote
       branches, or branches that are in remote repositories (not in your local
       repository). Let's say "experiment" stands for the remote at 
       https://github.com/spderosso/experiment and that master is a branch
@@ -385,8 +423,8 @@ List of branches:
       repository you always get changes from and send changes to it so that
       others can retrieve them. To make this more easy, a branch can have an
       "upstream branch". If a branch has an upstream associated with it, then
-      <code>gl rebase</code> or <code>gl merge</code> can be used as shorthands for
-      <code>gl {rebase, merge} upstream_remote/upstream_branch</code>. To set an
+      <code>gl fuse</code> or <code>gl merge</code> can be used as shorthands for
+      <code>gl {fuse, merge} upstream_remote/upstream_branch</code>. To set an
       upstream branch for the current branch use
       <code>gl branch -su upstream_remote/upstream_branch</code>.
       </p>
@@ -703,7 +741,7 @@ Switched to branch 'develop'
 <div style="clear:both"></div>
       </div>
       <p>
-      And if you are in the middle of a rebase/merge and you want to put aside
+      And if you are in the middle of a fuse/merge and you want to put aside
       the conflict resolution for later, you can. The conflict will be there
       when you switch back:
       </p>
@@ -711,12 +749,12 @@ Switched to branch 'develop'
       (Not yet implemented, coming soon)
       </p>
       <div class="code vs">
-        <pre class="gl"><code>$ gl rebase develop
+        <pre class="gl"><code>$ gl fuse develop
 <span class="ansi-red">✘  There are conflicts you need to resolve</span>
 $ gl status
 On branch master, repo-directory //
 
-You are in the middle of a rebase; all
+You are in the middle of a fuse; all
 conflicts must be resolved before
 commiting
 ...
@@ -759,7 +797,7 @@ $ gl switch develop
 $ gl status
 On branch master, repo-directory //
 
-You are in the middle of a rebase; all
+You are in the middle of a fuse; all
 conflicts must be resolved before
 commiting
 ...
@@ -847,8 +885,8 @@ created successfully</span>
 
 <span class="task">Download and apply changes from a branch in
 `experiment`</span>
-$ gl rebase experiment/master
-<span class="ansi-green">✔ Rebase succeeded</span>
+$ gl fuse experiment/master
+<span class="ansi-green">✔ Fuse succeeded</span>
 <span class="comment">If you instead want to merge the changes, you
 can do `gl merge experiment/master`</span>
 
@@ -856,10 +894,10 @@ can do `gl merge experiment/master`</span>
 $ gl branch -su experiment/master
 <span class="ansi-green">✔ Current branch master set to track
 experiment/master</span>
-$ gl rebase
+$ gl fuse 
 <span class="ansi-yellow">! No src branch specified, defaulted to getting
 changes from upstream branch experiment/master</span>
-<span class="ansi-green">✔ Rebase succeeded</span>
+<span class="ansi-green">✔ Fuse succeeded</span>
 
 <span class="task">Send changes to the remote</span>
 $ gl publish
