@@ -196,8 +196,8 @@
       <p>
       In most cases there's already some existing repository you
       want to work on instead of starting with an empty repository. To make a
-      local clone of a remote repository you can give the URL of the repository
-      to the same <code>gl init</code> command:
+      local clone of a remote repository you can pass the URL of the repository
+      as input to the same <code>gl init</code> command:
       </p>
       <div class="code">
       <pre><code><span class="shell">$</span> mkdir experiment
@@ -211,30 +211,20 @@
       Now that you have your local repository, it's time to start recording
       changes to files. A file in Gitless can be <em>tracked</em>,
       <em>untracked</em> or <em>ignored</em>.
-      </p>
-
-      <p>
-      <em>Tracked File.</em>
-      A tracked file is a file whose changes Gitless will detect.
+      A <em>tracked file</em> is a file whose changes Gitless will detect.
       Tracked files are automatically considered for commit if they are
-      modified. These will appear under the "Tracked files with modifications"
-      section of the <code><a id="gl-status">gl status</a></code>
-      command.
+      modified and appear listed under the "Tracked files with modifications"
+      section of <code>status</code>.
+      Conversely, an <em>untracked file</em> is a file whose changes Gitless
+      will not detect. These are not automatically considered for commit and
+      appear listed under the "Untracked files" section of
+      <code>status</code>.
+      Finally, an <em>ignored file</em> is a file that is completely ignored by
+      Gitless and it won't even appear in the output of <code>status</code>.
       </p>
       <p>
-      <em>Untracked File.</em>
-      Conversely, an untracked file is a file whose changes Gitless will not
-      detect and is listed under the "Untracked files" section of
-      the <code>gl status</code> command. These are not automatically considered
-      for commit.
-      </p>
-      <p>
-      <em>Ignored File.</em>
-      An ignored file is a file that is completely ignored by Gitless. These won't
-      even appear in the output of the <code>gl status</code> command.
-      </p>
-      <p>
-      An example output of the status command
+      An example output of the <code><a id="gl-status">gl status</a></code>
+      command
       (<code>foo.py</code> and <code>bar.py</code> are tracked files
       with modifications, <code>.gitignore</code> is an unmodified tracked file,
       <code>baz.py</code> is an untracked file and <code>foo.pyc</code> is an
@@ -282,10 +272,23 @@ Untracked files:
       You can always revert a file back to some previous version with the
       <code><a id="gl-checkout">gl checkout</a></code> command.
       </p>
+      <div class="code">
+      <pre><code><span class="shell">$</span> gl track baz.py
+<span class="ansi-green">✔ File baz.py is now a tracked file</span>
+<span class="shell">$</span> gl track baz.py
+<span class="ansi-red">✘ File baz.py is already a tracked file</span>
+<span class="shell">$</span> gl untrack baz.py
+<span class="ansi-green">✔ File baz.py is now an untracked file</span>
+<span class="shell">$</span> gl checkout foo.py
+You have uncomitted changes in foo.py that would be
+overwritten by checkout. Do you wish to continue? (y/N)
+&gt; y
+<span class="ansi-green">✔ File foo.py checked out successfully to its state at HEAD</span></code></pre>
+      </div>
       <p>
-      You use
-      <code><a id="gl-commit">gl commit</a></code> to commit
-      changes to files. By default, all tracked modified files are considered
+      To save changes to files you use
+      <code><a id="gl-commit">gl commit</a></code>.
+      By default, all tracked modified files are considered
       for commit, but the set of files to commit can be customized with the
       <code>o/only</code>, <code>e/exclude</code>, and <code>i/include</code>
       flags:
@@ -477,41 +480,34 @@ successfully</span>
       <div class="code vs">
         <pre class="gl"><code><span class="task">Commit all modified tracked files</span>
 <span class="shell">$</span> gl commit
-...
-<span class="comment">The default set of files to be commited are all
+<span class="comment">The default set of files to be committed are all
 modified tracked files</span>
 
 <span class="task">Leave some modified tracked files (`foo`, `bar`)
 out of the commit</span>
 <span class="shell">$</span> gl commit -e foo bar
-...
 <span class="comment">-e/--exclude excludes files from the default set
-of files to be commited</span>
+of files to be committed</span>
 
 <span class="task">Include some untracked files in the commit</span>
 <span class="shell">$</span> gl commit -i foo2 bar2
-...
 <span class="comment">-i/--include includes files to the default set
-of files to be commited</span>
+of files to be committed</span>
 <span class="comment">-i and -e can be combined together</span>
 
 <span class="task">Commit only some of the modified tracked files</span>
-<span class="shell">$</span> gl commit foo3 bar3
-...
-<span class="comment">Giving files as input to the commit command
-restricts the set of files to be committed to only
-the specified ones</span>
+<span class="shell">$</span> gl commit -o foo3 bar3
+<span class="comment">o/only restricts the set of files to be committed
+to only the specified ones</span>
 
 <span class="task">Commit only some of the modified tracked or
 untracked files</span>
-<span class="shell">$</span> gl commit foo3 bar3 foo4
-...
+<span class="shell">$</span> gl commit -o foo3 bar3 foo4
 </code>
 </pre>
 <pre class="git">
 <code><span class="task">Commit all modified tracked files</span>
 <span class="shell">$</span> git commit -a
-...
 <span class="comment">-a/--all automatically stages files that have been
 modified or deleted</span>
 
@@ -521,18 +517,14 @@ out of the commit</span>
 <span class="shell">$</span> git commit
 
 
-
 <span class="task">Include some untracked files in the commit</span>
 <span class="shell">$</span> git add foo2 bar2 <span class="comment">+ other files you want to commit</span>
 <span class="shell">$</span> git commit
-...
 
 
 
 <span class="task">Commit only some of the modified tracked files</span>
 <span class="shell">$</span> git commit foo3 bar3
-...
-
 
 
 
@@ -543,8 +535,7 @@ error: pathspec 'foo4' did not match any file(s)
 known to git.
 <span class="comment">...hmm ok... </span>
 <span class="shell">$</span> git add foo4
-<span class="shell">$</span> git commit foo3 bar3 foo4
-...</code></pre>
+<span class="shell">$</span> git commit foo3 bar3 foo4</code></pre>
       <div style="clear:both"></div>
       </div>
       <p>Also, you can change the classification of any file to tracked,
@@ -647,9 +638,9 @@ Tracked files with modifications:
 <span class="shell">$</span> gl switch develop
 <span class="ansi-green">✔ Switched to branch develop</span>
 <span class="shell">$</span> gl status
-...
-Tracked files with modifications:
-... no changes to foo here
+<span class="comment">... no changes to foo here</span>
+
+
 
 
 <span class="task">Switch back to `master`</span>
