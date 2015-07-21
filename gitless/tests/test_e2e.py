@@ -16,6 +16,11 @@ from sh import ErrorReturnCode, gl, git
 
 from gitless.tests import utils
 
+try:
+  text = unicode
+except NameError:
+  text = str
+
 
 class TestEndToEnd(utils.TestBase):
 
@@ -381,7 +386,7 @@ class TestFuse(TestEndToEnd):
     out = utils.stdout(gl.history(_tty_out=False))
     cids = list(reversed(re.findall(r'ci (.*) in (.*)', out, re.UNICODE)))
     self.assertEqual(
-        cids, expected, 'cids is ' + str(cids) + ' exp ' + str(expected))
+        cids, expected, 'cids is ' + text(cids) + ' exp ' + text(expected))
 
     st_out = utils.stdout(gl.status())
     self.assertFalse('fuse' in st_out)
@@ -389,7 +394,7 @@ class TestFuse(TestEndToEnd):
   def __build(self, branch_name, cids=None):
     if not cids:
       cids = range(self.COMMITS_NUMBER)
-    return [(unicode(ci), branch_name) for ci in cids]
+    return [(text(ci), branch_name) for ci in cids]
 
   def test_basic(self):
     gl.fuse(self.OTHER)
@@ -562,7 +567,7 @@ class TestPerformance(TestEndToEnd):
   def setUp(self):
     super(TestPerformance, self).setUp()
     for i in range(0, self.FPS_QTY):
-      fp = 'f' + str(i)
+      fp = 'f' + text(i)
       utils.write_file(fp, fp)
 
   def test_status_performance(self):

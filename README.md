@@ -114,6 +114,4 @@ Gitless's code so that your edits are consistent with the codebase.
 
 - Finally, if you don't want [Travis](
     https://travis-ci.org/sdg-mit/gitless "Travis") to
-be mad at you, check that the tests pass in python 2.6, 2.7, 3.2 and 3.3 and
-that you don't have any pylint *errors* (warnings and refactor suggestions are
-ok).
+be mad at you, check that tests pass in python 2.6, 2.7 and 3.2+.
