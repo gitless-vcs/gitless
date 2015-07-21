@@ -17,7 +17,7 @@ import sys
 import tempfile
 import unittest
 
-from sh import git
+from sh import git, ErrorReturnCode
 
 
 IS_PY2 = sys.version_info[0] == 2
@@ -50,15 +50,12 @@ class TestBase(unittest.TestCase):
 
   def assertRaisesRegexp(self, exc, r, fun, *args, **kwargs):
     try:
-      return super(TestBase, self).assertRaisesRegexp(
-          exc, r, fun, *args, **kwargs)
-    except AttributeError: # Python < 2.7
-      try:
-        fun(*args, **kwargs)
-      except exc as e:
-        if not re.search(r, str(e)):
-          self.fail('No "{0}" found in "{1}"'.format(r, str(e)))
-
+      fun(*args, **kwargs)
+      self.fail('Exception not raised')
+    except exc as e:
+      msg = stderr(e) if isinstance(e, ErrorReturnCode) else str(e)
+      if not re.search(r, msg):
+        self.fail('No "{0}" found in "{1}"'.format(r, msg))
 
 
 def write_file(fp, contents=''):

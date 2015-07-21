@@ -39,26 +39,24 @@ def show(files, repo):
     cf = io.open(_commit_file(repo), mode='wb')
   else:
     cf = io.open(_commit_file(repo), mode='w', encoding=ENCODING)
-  if repo.current_branch.merge_in_progress:
+
+  curr_b = repo.current_branch
+  if curr_b.merge_in_progress or curr_b.fuse_in_progress:
     merge_msg = io.open(
         _merge_msg_file(repo), mode='r', encoding=ENCODING).read()
     cf.write(merge_msg)
-  elif repo.current_branch.rebase_in_progress:
-    pprint.msg(
-        'The commit will have the original commit message', p=cf.write)
   cf.write('\n')
-  pprint.sep(p=cf.write)
+  pprint.sep(stream=cf.write)
   pprint.msg(
-      'Please enter the commit message for your changes above. Lines starting '
-      'with', p=cf.write)
+      'Please enter the commit message for your changes above, an empty '
+      'message aborts', stream=cf.write)
+  pprint.msg('the commit.', stream=cf.write)
+  pprint.blank(stream=cf.write)
   pprint.msg(
-      '\'#\' will be ignored, and an empty message aborts the commit.',
-      p=cf.write)
-  pprint.blank(p=cf.write)
-  pprint.msg('These are the files that will be commited:', p=cf.write)
+      'These are the files whose changes will be commited:', stream=cf.write)
   for f in files:
-    pprint.item(f, p=cf.write)
-  pprint.sep(p=cf.write)
+    pprint.item(f, stream=cf.write)
+  pprint.sep(stream=cf.write)
   cf.close()
   _launch_editor(cf.name, repo)
   return _extract_msg(repo)

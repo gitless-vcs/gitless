@@ -9,16 +9,21 @@ from __future__ import unicode_literals
 
 import collections
 import io
+try:
+  from itertools import izip as zip
+except ImportError:
+  pass
+
+import itertools
 from locale import getpreferredencoding
 import os
 import re
-import sys
+import shutil
 
 import pygit2
 from sh import git, ErrorReturnCode
 
 
-IS_PY2 = sys.version_info[0] == 2
 ENCODING = getpreferredencoding() or 'utf-8'
 
 
@@ -30,9 +35,7 @@ class NotInRepoError(GlError): pass
 
 class BranchIsCurrentError(GlError): pass
 
-class MergeInProgressError(GlError): pass
-
-class RebaseInProgressError(GlError): pass
+class ApplyFailedError(GlError): pass
 
 
 # File status
@@ -68,7 +71,7 @@ def init_repository(url=None):
     except ErrorReturnCode as e:
       raise GlError(stderr(e))
 
-    # We get all remote branches as well and create local equivalents.
+    # We get all remote branches as well and create local equivalents
     repo = Repository()
     remote = repo.remotes['origin']
     for rb in (remote.lookup_branch(bn) for bn in remote.listall_branches()):
@@ -115,30 +118,35 @@ class Repository(object):
     return '' if ret == '.' else ret
 
   def revparse_single(self, revision):
-    if '/' in revision:
-      # Might be a remote branch
+    if '/' in revision:  # might be a remote branch
       remote, remote_branch = revision.split('/', 1)
       try:
         return self.remotes[remote].lookup_branch(remote_branch).head
       except KeyError:
         pass
+    try:
+      return self.git_repo.revparse_single(revision)
+    except (KeyError, ValueError):
+      raise ValueError('No commit found for {0}'.format(revision))
 
-    return self.git_repo.revparse_single(revision)
+  def merge_base(self, b1, b2):
+    try:
+      return self.git_repo.merge_base(b1.target, b2.target)
+    except KeyError:
+      raise GlError('No common commit found between {0} and {1}'.format(b1, b2))
+
+  @property
+  def _fuse_commits_fp(self):
+    return os.path.join(self.path, 'gl_fuse_commits')
 
 
   # Branch related methods
 
-
   @property
   def current_branch(self):
     if self.git_repo.head_is_detached:
-      # Maybe we are in the middle of a rebase?
-      rebase_path = os.path.join(self.path, 'rebase-apply')
-      if os.path.exists(rebase_path):
-        rf = io.open(
-            os.path.join(rebase_path, 'head-name'), mode='r', encoding=ENCODING)
-        # cut the refs/heads/ part that precedes the branch name
-        b_name = rf.readline().strip()[11:]
+      if os.path.exists(self._fuse_commits_fp):  # fuse in progress
+        b_name = self.git_repo.lookup_reference('ORIG_HEAD').resolve().shorthand
       else:
         raise Exception('Gl confused')
     else:
@@ -193,7 +201,7 @@ class Repository(object):
 
     curr_b = self.current_branch
 
-    # TODO: let the user switch even if a merge or rebase is in progress
+    # TODO: let the user switch even if a fuse or merge is in progress
     curr_b._check_op_not_in_progress()
 
     # Helper functions for switch
@@ -260,6 +268,13 @@ class RemoteCollection(object):
   def __getitem__(self, name):
     return Remote(self.git_remote_collection.__getitem__(name), self.gl_repo)
 
+  def __contains__(self, name):
+    try:
+      self.git_remote_collection.__getitem__(name)
+      return True
+    except KeyError:
+      return False
+
   def create(self, name, url):
     if '/' in name:
       raise ValueError(
@@ -292,6 +307,30 @@ class Remote(object):
     self.gl_repo = gl_repo
     self.name = self.git_remote.name
     self.url = self.git_remote.url
+
+
+  def create_branch(self, name, commit):
+    """Create a new branch in the remote repository.
+
+    Args:
+      name: the name of the new branch.
+      commit: the commit that is to become the "head" of the new branch.
+    """
+    if self.lookup_branch(name):
+      raise GlError(
+          'Branch {0} already exists in remote repository {1}'.format(
+              name, self.name))
+    # Push won't let us push the creation of a new branch from a SHA. So we
+    # create a temporary local ref, make it point to the commit, and do the
+    # push
+    tmp_b = self.gl_repo.create_branch('gl_tmp_ref', commit)
+    try:
+      git.push(self.name, '{0}:{1}'.format(tmp_b, name))
+      return self.lookup_branch(name)
+    except ErrorReturnCode as e:
+      raise GlError(stderr(e))
+    finally:
+      tmp_b.delete()
 
 
   def listall_branches(self):
@@ -331,6 +370,13 @@ class RemoteBranch(object):
     self.remote_name = self.git_branch.remote_name
     self.branch_name = self.git_branch.branch_name[len(self.remote_name) + 1:]
 
+
+  def delete(self):
+    try:
+      git.push(self.remote_name, ':{0}'.format(self.branch_name))
+    except ErrorReturnCode as e:
+      raise GlError(stderr(e))
+
   @property
   def target(self):
     """Object Id of the commit this branch points to."""
@@ -342,10 +388,16 @@ class RemoteBranch(object):
     self._update()
     return self.git_branch.peel()
 
+  def history(self, reverse=False):
+    return walker(self.gl_repo.git_repo, self.target, reverse=reverse)
+
   def _update(self):
     git.fetch(self.remote_name, self.branch_name)
     self.git_branch = self.gl_repo.git_repo.lookup_branch(
         self.remote_name + '/' + self.branch_name, pygit2.GIT_BRANCH_REMOTE)
+
+  def __str__(self):
+    return self.remote_name + '/' + self.branch_name
 
 
 class Branch(object):
@@ -356,8 +408,8 @@ class Branch(object):
     upstream: the upstream of this branch.
     is_current: True if this branch is the current branch in the repository it
       belongs to.
-    merge_in_progress: True if a merge op is in progress in this branch.
-    rebase_in_progress: True if a rebase op is in progress in this branch.
+    merge_in_progress: True if a merge op is in progress on this branch.
+    fuse_in_progress: True if a fuse op is in progress on this branch.
     head: commit that is the head of this branch.
   """
 
@@ -421,11 +473,14 @@ class Branch(object):
     self.git_branch = self.gl_repo.git_repo.lookup_branch(
         self.branch_name, pygit2.GIT_BRANCH_LOCAL)
 
-  def history(self):
-    return self.gl_repo.git_repo.walk(self.target, pygit2.GIT_SORT_TIME)
+  def history(self, reverse=False):
+    return walker(self.gl_repo.git_repo, self.target, reverse=reverse)
 
   def diff_commits(self, c1, c2):
     return c1.tree.diff_to_tree(c2.tree)
+
+  def __str__(self):
+    return self.branch_name
 
   @property
   def _index(self):
@@ -490,7 +545,8 @@ class Branch(object):
         'in_conflict'])
 
   def _au_files(self):
-    for f_out in stdout(git('ls-files', '-v', _cwd=self.gl_repo.root)).splitlines():
+    for f_out in stdout(
+        git('ls-files', '-v', _cwd=self.gl_repo.root)).splitlines():
       if f_out[0] == 'h':
         yield f_out[2:].strip()
 
@@ -661,7 +717,7 @@ class Branch(object):
 
     result, unused_ff_conf = self.gl_repo.git_repo.merge_analysis(src.target)
     if result & pygit2.GIT_MERGE_ANALYSIS_UP_TO_DATE:
-      raise GlError('Nothing to merge')
+      raise GlError('No commits to merge')
     try:
       git.merge(src.branch_name, '--no-ff')
     except ErrorReturnCode as e:
@@ -681,38 +737,189 @@ class Branch(object):
     git.merge(abort=True)
 
 
-  # Rebase related methods
+  # Fuse related methods
 
-  def rebase(self, src):
+  @property
+  def _fuse_commits_fp(self):
+    return self.gl_repo._fuse_commits_fp
+
+  def _save_fuse_commits(self, commits):
+    path = self._fuse_commits_fp
+    using_tmp = False
+    if os.path.exists(path):
+      path = path + '_tmp'
+      using_tmp = True
+    with io.open(path, mode='w', encoding=ENCODING) as f:
+      for ci in commits:
+        f.write(ci.id.hex + '\n')
+    if using_tmp:
+      shutil.move(path, self._fuse_commits_fp)
+
+
+  def _load_fuse_commits(self):
+    git_repo = self.gl_repo.git_repo
+    with io.open(self._fuse_commits_fp, mode='r', encoding=ENCODING) as f:
+      for ci_id in f:
+        ci_id = ci_id.strip()
+        yield git_repo[ci_id]
+    os.remove(self._fuse_commits_fp)
+
+  def fuse(self, src, ip, only=None, exclude=None, fuse_cb=None):
+    """Fuse the given commits onto this branch.
+
+    Args:
+      src: the branch (Brach obj) to fuse commits from.
+      ip: id of the commit to act as the insertion point. The commits to fuse
+        are inserted after this commit. ip has to correspond to one of the
+        divergent commits from self or the divergent point.
+      only: ids of commits to use only.
+      exclude: ids of commtis to exclude.
+      fuse_cb: see FuseCb.
+    """
     self._check_is_current()
     self._check_op_not_in_progress()
 
-    try:
-      out = stdout(git.rebase(src.target))
-      if re.match(r'Current branch [^\s]+ is up to date.\n', out):
-        raise GlError('Nothing to rebase')
-    except ErrorReturnCode as e:
-      err_msg = stderr(e)
-      if 'Please commit or stash them' in err_msg:
-        raise GlError('Local changes would be lost')
-      elif ('The following untracked working tree files would be overwritten'
-          in err_msg):
-        raise GlError('Local changes would be lost')
-      raise GlError('There are conflicts you need to resolve')
+    repo = self.gl_repo
+    mb = repo.merge_base(self, src)
+
+    if mb == src.target:  # either self is ahead or both branches are equal
+      raise GlError('No commits to fuse')
+
+    mb_to_src = src.history(reverse=True)
+    mb_to_src.hide(mb)
+    divergent_commits, fuse_commits = itertools.tee(mb_to_src, 2)
+
+    if only:
+      fuse_commits = (ci for ci in fuse_commits if ci.id in only)
+    elif exclude:
+      fuse_commits = (ci for ci in fuse_commits if ci.id not in exclude)
+
+    fuse_commits, _fuse_commits = itertools.tee(fuse_commits, 2)
+    if not any(_fuse_commits):
+      raise GlError('No commits to fuse')
+
+    # Figure out where to detach head
+    # If the ip is not the mb, then we need to detach at the ip, because the
+    # first div commit won't have the ip as its parent
+    # But, if the ip **is** the mb we can advance the head until the div
+    # commits and the commits to fuse diverge
+    detach_point = ip
+    if ip == mb:
+      for ci, fuse_ci in zip(divergent_commits, fuse_commits):
+        if ci.id != fuse_ci.id:
+          fuse_commits = itertools.chain([fuse_ci], fuse_commits)
+          break
+        detach_point = ci.id
+        if fuse_cb and fuse_cb.apply_ok:
+          fuse_cb.apply_ok(ci)
+
+
+    after_commits = self.history(reverse=True)
+    after_commits.hide(ip)
+    commits = itertools.chain(fuse_commits, after_commits)
+    commits, _commits = itertools.tee(commits, 2)
+    if not any(_commits):  # it's a ff
+      self._safe_reset(detach_point, fuse_cb=fuse_cb)
+      self._safe_restore(fuse_cb=fuse_cb)
+      return
+
+    # We are going to have to do some cherry-picking
+
+    # Save the current head so that we remember the current branch
+    head_fp = os.path.join(repo.path, 'HEAD')
+    orig_head_fp = os.path.join(repo.path, 'ORIG_HEAD')
+    shutil.copyfile(head_fp, orig_head_fp)
+
+    # Detach head so that reset doesn't reset master and instead
+    # resets the head ref
+    repo.git_repo.set_head(repo.git_repo.head.peel().id)
+    self._safe_reset(detach_point, fuse_cb=fuse_cb)
+
+    self._fuse(commits, fuse_cb=fuse_cb)
+
+
+  def fuse_continue(self, fuse_cb=None):
+    """Resume a fuse in progress."""
+    if not self.fuse_in_progress:
+      raise GlError('No fuse in progress, nothing to continue')
+    commits = self._load_fuse_commits()
+    self._fuse(commits, fuse_cb=fuse_cb)
+
+  def _fuse(self, commits, fuse_cb=None):
+    git_repo = self.gl_repo.git_repo
+    committer = git_repo.default_signature
+
+    for ci in commits:
+      git_repo.cherrypick(ci.id)
+      index = self._index
+      if index.conflicts:
+        if fuse_cb and fuse_cb.apply_err:
+          fuse_cb.apply_err(ci)
+        self._save_fuse_commits(commits)
+        raise GlError('There are conflicts you need to resolve')
+
+      if fuse_cb and fuse_cb.apply_ok:
+        fuse_cb.apply_ok(ci)
+      tree_oid = index.write_tree(git_repo)
+      git_repo.create_commit(
+          'HEAD',  # the name of the reference to update
+          ci.author, committer, ci.message, tree_oid,
+          [git_repo.head.target])
+
+    # We are done fusing => update original branch and re-attach head
+    orig_branch_ref = git_repo.lookup_reference('ORIG_HEAD').resolve()
+    orig_branch_ref.set_target(git_repo.head.target)
+    git_repo.set_head(orig_branch_ref.name)
+    git_repo.state_cleanup()
+    self._safe_restore(fuse_cb=fuse_cb)
 
   @property
-  def rebase_in_progress(self):
-    return os.path.exists(
-        os.path.join(self.gl_repo.git_repo.path, 'rebase-apply'))
+  def fuse_in_progress(self):
+    # We could check if ORIG_HEAD exists but lots of git commands use ORIG_HEAD
+    # so we might get confused and think that we are in a fuse when we are not.
+    return os.path.exists(self._fuse_commits_fp)
 
-  def abort_rebase(self):
-    if not self.rebase_in_progress:
-      raise GlError('No rebase in progress, nothing to abort')
-    git.rebase(abort=True)
+  def abort_fuse(self, fuse_cb=None):
+    if not self.fuse_in_progress:
+      raise GlError('No fuse in progress, nothing to abort')
+    git_repo = self.gl_repo.git_repo
+    git_repo.set_head(git_repo.lookup_reference('ORIG_HEAD').target)
+    git_repo.reset(git_repo.head.peel().hex, pygit2.GIT_RESET_HARD)
+
+    os.remove(self._fuse_commits_fp)
+    git_repo.state_cleanup()
+    self._safe_restore(fuse_cb=fuse_cb)
+
+  def _safe_reset(self, cid, fuse_cb=None):
+    git_repo = self.gl_repo.git_repo
+    tree = git_repo[cid].tree
+    try:
+      git_repo.checkout_tree(tree)
+    except pygit2.GitError:  # conflicts prevent checkout
+      # TODO: this hack will cover most cases, but it won't help if the conflict
+      # is caused by untracked files (nonetheless `stash pop` won't work in that
+      # case either so we need to find an alternative way of doing this)
+      if fuse_cb and fuse_cb.save:
+        fuse_cb.save()
+      git.stash.save('--', _stash_msg_fuse(self))
+      git_repo.checkout_tree(tree)
+    git_repo.reset(cid, pygit2.GIT_RESET_SOFT)
+
+  def _safe_restore(self, fuse_cb=None):
+    s_id = _stash_id(_stash_msg_fuse(self))
+    if s_id:
+      try:
+        git.stash.pop(s_id)
+        if fuse_cb and fuse_cb.restore_ok:
+          fuse_cb.restore_ok()
+      except ErrorReturnCode:
+        raise ApplyFailedError(
+            'Uncommitted changes failed to apply onto the new head of the '
+            'branch')
 
 
   def create_commit(self, files, msg, author=None):
-    """Record a new commit in this branch.
+    """Record a new commit on this branch.
 
     Args:
       files: the (modified) files to commit.
@@ -720,8 +927,13 @@ class Branch(object):
       author: the author of the commit (defaults to the default author
         according to the repository's configuration).
     """
+    git_repo = self.gl_repo.git_repo
     if not author:
-      author = self.gl_repo.git_repo.default_signature
+      author = git_repo.default_signature
+
+    index = self._index
+    if index.conflicts:
+      raise GlError('Unresolved conflicts')
 
     # We replicate the behaviour of doing `git commit <file>...`
     # If file f is in the list of files to be committed => commit the working
@@ -731,65 +943,46 @@ class Branch(object):
 
     def get_tree_and_update_index():
 
-      def update(index):
-        """Add/remove files to the given index."""
+      def update():
+        """Add/remove files to the index."""
         for f in files:
-          if not os.path.exists(f):
+          assert not os.path.isabs(f)
+          if not os.path.exists(os.path.join(self.gl_repo.root, f)):
             index.remove(f)
           else:
             index.add(f)
 
       # Update index to how it should look like after the commit
-      index = self._index
       with index:
-        update(index)
+        update()
 
       # To create the commit tree with only the changes to the given files we:
       #   (i)   reset the index to HEAD,
       #   (ii)  update it with the changes to commit,
       #   (iii) create a tree out of this modified index, and
       #   (iv)  discard the changes after being done.
-      index.read_tree(self.gl_repo.git_repo.head.peel().tree)
-      update(index)
+      index.read_tree(git_repo.head.peel().tree)
+      update()
       tree_oid = index.write_tree()
 
       index.read()  #  discard changes
 
       return tree_oid
 
+    parents = [git_repo.head.target]
+    if self.merge_in_progress:
+      parents.append(git_repo.lookup_reference('MERGE_HEAD').target)
 
-    if not (self.merge_in_progress or self.rebase_in_progress):
-      self.gl_repo.git_repo.create_commit(
-          # the name of the reference to update (it will point to the new
-          # commit)
-          self.git_branch.name,
-          author, author,  # use author for committer field as well
-          msg,
-          get_tree_and_update_index(),  # the commit tree
-          [self.git_branch.target])
-      return
+    ci_oid = git_repo.create_commit(
+        'HEAD',  # will point to the new commit
+        author, author,  # use author as committer
+        msg, get_tree_and_update_index(),  # the commit tree
+        parents)
 
-    # There's a merge/rebase in progress
-    index = self._index
-    if index.conflicts:
-      raise GlError('Unresolved conflicts')
-
-    if self.rebase_in_progress:
-      try:
-        git.rebase('--continue')
-      except ErrorReturnCode as e:
-        raise GlError(stderr(e))
-    else:
-      # do the merge commit
-      self.gl_repo.git_repo.create_commit(
-          self.git_branch.name,  # the reference name
-          author, author,  # use author for committer field as well
-          msg,
-          get_tree_and_update_index(),  # the commit tree
-          [self.git_branch.target,
-           self.gl_repo.git_repo.lookup_reference('MERGE_HEAD').target])
+    if self.merge_in_progress:
       self.gl_repo.git_repo.state_cleanup()
 
+    return self.gl_repo.git_repo[ci_oid]
 
   def publish(self, branch):
     self._check_op_not_in_progress()
@@ -812,7 +1005,7 @@ class Branch(object):
     except ErrorReturnCode as e:
       err_msg = stderr(e)
       if 'Updates were rejected' in err_msg:
-        raise GlError('There are changes you need to rebase/merge')
+        raise GlError('There are changes you need to fuse/merge')
       raise GlError(err_msg)
 
 
@@ -820,9 +1013,9 @@ class Branch(object):
 
   def _check_op_not_in_progress(self):
     if self.merge_in_progress:
-      raise MergeInProgressError('Merge in progress')
-    if self.rebase_in_progress:
-      raise RebaseInProgressError('Rebase in progress')
+      raise GlError('Merge in progress')
+    if self.fuse_in_progress:
+      raise GlError('Fuse in progress')
 
   def _check_is_current(self):
     if not self.is_current:
@@ -855,11 +1048,18 @@ def _stash_id(msg):
 
 
 def _stash_msg(name):
-  """Computes the stash msg to use for stashing changes in branch name."""
+  """Computes the stash msg to use for stashing changes with the given name."""
   return '---gl-{0}---'.format(name)
+
+def _stash_msg_fuse(name):
+  return _stash_msg('fuse-{0}'.format(name))
 
 
 # Misc
+
+FuseCb = collections.namedtuple(
+    'FuseCb', ['apply_ok', 'apply_err', 'save', 'restore_ok'])
+
 
 def stdout(p):
   return p.stdout.decode(ENCODING)
@@ -867,3 +1067,10 @@ def stdout(p):
 
 def stderr(p):
   return p.stderr.decode(ENCODING)
+
+
+def walker(git_repo, target, reverse):
+  flags = pygit2.GIT_SORT_TOPOLOGICAL | pygit2.GIT_SORT_TIME
+  if reverse:
+    flags = flags | pygit2.GIT_SORT_REVERSE
+  return git_repo.walk(target, flags)

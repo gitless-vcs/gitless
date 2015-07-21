@@ -18,7 +18,7 @@ from gitless import core
 
 from . import (
     gl_track, gl_untrack, gl_status, gl_diff, gl_commit, gl_branch,
-    gl_checkout, gl_merge, gl_resolve, gl_rebase, gl_remote, gl_publish,
+    gl_checkout, gl_merge, gl_resolve, gl_fuse, gl_remote, gl_publish,
     gl_switch, gl_init, gl_history)
 from . import pprint
 
@@ -29,7 +29,7 @@ ERRORS_FOUND = 1
 INTERNAL_ERROR = 3
 NOT_IN_GL_REPO = 4
 
-VERSION = '0.7'
+VERSION = '0.8'
 URL = 'http://gitless.com'
 
 
@@ -56,10 +56,10 @@ def main():
 
   sub_cmds = [
       gl_track, gl_untrack, gl_status, gl_diff, gl_commit, gl_branch,
-      gl_checkout, gl_merge, gl_resolve, gl_rebase, gl_remote, gl_publish,
+      gl_checkout, gl_merge, gl_resolve, gl_fuse, gl_remote, gl_publish,
       gl_switch, gl_init, gl_history]
   for sub_cmd in sub_cmds:
-    sub_cmd.parser(subparsers)
+    sub_cmd.parser(subparsers, repo)
 
   args = parser.parse_args()
   try:
@@ -73,8 +73,8 @@ def main():
     return SUCCESS
   except core.NotInRepoError as e:
     pprint.err(e)
-    pprint.err_exp('do gl init to make this directory a repository')
-    pprint.err_exp('do gl init remote_repo for cloning an existing repository')
+    pprint.err_exp('do gl init to turn this directory into an empty repository')
+    pprint.err_exp('do gl init remote_repo to clone an existing repository')
     return NOT_IN_GL_REPO
   except (ValueError, pygit2.GitError, core.GlError) as e:
     pprint.err(e)
@@ -83,9 +83,9 @@ def main():
     pprint.err(e.stderr)
     return ERRORS_FOUND
   except:
-    pprint.err(
-        'Oops...something went wrong (recall that Gitless is in beta). If you '
-        'want to help, see {0} for info on how to report bugs and include the '
-        'following information:\n\n{1}\n\n{2}'.format(
+    pprint.err('Some internal error occurred')
+    pprint.err_exp(
+        'If you want to help, see {0} for info on how to report bugs and '
+        'include the following information:\n\n{1}\n\n{2}'.format(
             URL, VERSION, traceback.format_exc()))
     return INTERNAL_ERROR

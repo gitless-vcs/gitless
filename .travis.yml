@@ -8,16 +8,15 @@ python:
   - "3.4"
   - "pypy"
 
-before_install:
-  - sudo apt-get install cmake
-  - "./.travis.sh"
+env: LIBGIT2=~/libgit2/_install/ LD_LIBRARY_PATH=~/libgit2/_install/lib
+
+before_install: "./.travis.sh"
+
+install: pip install .
+
+before_script:
   - git config --global user.name "travis-test"
   - git config --global user.email "travis@test.com"
-
-install:
-  - pip install .
-
-env: LIBGIT2=~/libgit2/_install/ LD_LIBRARY_PATH=~/libgit2/_install/lib
 
 script:
   - nosetests

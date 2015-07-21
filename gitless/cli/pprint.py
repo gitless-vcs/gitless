@@ -7,13 +7,15 @@
 
 from __future__ import unicode_literals
 
-from collections import namedtuple
+from datetime import datetime, tzinfo, timedelta
 from locale import getpreferredencoding
 import re
 import sys
 
-from clint.textui import colored
+from clint.textui import colored, indent
 from clint.textui import puts as clint_puts
+
+from gitless import core
 
 
 SEP = (
@@ -34,47 +36,62 @@ def puts(s='', newline=True, stream=sys.stdout.write):
   clint_puts(s, newline=newline, stream=stream)
 
 
-# Stdout.
-
-def blank(p=sys.stdout.write):
-  puts('#', stream=p)
+# Stdout
 
 
-def msg(text, p=sys.stdout.write):
-  puts('# {0}'.format(text), stream=p)
+def ok(text):
+  puts(colored.green('✔ {0}'.format(text)))
 
 
-def exp(text, p=sys.stdout.write):
-  puts('#   ({0})'.format(text), stream=p)
+def warn(text):
+  puts(colored.yellow('! {0}'.format(text)))
 
 
-def item(i, opt_text='', p=sys.stdout.write):
-  puts('#     {0}{1}'.format(i, opt_text), stream=p)
+def msg(text, stream=sys.stdout.write):
+  puts(text, stream=stream)
 
 
-def sep(p=sys.stdout.write):
-  puts(SEP, stream=p)
+def exp(text, stream=sys.stdout.write):
+  with indent(2):
+    puts('➜ {0}'.format(text), stream=stream)
 
 
-# Err.
+def item(i, opt_text='', stream=sys.stdout.write):
+  with indent(4):
+    puts('{0}{1}'.format(i, opt_text), stream=stream)
+
+
+def blank(stream=sys.stdout.write):
+  puts('', stream=stream)
+
+
+def sep(stream=sys.stdout.write):
+  puts(SEP, stream=stream)
+
+
+# Err
 
 def err(text):
-  msg(text, p=sys.stderr.write)
+  puts(colored.red('✘ {0}'.format(text)), stream=sys.stderr.write)
+
+
+def err_msg(text):
+  msg(text, stream=sys.stderr.write)
 
 
 def err_exp(text):
-  exp(text, p=sys.stderr.write)
+  exp(text, stream=sys.stderr.write)
 
 
 def err_blank():
-  blank(p=sys.stderr.write)
+  blank(stream=sys.stderr.write)
 
 
 def err_item(i, opt_text=''):
-  item(i, opt_text, p=sys.stderr.write)
+  item(i, opt_text, stream=sys.stderr.write)
 
 
-# Misc.
+# Misc
 
 def conf_dialog(text):
   """Gets confirmation from the user.
@@ -107,25 +124,74 @@ def get_user_input(text='> '):
   return input(text)
 
 
+def commit(ci, color=colored.yellow, stream=sys.stdout.write):
+  puts(color('Commit Id: {0}'.format(ci.id)), stream=stream)
+  puts(
+      color('Author:    {0} <{1}>'.format(ci.author.name, ci.author.email)),
+      stream=stream)
+  ci_author_dt = datetime.fromtimestamp(
+      ci.author.time, FixedOffset(ci.author.offset))
+  puts(color('Date:      {0:%c %z}'.format(ci_author_dt)), stream=stream)
+  puts(stream=stream)
+  with indent(4):
+    puts(ci.message, stream=stream)
+
+# Fuse Callbacks
+
+def apply_ok(ci):
+  ok('Insertion of {0} succeeded'.format(ci.id))
+  blank()
+  commit(ci)
+  blank()
+
+def apply_err(ci):
+  err('Insertion of {0} failed'.format(ci.id))
+  blank()
+  commit(ci)
+  blank()
+
+def save():
+  warn('Uncommitted changes would prevent fuse, temporarily saving them')
+
+def restore_ok():
+  ok('Uncommitted changes applied successfully to the new head of the branch')
+
+FUSE_CB = core.FuseCb(apply_ok, apply_err, save, restore_ok)
+
+
+class FixedOffset(tzinfo):
+
+  def __init__(self, offset):
+    super(FixedOffset, self).__init__()
+    self.__offset = timedelta(minutes=offset)
+
+  def utcoffset(self, _):
+    return self.__offset
+
+  def dst(self, _):
+    return timedelta(0)
+
+
 def diff(patch, stream=sys.stdout.write):
   # Diff header
 
-  puts('Diff of file "{0}"'.format(patch.old_file_path), stream=stream)
-  if patch.old_file_path != patch.new_file_path:
-    puts(colored.cyan(
-        ' (renamed to {0})'.format(patch.new_file_path)), stream=stream)
+  old_fp = patch.delta.old_file.path
+  new_fp = patch.delta.new_file.path
+  puts('Diff of file "{0}"'.format(old_fp), stream=stream)
+  if old_fp != new_fp:
+    puts(colored.cyan(' (renamed to {0})'.format(new_fp)), stream=stream)
     puts(stream=stream)
 
-  if patch.is_binary:
+  if patch.delta.is_binary:
     puts('Not showing diffs for binary file', stream=stream)
     return
 
-  if (not patch.additions) and (not patch.deletions):
+  additions = patch.line_stats[1]
+  deletions = patch.line_stats[2]
+  if (not additions) and (not deletions):
     puts('No diffs to output for file', stream=stream)
     return
 
-  additions = patch.additions
-  deletions = patch.deletions
   put_s = lambda num: '' if num == 1 else 's'
   puts('{0} line{1} added'.format(additions, put_s(additions)), stream=stream)
   puts('{0} line{1} removed'.format(deletions, put_s(deletions)), stream=stream)
@@ -137,9 +203,8 @@ def diff(patch, stream=sys.stdout.write):
     puts(stream=stream)
     _hunk(hunk, stream=stream)
 
-
-LineData = namedtuple(
-  'LineData', ['st', 'line', 'old_line_number', 'new_line_number'])
+  puts(stream=stream)
+  puts(stream=stream)
 
 
 def _hunk(hunk, stream=sys.stdout.write):
@@ -149,33 +214,25 @@ def _hunk(hunk, stream=sys.stdout.write):
   padding = _padding(hunk)
 
   del_line, add_line, maybe_bold, saw_add = None, None, False, False
-  old_line_number, new_line_number = hunk.old_start, hunk.new_start
-
-  ld = lambda st, line: LineData(st, line, old_line_number, new_line_number)
-
-  for st, line in hunk.lines:
-    assert not IS_PY2 or isinstance(line, unicode)
-    line = line.rstrip('\n')
+  for diff_line in hunk.lines:
+    assert not IS_PY2 or isinstance(diff_line.content, unicode)
+    st = diff_line.origin
 
     if st == '-' and not maybe_bold:
       maybe_bold = True
-      del_line = ld(st, line)
-      old_line_number += 1
+      del_line = diff_line
     elif st == '+' and maybe_bold and not saw_add:
       saw_add = True
-      add_line = ld(st, line)
-      new_line_number += 1
+      add_line = diff_line
     elif st == ' ' and maybe_bold and saw_add:
-      bold1, bold2 = _highlight(del_line.line, add_line.line)
+      bold1, bold2 = _highlight(del_line.content, add_line.content)
 
       puts(_format_line(del_line, padding, bold_delim=bold1), stream=stream)
       puts(_format_line(add_line, padding, bold_delim=bold2), stream=stream)
 
       del_line, add_line, maybe_bold, saw_add = None, None, False, False
 
-      puts(_format_line(ld(st, line), padding), stream=stream)
-      old_line_number += 1
-      new_line_number += 1
+      puts(_format_line(diff_line, padding), stream=stream)
     else:
       if del_line:
         puts(_format_line(del_line, padding), stream=stream)
@@ -184,19 +241,11 @@ def _hunk(hunk, stream=sys.stdout.write):
 
       del_line, add_line, maybe_bold, saw_add = None, None, False, False
 
-      puts(_format_line(ld(st, line), padding), stream=stream)
-
-      if st == '-':
-        old_line_number += 1
-      elif st == '+':
-        new_line_number += 1
-      else:
-        old_line_number += 1
-        new_line_number += 1
+      puts(_format_line(diff_line, padding), stream=stream)
 
 
   if maybe_bold and saw_add:
-    bold1, bold2 = _highlight(del_line.line, add_line.line)
+    bold1, bold2 = _highlight(del_line.content, add_line.content)
 
     puts(_format_line(del_line, padding, bold_delim=bold1), stream=stream)
     puts(_format_line(add_line, padding, bold_delim=bold2), stream=stream)
@@ -216,13 +265,13 @@ def _padding(hunk):
   return max(MIN_LINE_PADDING, max_line_digits + 1)
 
 
-def _format_line(line_data, padding, bold_delim=None):
+def _format_line(diff_line, padding, bold_delim=None):
   """Format a standard diff line.
 
   Returns:
     a colored version of the diff line using ANSI control characters.
   """
-  # Color constants.
+  # Color constants
   GREEN = '\033[32m'
   GREEN_BOLD = '\033[1;32m'
   RED = '\033[31m'
@@ -230,16 +279,16 @@ def _format_line(line_data, padding, bold_delim=None):
   CLEAR = '\033[0m'
 
   formatted = ''
-  line = line_data.st + line_data.line
+  st = diff_line.origin
+  line = st + diff_line.content.rstrip('\n')
+  old_lineno = diff_line.old_lineno
+  new_lineno = diff_line.new_lineno
 
-  if line_data.st == ' ':
+  if st == ' ':
     formatted = (
-        str(line_data.old_line_number).ljust(padding) +
-        str(line_data.new_line_number).ljust(padding) + line)
-  elif line_data.st == '+':
-    formatted = (
-        ' ' * padding + GREEN +
-        str(line_data.new_line_number).ljust(padding))
+        str(old_lineno).ljust(padding) + str(new_lineno).ljust(padding) + line)
+  elif st == '+':
+    formatted = ' ' * padding + GREEN + str(new_lineno).ljust(padding)
     if not bold_delim:
       formatted += line
     else:
@@ -247,17 +296,15 @@ def _format_line(line_data, padding, bold_delim=None):
       formatted += (
           line[:bold_start] + GREEN_BOLD + line[bold_start:bold_end] + CLEAR +
           GREEN + line[bold_end:])
-  elif line_data.st == '-':
-    formatted = (
-        RED + str(line_data.old_line_number).ljust(padding) +
-        ' ' * padding)
+  elif st == '-':
+    formatted = RED + str(old_lineno).ljust(padding) + ' ' * padding
     if not bold_delim:
       formatted += line
     else:
       bold_start, bold_end = bold_delim
       formatted += (
-          line[:bold_start] + RED_BOLD + line[bold_start:bold_end] +
-          CLEAR + RED + line[bold_end:])
+          line[:bold_start] + RED_BOLD + line[bold_start:bold_end] + CLEAR +
+          RED + line[bold_end:])
 
   return formatted + CLEAR
 
@@ -270,7 +317,7 @@ def _highlight(line1, line2):
     of the line that should be bolded for line1 and line2 respectively.
    """
   start1 = start2 = 0
-  match = re.search(r'\S', line1)  # ignore leading whitespace.
+  match = re.search(r'\S', line1)  # ignore leading whitespace
   if match:
     start1 = match.start()
   match = re.search(r'\S', line2)
@@ -283,7 +330,7 @@ def _highlight(line1, line2):
          line1[bold_start1] == line2[bold_start2]):
     bold_start1 += 1
     bold_start2 += 1
-  match = re.search(r'\s*$', line1)  # ignore trailing whitespace.
+  match = re.search(r'\s*$', line1)  # ignore trailing whitespace
   bold_end1 = match.start() - 1
   match = re.search(r'\s*$', line2)
   bold_end2 = match.start() - 1
