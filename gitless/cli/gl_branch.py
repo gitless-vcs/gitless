@@ -136,7 +136,8 @@ def _do_delete(delete_b, repo):
 
       b.delete()
       pprint.ok('Branch {0} removed successfully'.format(b))
-    except ValueError:
+    except ValueError as e:
+      pprint.err(e)
       errors_found = True
     except core.BranchIsCurrentError as e:
       pprint.err(e)
