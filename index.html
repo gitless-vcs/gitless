@@ -280,7 +280,7 @@ Untracked files:
 <span class="shell">$</span> gl untrack baz.py
 <span class="ansi-green">✔ File baz.py is now an untracked file</span>
 <span class="shell">$</span> gl checkout foo.py
-You have uncomitted changes in foo.py that would be
+You have uncommitted changes in foo.py that would be
 overwritten by checkout. Do you wish to continue? (y/N)
 &gt; y
 <span class="ansi-green">✔ File foo.py checked out successfully to its state at HEAD</span></code></pre>
@@ -442,7 +442,7 @@ successfully</span>
       </p>
       <p>
       <em>Uploading Changes.</em>
-      To send changes upstream you use the
+      To send changes upstream you use
       <code><a id="gl-publish">gl publish</a></code>. The publish command will
       default to updating the upstream branch of the current branch if none is
       given as input. What if you want to create or delete a remote branch? You
@@ -651,7 +651,7 @@ Tracked files with modifications:
   <span class="ansi-yellow">foo</span>
 ...
 <span class="comment">If you want the uncommitted changes to follow you
-into the new branch you can use the -mo/--move-over
+into the new branch you can use the mo/move-over
 flag to move over the changes in the current branch
 to the destination branch</span>
 </code></pre>
@@ -697,7 +697,7 @@ Changes not staged for commit:
       changes conflicting with the changes in the destination branch:
       </p>
       <div class="code vs">
-        <pre class="gl"><code><span class="comment">Say we have uncommitted changes to `foo` which
+        <pre class="gl"><code><span class="comment">Say we have uncommitted changes to `foo` that
 conflict with the state of `foo` in branch `develop`</span>
 
 <span class="task">Switch to `develop`</span>
@@ -706,7 +706,7 @@ conflict with the state of `foo` in branch `develop`</span>
 </code>
 </pre>
 <pre class="git">
-<code><span class="comment">Say we have uncommitted changes to `foo` which
+<code><span class="comment">Say we have uncommitted changes to `foo` that
 conflict with the state of `foo` in branch `develop`</span>
 
 <span class="task">Switch to `develop`</span>
