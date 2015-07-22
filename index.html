@@ -299,7 +299,7 @@ overwritten by checkout. Do you wish to continue? (y/N)
 <span class="shell">$</span> gl commit -m"only foo and baz" -o foo.py baz.py
 <span class="shell">$</span> gl commit -m"only foo" -e bar.py
 <span class="shell">$</span> gl commit -m"only foo and baz" -e bar.py -i baz.py
-<span class="shell">$</span> gl commit -m"foo, bar and baz" -i baz.py</pre></code></div>
+<span class="shell">$</span> gl commit -m"foo, bar and baz" -i baz.py</code></pre></div>
       <p>
       The <code><a id="gl-diff">gl diff</a></code> command can be used to see the
       difference between the working and committed versions of files. Like with
@@ -357,10 +357,10 @@ List of branches:
       you do <code><a id="gl-merge">gl merge develop</a></code>. This creates
       a new merge commit that includes the changes in <code>develop</code> in
       addition to those changes in the current branch:
+      </p>
       <div class="fig">
         <img src="merge.png" alt="merge">
       </div>
-      </p>
 
 
       <p>
@@ -379,26 +379,26 @@ List of branches:
       After doing <code><a id="gl-fuse">gl fuse develop</a></code>, the commits
       in <code>develop</code> are inserted in <code>master</code> after the
       divergent point:
+      </p>
       <div class="fig">
         <img src="fuse.png" alt="fuse" class="fig">
       </div>
-      </p>
       <p>
       To choose other insertion points you use the
       <code>ip/insertion-point</code> flag. You can give a commit id as input,
       <code>head</code> or <code>dp/divergent-point</code>:
+      </p>
       <div class="fig">
         <img src="fuse_ip.png" alt="fuse with insertion point specified">
       </div>
-      </p>
       <p>
       The <code>o/only</code> and <code>e/exclude</code> flags can be used to
       customize the set of commits to be fused:
+      </p>
       <div class="fig">
         <img src="fuse_ip_o.png"
          alt="fuse with insertion point and commit specified">
       </div>
-      </p>
       <p>
       During this process conflicts could occur. If so, the <code>gl status</code> command will change
       accordingly to indicate the files in conflict. Once you edit those files in
@@ -907,8 +907,8 @@ https://github.com/spderosso/experiment
 `experiment`</span>
 <span class="shell">$</span> git pull experiment/master
 ...
-<span class="comment">If you instead want to rebase the changes, you can do
-`git pull --rebase experiment/master`</span>
+<span class="comment">If you instead want to rebase the changes, you can
+do `git pull --rebase experiment/master`</span>
 
 <span class="comment">You can also set an upstream for the current branch</span>
 <span class="shell">$</span> git branch --set-upstream master experiment/master

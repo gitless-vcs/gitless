@@ -9,7 +9,6 @@ pre, code {
 .ansi-red { color: #990000; }
 .shell { color: #1475a2; }
 
-
 a:link, a:visited { color: #00aa00; }
 
 h1 {
@@ -68,7 +67,7 @@ h4 {
   background-color: rgba(0,0,0,0.8);
 }
 
-.code pre { margin: 10px 0 10px 10px; }
+.code pre { margin: 10px 0 10px 10px; word-wrap: break-word; }
 .code code { color: white; }
 
 .vs { width: 780px; }
@@ -147,4 +146,5 @@ li { margin-bottom: 5px; }
 }
  
 p { margin-left: 0; }
+.fig { margin-bottom: 20px; }
 .fig img { width: 500px;}
