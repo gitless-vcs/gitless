@@ -135,9 +135,17 @@ class Repository(object):
     except KeyError:
       raise GlError('No common commit found between {0} and {1}'.format(b1, b2))
 
-  @property
-  def _fuse_commits_fp(self):
-    return os.path.join(self.path, 'gl_fuse_commits')
+  def _ref_exists(self, ref):
+    try:
+      self.git_repo.lookup_reference(ref)
+      return True
+    except KeyError:
+      return False
+
+  def _ref_rm(self, ref):
+    ref_path = os.path.join(self.path, ref)
+    if os.path.exists(ref_path):
+      os.remove(ref_path)
 
 
   # Branch related methods
@@ -145,14 +153,10 @@ class Repository(object):
   @property
   def current_branch(self):
     if self.git_repo.head_is_detached:
-      if os.path.exists(self._fuse_commits_fp):  # fuse in progress
-        b_name = self.git_repo.lookup_reference('ORIG_HEAD').resolve().shorthand
-      else:
-        raise Exception('Gl confused')
+      b = self.git_repo.lookup_reference('GL_FUSE_ORIG_HEAD').resolve()
     else:
-      b_name = self.git_repo.head.shorthand
-    return self.lookup_branch(b_name)
-
+      b = self.git_repo.head
+    return self.lookup_branch(b.shorthand)
 
   def create_branch(self, name, commit):
     """Create a new branch.
@@ -716,11 +720,7 @@ class Branch(object):
 
   @property
   def merge_in_progress(self):
-    try:
-      self.gl_repo.git_repo.lookup_reference('MERGE_HEAD')
-      return True
-    except KeyError:
-      return False
+    return self.gl_repo._ref_exists('MERGE_HEAD')
 
   def abort_merge(self):
     if not self.merge_in_progress:
@@ -816,7 +816,7 @@ class Branch(object):
 
     # Save the current head so that we remember the current branch
     head_fp = os.path.join(repo.path, 'HEAD')
-    orig_head_fp = os.path.join(repo.path, 'ORIG_HEAD')
+    orig_head_fp = os.path.join(repo.path, 'GL_FUSE_ORIG_HEAD')
     shutil.copyfile(head_fp, orig_head_fp)
 
     # Detach head so that reset doesn't reset master and instead
@@ -855,28 +855,31 @@ class Branch(object):
           [git_repo.head.target])
 
     # We are done fusing => update original branch and re-attach head
-    orig_branch_ref = git_repo.lookup_reference('ORIG_HEAD').resolve()
+    orig_branch_ref = git_repo.lookup_reference('GL_FUSE_ORIG_HEAD').resolve()
     orig_branch_ref.set_target(git_repo.head.target)
     git_repo.set_head(orig_branch_ref.name)
-    git_repo.state_cleanup()
+    self._state_cleanup()
     self._safe_restore(fuse_cb=fuse_cb)
 
   @property
   def fuse_in_progress(self):
-    # We could check if ORIG_HEAD exists but lots of git commands use ORIG_HEAD
-    # so we might get confused and think that we are in a fuse when we are not.
-    return os.path.exists(self._fuse_commits_fp)
+    return self.gl_repo._ref_exists('GL_FUSE_ORIG_HEAD')
 
   def abort_fuse(self, fuse_cb=None):
     if not self.fuse_in_progress:
       raise GlError('No fuse in progress, nothing to abort')
     git_repo = self.gl_repo.git_repo
-    git_repo.set_head(git_repo.lookup_reference('ORIG_HEAD').target)
+    git_repo.set_head(git_repo.lookup_reference('GL_FUSE_ORIG_HEAD').target)
     git_repo.reset(git_repo.head.peel().hex, pygit2.GIT_RESET_HARD)
 
-    os.remove(self._fuse_commits_fp)
-    git_repo.state_cleanup()
+    self._state_cleanup()
     self._safe_restore(fuse_cb=fuse_cb)
+
+  def _state_cleanup(self):
+    self.gl_repo.git_repo.state_cleanup()
+    if os.path.exists(self._fuse_commits_fp):
+      os.remove(self._fuse_commits_fp)
+    self.gl_repo._ref_rm('GL_FUSE_ORIG_HEAD')
 
   def _safe_reset(self, cid, fuse_cb=None):
     git_repo = self.gl_repo.git_repo
