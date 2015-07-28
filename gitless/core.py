@@ -135,6 +135,10 @@ class Repository(object):
     except KeyError:
       raise GlError('No common commit found between {0} and {1}'.format(b1, b2))
 
+  @property
+  def _fuse_commits_fp(self):
+    return os.path.join(self.path, 'gl_fuse_commits')
+
   def _ref_exists(self, ref):
     try:
       self.git_repo.lookup_reference(ref)
