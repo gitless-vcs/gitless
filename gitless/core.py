@@ -332,7 +332,6 @@ class Remote(object):
     finally:
       tmp_b.delete()
 
-
   def listall_branches(self):
     """Return a list with the names of all the branches in this repository.
 
@@ -423,36 +422,28 @@ class Branch(object):
     if self.is_current:
       raise BranchIsCurrentError('Can\'t delete the current branch')
 
-    branch_name = self.branch_name
     self.git_branch.delete()
 
     # We also cleanup any stash left
-    s_id = _stash_id(_stash_msg(branch_name))
+    s_id = _stash_id(_stash_msg(self.branch_name))
     if s_id:
       git.stash.drop(s_id)
 
   @property
   def upstream(self):
-    if not self.git_branch.upstream:
+    git_upstream = self.git_branch.upstream
+    if not git_upstream:
       return None
 
     try:
-      self.git_branch.upstream.remote_name
-    except ValueError:
-      # It is a local branch
-      return Branch(self.git_branch.upstream, self.gl_repo)
-    return RemoteBranch(self.git_branch.upstream, self.gl_repo)
+      git_upstream.remote_name
+      return RemoteBranch(git_upstream, self.gl_repo)
+    except ValueError:  # Upstream is a local branch
+      return Branch(git_upstream, self.gl_repo)
 
   @upstream.setter
   def upstream(self, new_upstream):
     self.git_branch.upstream = new_upstream.git_branch if new_upstream else None
-
-  @property
-  def upstream_name(self):
-    upstream = self.git_branch.upstream
-    if upstream:
-      return upstream.branch_name
-    raise KeyError('Branch has no upstream set')
 
   @property
   def head(self):
@@ -755,7 +746,6 @@ class Branch(object):
     if using_tmp:
       shutil.move(path, self._fuse_commits_fp)
 
-
   def _load_fuse_commits(self):
     git_repo = self.gl_repo.git_repo
     with io.open(self._fuse_commits_fp, mode='r', encoding=ENCODING) as f:
@@ -813,7 +803,6 @@ class Branch(object):
         if fuse_cb and fuse_cb.apply_ok:
           fuse_cb.apply_ok(ci)
 
-
     after_commits = self.history(reverse=True)
     after_commits.hide(ip)
     commits = itertools.chain(fuse_commits, after_commits)
@@ -836,7 +825,6 @@ class Branch(object):
     self._safe_reset(detach_point, fuse_cb=fuse_cb)
 
     self._fuse(commits, fuse_cb=fuse_cb)
-
 
   def fuse_continue(self, fuse_cb=None):
     """Resume a fuse in progress."""
@@ -1009,7 +997,7 @@ class Branch(object):
       raise GlError(err_msg)
 
 
-  # Some helpers for checking preconditions
+  # Branch helpers
 
   def _check_op_not_in_progress(self):
     if self.merge_in_progress:
@@ -1060,14 +1048,11 @@ def _stash_msg_fuse(name):
 FuseCb = collections.namedtuple(
     'FuseCb', ['apply_ok', 'apply_err', 'save', 'restore_ok'])
 
-
 def stdout(p):
   return p.stdout.decode(ENCODING)
 
-
 def stderr(p):
   return p.stderr.decode(ENCODING)
-
 
 def walker(git_repo, target, reverse):
   flags = pygit2.GIT_SORT_TOPOLOGICAL | pygit2.GIT_SORT_TIME

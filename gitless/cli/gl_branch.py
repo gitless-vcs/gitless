@@ -70,11 +70,7 @@ def _do_list(repo, list_remote):
 
   for b in (repo.lookup_branch(n) for n in repo.listall_branches()):
     current_str = '*' if b.is_current else ' '
-    upstream_str = ''
-    try:
-      upstream_str = '(upstream is {0})'.format(b.upstream_name)
-    except KeyError:
-      pass
+    upstream_str = '(upstream is {0})'.format(b.upstream) if b.upstream else ''
     color = colored.green if b.is_current else colored.yellow
     pprint.item(
         '{0} {1} {2}'.format(current_str, color(b.branch_name), upstream_str))
