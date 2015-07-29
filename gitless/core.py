@@ -252,8 +252,7 @@ class Repository(object):
         index = git_repo.index
         index.read()
         if index.conflicts:
-          extract = lambda e: {
-              'mode': oct(e.mode), 'id': str(e.id), 'path': e.path}
+          extract = lambda e: {'mode': e.mode, 'id': str(e.id), 'path': e.path}
           for ancestor, ours, theirs in index.conflicts:
             if ancestor:
               path = ancestor.path
@@ -341,8 +340,9 @@ class Repository(object):
 
         # Restore conflict info
         conf_info = body[CONF_INFO]
-        rm_sentinel = lambda path: '0 {0}\t{1}'.format('0'* 40, path)
-        build_entry = lambda e, num: '{mode} {id} {0}\t{path}'.format(num, **e)
+        rm_sentinel = lambda path: '0 {0}\t{1}'.format('0' * 40, path)
+        build_entry = (
+            lambda e, num: '{mode:o} {id} {0}\t{path}'.format(num, **e))
         index_info = []
         for path, index_e in conf_info.items():
           index_info.append(rm_sentinel(path))
@@ -1118,7 +1118,7 @@ class Branch(object):
   def _check_is_current(self):
     if not self.is_current:
       raise BranchIsCurrentError(
-        'Branch "{0}" is the current branch'.format(self.branch_name))
+        'Branch {0} is the current branch'.format(self.branch_name))
 
 
 # Helpers for stashing
