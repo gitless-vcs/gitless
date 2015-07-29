@@ -15,6 +15,7 @@ except ImportError:
   pass
 
 import itertools
+import json
 from locale import getpreferredencoding
 import os
 import re
@@ -135,9 +136,9 @@ class Repository(object):
     except KeyError:
       raise GlError('No common commit found between {0} and {1}'.format(b1, b2))
 
-  @property
-  def _fuse_commits_fp(self):
-    return os.path.join(self.path, 'gl_fuse_commits')
+  def _fuse_commits_fp(self, b):
+    return os.path.join(
+        self.path, 'GL_FUSE_CIS_{0}'.format(b.branch_name.replace('/', '_')))
 
   def _ref_exists(self, ref):
     try:
@@ -150,6 +151,16 @@ class Repository(object):
     ref_path = os.path.join(self.path, ref)
     if os.path.exists(ref_path):
       os.remove(ref_path)
+
+  def _ref_create(self, ref, value):
+    ref_path = os.path.join(self.path, ref)
+    with io.open(ref_path, 'w', encoding=ENCODING) as f:
+      if value.startswith('refs'):
+        value = 'ref: ' + value
+      f.write(value + '\n')
+
+  def _ref_target(self, ref):
+    return self.git_repo.lookup_reference(ref).target
 
 
   # Branch related methods
@@ -194,71 +205,163 @@ class Repository(object):
     """
     return self.git_repo.listall_branches(pygit2.GIT_BRANCH_LOCAL)
 
-  def switch_current_branch(self, b, move_over=False):
+  def switch_current_branch(self, dst_b, move_over=False):
     """Switches to the given branch.
 
     Args:
-      b: the destination branch.
+      dst_b: the destination branch.
       move_over: if True, then uncommited changes made in the current branch are
         moved to the destination branch (defaults to False).
     """
-    if b.is_current:
+    if dst_b.is_current:
       raise ValueError(
           'You are already on branch {0}. No need to switch.'.format(
-            b.branch_name))
+             dst_b.branch_name))
 
-    curr_b = self.current_branch
+    INFO_SEP = '|'
+    ANCESTOR = 'ancestor'
+    THEIRS = 'theirs'
+    OURS = 'ours'
+    REF_INFO = 'ref_info'
+    CONF_INFO = 'conf_info'
+    MSG_INFO = 'msg_info'
 
-    # TODO: let the user switch even if a fuse or merge is in progress
-    curr_b._check_op_not_in_progress()
+    git_repo = self.git_repo
+    au_fp = lambda b: os.path.join(
+        self.path, 'GL_AU_{0}'.format(b.branch_name.replace('/', '_')))
+    update_index = git.bake('update-index', _cwd=self.root)
 
-    # Helper functions for switch
+    def save(b):
+      msg = _stash_msg(b.branch_name)
 
-    def au_fp(branch):
-      return os.path.join(
-          self.path, 'GL_AU_{0}'.format(branch.branch_name.replace('/', '_')))
+      # Save assumed unchanged info
+      au_fps = ' '.join(b._au_files())
+      if au_fps:
+        with io.open(au_fp(b), mode='w', encoding=ENCODING) as f:
+          f.write(au_fps)
+        update_index('--no-assume-unchanged', au_fps)
 
-    def unmark_au_files():
-      """Saves the filepaths marked as assumed unchanged and unmarks them."""
-      assumed_unchanged_fps = curr_b._au_files()
-      if not assumed_unchanged_fps:
+      if b.merge_in_progress or b.fuse_in_progress:
+        body = {}
+        if move_over:
+          raise GlError(
+              'Changes can\'t be moved over with a fuse or merge in progress')
+
+        # Save conflict info
+        conf_info = {}
+        index = git_repo.index
+        index.read()
+        if index.conflicts:
+          extract = lambda e: {
+              'mode': oct(e.mode), 'id': str(e.id), 'path': e.path}
+          for ancestor, ours, theirs in index.conflicts:
+            if ancestor:
+              path = ancestor.path
+              ancestor = extract(ancestor)
+            if theirs:
+              path = theirs.path
+              theirs = extract(theirs)
+            if ours:
+              path = ours.path
+              ours = extract(ours)
+
+            conf_info[path] = {ANCESTOR: ancestor, THEIRS: theirs, OURS: ours}
+            index.add(path)
+
+          index.write()
+        body[CONF_INFO] = conf_info
+
+        # Save ref info
+        if b.merge_in_progress:
+          ref_info = {'MERGE_HEAD': str(self._ref_target('MERGE_HEAD'))}
+          self._ref_rm('MERGE_HEAD')
+        else:
+          ref_info = {
+              'HEAD': str(git_repo.head.target),
+              'GL_FUSE_ORIG_HEAD': str(self._ref_target('GL_FUSE_ORIG_HEAD')),
+              'CHERRY_PICK_HEAD': str(self._ref_target('CHERRY_PICK_HEAD'))
+              }
+          self._ref_rm('GL_FUSE_ORIG_HEAD')
+          self._ref_rm('CHERRY_PICK_HEAD')
+        body[REF_INFO] = ref_info
+
+        # Save msg info
+        merge_msg_fp = os.path.join(self.path, 'MERGE_MSG')
+        with io.open(merge_msg_fp, 'r', encoding=ENCODING) as f:
+          merge_msg = f.read()
+        os.remove(merge_msg_fp)
+        body[MSG_INFO] = merge_msg
+
+        msg += INFO_SEP + json.dumps(body)
+
+      if not move_over:
+        # Stash
+        git.stash.save('--all', '--', msg)
+
+    def restore(b):
+      s_id, msg = _stash(_stash_msg(b.branch_name))
+      if not s_id:
         return
 
-      with io.open(au_fp(curr_b), mode='w', encoding=ENCODING) as f:
-        for fp in assumed_unchanged_fps:
-          f.write(fp + '\n')
-          git('update-index', '--no-assume-unchanged', fp,
-              _cwd=self.root)
+      def restore_au_info():
+        au = au_fp(b)
+        if os.path.exists(au):
+          with io.open(au, mode='r', encoding=ENCODING) as f:
+            au_fps = f.read()
+          update_index('--assume-unchanged', au_fps)
+          os.remove(au)
 
-    def remark_au_files():
-      """Re-marks files as assumed unchanged."""
-      au = au_fp(b)
-      if not os.path.exists(au):
-        return
+      split_msg = msg.split(INFO_SEP)
 
-      with io.open(au, mode='r', encoding=ENCODING) as f:
-        for fp in f:
-          git('update-index', '--assume-unchanged', fp.strip(),
-              _cwd=self.root)
+      if len(split_msg) == 1:  # No op to restore
+        # Pop
+        git.stash.pop(s_id)
+        # Restore assumed unchanged info
+        restore_au_info()
+      else:  # Restore op
+        body = json.loads(split_msg[1])
+        # Restore msg info
+        merge_msg_fp = os.path.join(self.path, 'MERGE_MSG')
+        with io.open(merge_msg_fp, 'w', encoding=ENCODING) as f:
+          f.write(body[MSG_INFO])
 
-      os.remove(au)
+        # Restore ref info
+        ref_info = body[REF_INFO]
+        if 'GL_FUSE_ORIG_HEAD' in ref_info:  # fuse
+          head = git_repo[ref_info['HEAD']]
+          git_repo.set_head(head.id)
+          git_repo.reset(head.id, pygit2.GIT_RESET_HARD)
+          self._ref_create('CHERRY_PICK_HEAD', ref_info['CHERRY_PICK_HEAD'])
+          self._ref_create('GL_FUSE_ORIG_HEAD', ref_info['GL_FUSE_ORIG_HEAD'])
+        else:  # merge
+          self._ref_create('MERGE_HEAD', ref_info['MERGE_HEAD'])
 
+        # Pop
+        git.stash.pop(s_id)
 
-    # Stash doesn't save assumed unchanged files, so we save which files are
-    # marked as assumed unchanged and unmark them. And when switching back we
-    # look at this info and re-mark them.
+        # Restore conflict info
+        conf_info = body[CONF_INFO]
+        rm_sentinel = lambda path: '0 {0}\t{1}'.format('0'* 40, path)
+        build_entry = lambda e, num: '{mode} {id} {0}\t{path}'.format(num, **e)
+        index_info = []
+        for path, index_e in conf_info.items():
+          index_info.append(rm_sentinel(path))
+          if index_e[ANCESTOR]:
+            index_info.append(build_entry(index_e[ANCESTOR], 1))
+          if index_e[OURS]:
+            index_info.append(build_entry(index_e[OURS], 2))
+          if index_e[THEIRS]:
+            index_info.append(build_entry(index_e[THEIRS], 3))
 
-    unmark_au_files()
-    if not move_over:
-      git.stash.save('--all', '--', _stash_msg(curr_b.branch_name))
+        update_index('--unresolve', _in=' '.join(conf_info.keys()))
+        update_index('--index-info', _in='\n'.join(index_info))
 
-    self.git_repo.checkout(b.git_branch)
+        # Restore assumed unchanged info
+        restore_au_info()
 
-    s_id = _stash_id(_stash_msg(b.branch_name))
-    if s_id:
-      git.stash.pop(s_id)
-
-    remark_au_files()
+    save(self.current_branch)
+    git_repo.checkout(dst_b.git_branch)
+    restore(dst_b)
 
 
 class RemoteCollection(object):
@@ -433,7 +536,7 @@ class Branch(object):
     self.git_branch.delete()
 
     # We also cleanup any stash left
-    s_id = _stash_id(_stash_msg(self.branch_name))
+    s_id, _ = _stash(_stash_msg(self.branch_name))
     if s_id:
       git.stash.drop(s_id)
 
@@ -736,7 +839,7 @@ class Branch(object):
 
   @property
   def _fuse_commits_fp(self):
-    return self.gl_repo._fuse_commits_fp
+    return self.gl_repo._fuse_commits_fp(self)
 
   def _save_fuse_commits(self, commits):
     path = self._fuse_commits_fp
@@ -901,7 +1004,7 @@ class Branch(object):
     git_repo.reset(cid, pygit2.GIT_RESET_SOFT)
 
   def _safe_restore(self, fuse_cb=None):
-    s_id = _stash_id(_stash_msg_fuse(self))
+    s_id, _ = _stash(_stash_msg_fuse(self))
     if s_id:
       try:
         git.stash.pop(s_id)
@@ -1018,32 +1121,22 @@ class Branch(object):
         'Branch "{0}" is the current branch'.format(self.branch_name))
 
 
-# Some helpers for stashing
+# Helpers for stashing
 
-def _stash_id(msg):
-  """Gets the stash id of the stash with the given msg.
-
-  Args:
-    msg: the message of the stash to retrieve.
-
-  Returns:
-    the stash id of the stash with the given msg or None if no matching stash is
-    found.
-  """
-  out = stdout(git.stash.list(grep=': {0}'.format(msg), _tty_out=False))
-
+def _stash(pattern):
+  """Returns the id and msg of the stash that matches the given pattern."""
+  out = stdout(
+      git.stash.list(grep=pattern, format='|*|%gd|*|%B|*|', _tty_out=False))
   if not out:
-    return None
+    return None, None
 
-  result = re.match(r'(stash@\{.+\}): ', out)
+  result = re.match(r'\|\*\|(stash@\{.+\})\|\*\|(.*)\|\*\|', out, re.DOTALL)
   if not result:
     raise GlError('Unexpected output of git stash: {0}'.format(out))
 
-  return result.group(1)
-
+  return result.group(1).strip(), result.group(2).strip()
 
 def _stash_msg(name):
-  """Computes the stash msg to use for stashing changes with the given name."""
   return '---gl-{0}---'.format(name)
 
 def _stash_msg_fuse(name):

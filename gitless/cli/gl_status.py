@@ -112,20 +112,23 @@ def _print_untracked_files(untracked_list, relative_paths, repo):
 
   root = repo.root
   for f in untracked_list:
-    s = ''
+    exp = ''
     color = colored.blue
-    if f.exists_at_head:
+    if f.in_conflict:
+      exp = ' (with conflicts)'
+      color = colored.cyan
+    elif f.exists_at_head:
       color = colored.magenta
       if f.exists_in_wd:
-        s = ' (exists at head)'
+        exp = ' (exists at head)'
       else:
-        s = ' (exists at head but not in working directory)'
+        exp = ' (exists at head but not in working directory)'
 
     fp = os.path.relpath(os.path.join(root, f.fp)) if relative_paths else f.fp
     if fp == '.':
       continue
 
-    pprint.item(color(fp), opt_text=s)
+    pprint.item(color(fp), opt_text=exp)
 
 
 def _print_conflict_exp(op):
