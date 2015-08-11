@@ -16,27 +16,30 @@ from . import helpers, pprint
 
 def parser(subparsers, _):
   """Adds the branch parser to the given subparsers object."""
+  desc = 'list, create, edit or delete branches'
   branch_parser = subparsers.add_parser(
-      'branch', help='list, create, edit or delete branches')
+      'branch', help=desc, description=desc.capitalize())
   branch_parser.add_argument(
       '-r', '--remote',
       help='list remote branches in addition to local branches',
       action='store_true')
 
   branch_parser.add_argument(
-      '-c', '--create', nargs='+', help='create branch(es)', dest='create_b')
+      '-c', '--create', nargs='+', help='create branch(es)', dest='create_b',
+      metavar='branch')
   branch_parser.add_argument(
       '-dp', '--divergent-point',
       help='the commit from where to \'branch out\' (only relevant if a new '
       'branch is created; defaults to HEAD)', default='HEAD',
       dest='dp')
   branch_parser.add_argument(
-      '-d', '--delete', nargs='+', help='delete branch(es)', dest='delete_b')
+      '-d', '--delete', nargs='+', help='delete branch(es)', dest='delete_b',
+      metavar='branch')
 
   branch_parser.add_argument(
       '-su', '--set-upstream',
       help='set the upstream branch of the current branch',
-      dest='upstream_b')
+      dest='upstream_b', metavar='branch')
   branch_parser.add_argument(
       '-uu', '--unset-upstream',
       help='unset the upstream branch of the current branch',

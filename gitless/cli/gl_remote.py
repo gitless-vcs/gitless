@@ -12,15 +12,18 @@ from . import pprint
 
 def parser(subparsers, _):
   """Adds the remote parser to the given subparsers object."""
+  desc = 'list, create, edit or delete remotes'
   remote_parser = subparsers.add_parser(
-      'remote', help='list, create, edit or delete remotes')
+      'remote', help=desc, description=desc.capitalize())
   remote_parser.add_argument(
-      '-c', '--create', nargs='?', help='create remote', dest='remote_name')
+      '-c', '--create', nargs='?', help='create remote', dest='remote_name',
+      metavar='remote')
   remote_parser.add_argument(
       'remote_url', nargs='?',
       help='the url of the remote (only relevant if a new remote is created)')
   remote_parser.add_argument(
-      '-d', '--delete', nargs='+', help='delete remote(es)', dest='delete_r')
+      '-d', '--delete', nargs='+', help='delete remote(es)', dest='delete_r',
+      metavar='remote')
   remote_parser.set_defaults(func=main)
 
 

@@ -51,7 +51,7 @@ def main():
       '--version', action='version', version=(
          'GL Version: {0}\nYou can check if there\'s a new version of Gitless '
          'available at {1}'.format(VERSION, URL)))
-  subparsers = parser.add_subparsers(dest='subcmd_name')
+  subparsers = parser.add_subparsers(title='subcommands', dest='subcmd_name')
   subparsers.required = True
 
   sub_cmds = [

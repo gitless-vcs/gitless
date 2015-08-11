@@ -124,7 +124,11 @@ def get_user_input(text='> '):
   return input(text)
 
 
-def commit(ci, color=colored.yellow, stream=sys.stdout.write):
+def commit(ci, color=colored.yellow, stream=sys.stdout.write, compact=False):
+  if compact:
+    title = ci.message.splitlines()[0]
+    puts('{0} {1}'.format(color(ci.id), title), stream=stream)
+    return
   puts(color('Commit Id: {0}'.format(ci.id)), stream=stream)
   puts(
       color('Author:    {0} <{1}>'.format(ci.author.name, ci.author.email)),

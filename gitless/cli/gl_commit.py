@@ -15,12 +15,13 @@ from . import helpers, pprint
 
 def parser(subparsers, repo):
   """Adds the commit parser to the given subparsers object."""
+  desc = 'save changes to the local repository'
   commit_parser = subparsers.add_parser(
-      'commit', help='record changes in the local repository',
-      description=(
+      'commit', help=desc, description=(
+        desc.capitalize() + '. ' +
         'By default all tracked modified files are committed. To customize the'
-        ' set of files to be committed you can use the only, exclude, and '
-        'include flags'))
+        ' set of files to be committed use the only, exclude, and include '
+        'flags'))
   commit_parser.add_argument(
       '-m', '--message', help='Commit message', dest='m')
   helpers.oei_flags(commit_parser, repo)

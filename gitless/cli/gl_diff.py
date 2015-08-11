@@ -15,12 +15,12 @@ from . import helpers, pprint
 
 def parser(subparsers, repo):
   """Adds the diff parser to the given subparsers object."""
+  desc = 'show changes to files'
   diff_parser = subparsers.add_parser(
-      'diff', help='show changes in files',
-      description=(
+      'diff', help=desc, description=(
+        desc.capitalize() + '. ' +
         'By default all tracked modified files are diffed. To customize the '
-        ' set of files to diff you can use the only, exclude, and include '
-        'flags'))
+        ' set of files to diff use the only, exclude, and include flags'))
   helpers.oei_flags(diff_parser, repo)
   diff_parser.set_defaults(func=main)
 

@@ -18,8 +18,9 @@ from . import helpers, pprint
 
 def parser(subparsers, repo):
   """Adds the status parser to the given subparsers object."""
+  desc = 'show status of the repo'
   status_parser = subparsers.add_parser(
-      'status', help='show status of the repo')
+      'status', help=desc, description=desc.capitalize())
   status_parser.add_argument(
       'paths', nargs='*', help='the specific path(s) to status',
       action=helpers.PathProcessor, repo=repo)
