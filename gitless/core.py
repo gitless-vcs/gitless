@@ -561,6 +561,11 @@ class Branch(object):
     self._update()
     return self.git_branch.peel()
 
+  def set_head(self, new_head_id, save_fn=None, restore_fn=None):
+    msg_fn = lambda t: _stash_msg('reset-{0}'.format(t))
+    self._safe_reset(new_head_id, msg_fn, save_fn=save_fn)
+    self._safe_restore(msg_fn, restore_fn=restore_fn)
+
   @property
   def target(self):
     """Object Id of the commit this branch points to."""
@@ -876,6 +881,7 @@ class Branch(object):
     self._check_is_current()
     self._check_op_not_in_progress()
 
+    save_fn = fuse_cb.save if fuse_cb else None
     repo = self.gl_repo
     mb = repo.merge_base(self, src)
 
@@ -915,8 +921,9 @@ class Branch(object):
     commits = itertools.chain(fuse_commits, after_commits)
     commits, _commits = itertools.tee(commits, 2)
     if not any(_commits):  # it's a ff
-      self._safe_reset(detach_point, fuse_cb=fuse_cb)
-      self._safe_restore(fuse_cb=fuse_cb)
+      self._safe_reset(detach_point, _stash_msg_fuse, save_fn=save_fn)
+      restore_fn = fuse_cb.restore_ok if fuse_cb else None
+      self._safe_restore(_stash_msg_fuse, restore_fn=restore_fn)
       return
 
     # We are going to have to do some cherry-picking
@@ -929,7 +936,7 @@ class Branch(object):
     # Detach head so that reset doesn't reset master and instead
     # resets the head ref
     repo.git_repo.set_head(repo.git_repo.head.peel().id)
-    self._safe_reset(detach_point, fuse_cb=fuse_cb)
+    self._safe_reset(detach_point, _stash_msg_fuse, save_fn=save_fn)
 
     self._fuse(commits, fuse_cb=fuse_cb)
 
@@ -966,7 +973,8 @@ class Branch(object):
     orig_branch_ref.set_target(git_repo.head.target)
     git_repo.set_head(orig_branch_ref.name)
     self._state_cleanup()
-    self._safe_restore(fuse_cb=fuse_cb)
+    restore_fn = fuse_cb.restore_ok if fuse_cb else None
+    self._safe_restore(_stash_msg_fuse, restore_fn=restore_fn)
 
   @property
   def fuse_in_progress(self):
@@ -980,7 +988,8 @@ class Branch(object):
     git_repo.reset(git_repo.head.peel().hex, pygit2.GIT_RESET_HARD)
 
     self._state_cleanup()
-    self._safe_restore(fuse_cb=fuse_cb)
+    restore_fn = fuse_cb.restore_ok if fuse_cb else None
+    self._safe_restore(_stash_msg_fuse, restore_fn=restore_fn)
 
   def _state_cleanup(self):
     self.gl_repo.git_repo.state_cleanup()
@@ -988,7 +997,7 @@ class Branch(object):
       os.remove(self._fuse_commits_fp)
     self.gl_repo._ref_rm('GL_FUSE_ORIG_HEAD')
 
-  def _safe_reset(self, cid, fuse_cb=None):
+  def _safe_reset(self, cid, msg_fn, save_fn=None):
     git_repo = self.gl_repo.git_repo
     tree = git_repo[cid].tree
     try:
@@ -997,19 +1006,19 @@ class Branch(object):
       # TODO: this hack will cover most cases, but it won't help if the conflict
       # is caused by untracked files (nonetheless `stash pop` won't work in that
       # case either so we need to find an alternative way of doing this)
-      if fuse_cb and fuse_cb.save:
-        fuse_cb.save()
-      git.stash.save('--', _stash_msg_fuse(self))
+      if save_fn:
+        save_fn()
+      git.stash.save('--', msg_fn(self))
       git_repo.checkout_tree(tree)
     git_repo.reset(cid, pygit2.GIT_RESET_SOFT)
 
-  def _safe_restore(self, fuse_cb=None):
-    s_id, _ = _stash(_stash_msg_fuse(self))
+  def _safe_restore(self, msg_fn, restore_fn=None):
+    s_id, _ = _stash(msg_fn(self))
     if s_id:
       try:
         git.stash.pop(s_id)
-        if fuse_cb and fuse_cb.restore_ok:
-          fuse_cb.restore_ok()
+        if restore_fn:
+          restore_fn()
       except ErrorReturnCode:
         raise ApplyFailedError(
             'Uncommitted changes failed to apply onto the new head of the '

@@ -127,7 +127,7 @@ def get_user_input(text='> '):
 def commit(ci, color=colored.yellow, stream=sys.stdout.write, compact=False):
   if compact:
     title = ci.message.splitlines()[0]
-    puts('{0} {1}'.format(color(ci.id), title), stream=stream)
+    puts('{0} {1}'.format(color(str(ci.id)[:7]), title), stream=stream)
     return
   puts(color('Commit Id: {0}'.format(ci.id)), stream=stream)
   puts(
@@ -155,7 +155,7 @@ def apply_err(ci):
   blank()
 
 def save():
-  warn('Uncommitted changes would prevent fuse, temporarily saving them')
+  warn('Temporarily saving uncommitted changes')
 
 def restore_ok():
   ok('Uncommitted changes applied successfully to the new head of the branch')

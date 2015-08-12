@@ -56,8 +56,10 @@ def get_branch_or_use_upstream(branch_name, arg, repo):
   return ret
 
 
-def page(fp):
-  subprocess.call(['less', '-r', '-f', fp], stdin=sys.stdin, stdout=sys.stdout)
+def page(fp, repo):
+  pager = repo.config['core.pager']
+  cmd = [pager, fp] if pager else ['less', '-r', '-f', fp]
+  subprocess.call(cmd, stdin=sys.stdin, stdout=sys.stdout)
 
 
 class PathProcessor(argparse.Action):

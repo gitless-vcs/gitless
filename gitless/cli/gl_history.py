@@ -53,6 +53,6 @@ def main(args, repo):
           pprint.diff(patch, stream=tf.write)
 
       count += 1
-  helpers.page(tf.name)
+  helpers.page(tf.name, repo)
   os.remove(tf.name)
   return True
