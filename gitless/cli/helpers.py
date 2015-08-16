@@ -57,8 +57,10 @@ def get_branch_or_use_upstream(branch_name, arg, repo):
 
 
 def page(fp, repo):
-  pager = repo.config['core.pager']
-  cmd = [pager, fp] if pager else ['less', '-r', '-f', fp]
+  try:
+    cmd = [repo.config['core.pager'], fp]
+  except KeyError:
+    cmd = ['less', '-r', '-f', fp]
   subprocess.call(cmd, stdin=sys.stdin, stdout=sys.stdout)
 
 
