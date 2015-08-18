@@ -188,7 +188,7 @@ def _do_set_head(commit_id, repo):
     raise ValueError('Invalid head {0}'.format(commit_id))
 
   curr_b = repo.current_branch
-  curr_b.set_head(commit.id, save_fn=pprint.save, restore_fn=pprint.restore_ok)
+  curr_b.head = commit.id
   pprint.ok(
       'Head of current branch {0} is now {1}'.format(curr_b, _ci_str(commit)))
   return True

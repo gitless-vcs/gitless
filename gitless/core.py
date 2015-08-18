@@ -561,10 +561,9 @@ class Branch(object):
     self._update()
     return self.git_branch.peel()
 
-  def set_head(self, new_head_id, save_fn=None, restore_fn=None):
-    msg_fn = lambda t: _stash_msg('reset-{0}'.format(t))
-    self._safe_reset(new_head_id, msg_fn, save_fn=save_fn)
-    self._safe_restore(msg_fn, restore_fn=restore_fn)
+  @head.setter
+  def head(self, new_head):
+    self.gl_repo.git_repo.reset(new_head, pygit2.GIT_RESET_SOFT)
 
   @property
   def target(self):
