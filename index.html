@@ -301,6 +301,10 @@ overwritten by checkout. Do you wish to continue? (y/N)
 <span class="shell">$</span> gl commit -m"only foo and baz" -e bar.py -i baz.py
 <span class="shell">$</span> gl commit -m"foo, bar and baz" -i baz.py</code></pre></div>
       <p>
+      (A <code>p/partial</code> flag that allows you to interactively select
+      segments of files to commit is coming soon.)
+      <p>
+      <p>
       The <code><a id="gl-diff">gl diff</a></code> command can be used to see the
       difference between the working and committed versions of files. Like with
       <code>commit</code>, the default set of files to diff is
