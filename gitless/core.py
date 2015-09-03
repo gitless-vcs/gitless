@@ -825,7 +825,7 @@ class Branch(object):
     if result & pygit2.GIT_MERGE_ANALYSIS_UP_TO_DATE:
       raise GlError('No commits to merge')
     try:
-      git.merge(src.branch_name, '--no-ff')
+      git.merge(src, '--no-ff')
     except ErrorReturnCode as e:
       raise GlError(stdout(e) + stderr(e))
 
