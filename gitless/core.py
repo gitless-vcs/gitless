@@ -247,6 +247,13 @@ class Repository(object):
           raise GlError(
               'Changes can\'t be moved over with a fuse or merge in progress')
 
+        # Save msg info
+        merge_msg_fp = os.path.join(self.path, 'MERGE_MSG')
+        with io.open(merge_msg_fp, 'r', encoding=ENCODING) as f:
+          merge_msg = f.read()
+        os.remove(merge_msg_fp)
+        body[MSG_INFO] = merge_msg
+
         # Save conflict info
         conf_info = {}
         index = git_repo.index
@@ -284,13 +291,6 @@ class Repository(object):
           self._ref_rm('CHERRY_PICK_HEAD')
         body[REF_INFO] = ref_info
 
-        # Save msg info
-        merge_msg_fp = os.path.join(self.path, 'MERGE_MSG')
-        with io.open(merge_msg_fp, 'r', encoding=ENCODING) as f:
-          merge_msg = f.read()
-        os.remove(merge_msg_fp)
-        body[MSG_INFO] = merge_msg
-
         msg += INFO_SEP + json.dumps(body)
 
       if not move_over:
@@ -319,11 +319,6 @@ class Repository(object):
         restore_au_info()
       else:  # Restore op
         body = json.loads(split_msg[1])
-        # Restore msg info
-        merge_msg_fp = os.path.join(self.path, 'MERGE_MSG')
-        with io.open(merge_msg_fp, 'w', encoding=ENCODING) as f:
-          f.write(body[MSG_INFO])
-
         # Restore ref info
         ref_info = body[REF_INFO]
         if 'GL_FUSE_ORIG_HEAD' in ref_info:  # fuse
@@ -355,6 +350,11 @@ class Repository(object):
 
         update_index('--unresolve', _in=' '.join(conf_info.keys()))
         update_index('--index-info', _in='\n'.join(index_info))
+
+        # Restore msg info
+        merge_msg_fp = os.path.join(self.path, 'MERGE_MSG')
+        with io.open(merge_msg_fp, 'w', encoding=ENCODING) as f:
+          f.write(body[MSG_INFO])
 
         # Restore assumed unchanged info
         restore_au_info()
