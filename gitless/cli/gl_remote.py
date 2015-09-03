@@ -45,8 +45,8 @@ def main(args, repo):
 def _do_list(remotes):
   pprint.msg('List of remotes:')
   pprint.exp(
-      'do gl remote -c <r> <r_url> to add a new remote r mapping to r_url')
-  pprint.exp('do gl remote -d <r> to delete remote r')
+      'do gl remote -c r r_url to add a new remote r mapping to r_url')
+  pprint.exp('do gl remote -d r to delete remote r')
   pprint.blank()
 
   if not len(remotes):

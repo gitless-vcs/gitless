@@ -70,9 +70,9 @@ def _print_tracked_mod_files(tracked_mod_list, relative_paths, repo):
   pprint.msg('Tracked files with modifications:')
   pprint.exp('these will be automatically considered for commit')
   pprint.exp(
-      'use gl untrack <f> if you don\'t want to track changes to file f')
+      'use gl untrack f if you don\'t want to track changes to file f')
   pprint.exp(
-      'if file f was committed before, use gl checkout <f> to discard '
+      'if file f was committed before, use gl checkout f to discard '
       'local changes')
   pprint.blank()
 
@@ -104,7 +104,7 @@ def _print_tracked_mod_files(tracked_mod_list, relative_paths, repo):
 def _print_untracked_files(untracked_list, relative_paths, repo):
   pprint.msg('Untracked files:')
   pprint.exp('these won\'t be considered for commit')
-  pprint.exp('use gl track <f> if you want to track changes to file f')
+  pprint.exp('use gl track f if you want to track changes to file f')
   pprint.blank()
 
   if not untracked_list:
@@ -138,6 +138,6 @@ def _print_conflict_exp(op):
       'commiting'.format(op))
   pprint.exp(
       'use gl {0} --abort to go back to the state before the {0}'.format(op))
-  pprint.exp('use gl resolve <f> to mark file f as resolved')
+  pprint.exp('use gl resolve f to mark file f as resolved')
   pprint.exp('once you solved all conflicts do gl commit to continue')
   pprint.blank()

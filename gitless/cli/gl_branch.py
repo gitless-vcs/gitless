@@ -79,9 +79,9 @@ def main(args, repo):
 
 def _do_list(repo, list_remote, v=False):
   pprint.msg('List of branches:')
-  pprint.exp('do gl branch -c <b> to create branch b')
-  pprint.exp('do gl branch -d <b> to delete branch b')
-  pprint.exp('do gl switch <b> to switch to branch b')
+  pprint.exp('do gl branch -c b to create branch b')
+  pprint.exp('do gl branch -d b to delete branch b')
+  pprint.exp('do gl switch b to switch to branch b')
   pprint.exp('* = current branch')
   pprint.blank()
 
@@ -160,7 +160,7 @@ def _do_delete(delete_b, repo):
     except core.BranchIsCurrentError as e:
       pprint.err(e)
       pprint.err_exp(
-          'do gl branch <b> to create or switch to another branch b and then '
+          'do gl branch b to create or switch to another branch b and then '
           'gl branch -d {0} to remove branch {0}'.format(b))
       errors_found = True
 

@@ -33,7 +33,7 @@ def main(args, repo):
 
   if not commit_files:
     pprint.err('No files to commit')
-    pprint.err_exp('use gl track <f> if you want to track changes to file f')
+    pprint.err_exp('use gl track f if you want to track changes to file f')
     return False
 
   msg = args.m if args.m else commit_dialog.show(commit_files, repo)
