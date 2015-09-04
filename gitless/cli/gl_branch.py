@@ -196,5 +196,5 @@ def _do_set_head(commit_id, repo):
 
 def _ci_str(ci):
   ci_str = StringIO()
-  pprint.commit(ci, color=lambda x: x, compact=True, stream=ci_str.write)
+  pprint.commit(ci, compact=True, stream=ci_str.write)
   return ci_str.getvalue().strip()
