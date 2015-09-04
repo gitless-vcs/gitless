@@ -175,9 +175,9 @@
       <p>
       Contents:
         <a href="#repository">Creating a Repository</a>,
-        <a href="#changes">Recording Changes</a>,
+        <a href="#changes">Saving Changes</a>,
         <a href="#branching">Branching</a>,
-        <a href="#remote">Working With Remote Repositories</a>.
+        <a href="#remote">Working with Remote Repositories</a>.
       </p>
       <a id="repository"><h3>Creating a Repository</h3></a>
       <p>
@@ -185,7 +185,7 @@
       repository. You do this with the
       <code><a id="gl-init">gl init</a></code> command. This transforms
       the current working directory into an empty repository and you
-      are now ready to start recording changes to files in <code>foo</code>:
+      are now ready to start saving changes to files in <code>foo</code>:
       </p>
       <div class="code">
       <pre><code><span class="shell">$</span> mdkir foo
@@ -206,9 +206,9 @@
 <span class="ansi-green">✔ Local repo created in /MyFiles/foo</span>
 <span class="ansi-green">✔ Initialized from remote https://github.com/spderosso/experiment</span></code></pre>
       </div>
-      <a id="changes"><h3>Recording Changes</h3></a>
+      <a id="changes"><h3>Saving Changes</h3></a>
       <p>
-      Now that you have your local repository, it's time to start recording
+      Now that you have your local repository, it's time to start saving
       changes to files. A file in Gitless can be <em>tracked</em>,
       <em>untracked</em> or <em>ignored</em>.
       A <em>tracked file</em> is a file whose changes Gitless will detect.
@@ -420,7 +420,7 @@ List of branches:
       <code>gl branch -su upstream_branch</code>.
       </p>
 
-      <a id="remote"><h3>Working With Remote Repositories</h3></a>
+      <a id="remote"><h3>Working with Remote Repositories</h3></a>
       <p>
       To refer to a remote repository you could always use its URL, but an
       easier alternative is to add the repository as a "remote" with the
@@ -472,12 +472,11 @@ successfully</span>
     <!-- Begin Versus -->
     <div class="twothird">
       <a id="vs"><h1>Gitless vs. Git</h1></a>
-      <p>Gitless on the left, Git on the right.</p>
 
       <!-- Begin Versus/Changes -->
-      <h2>Recording Changes to the Repository</h2>
+      <h2>Saving Changes</h2>
       <p>There's no staging area in Gitless. This, coupled with a flexible
-      commit command makes recording changes to the repository very
+      commit command makes saving changes to the repository very
       straightforward:
       </p>
 
@@ -854,7 +853,7 @@ so there's nothing here now</span>
       <!-- End Versus/Branching -->
 
       <!-- Begin Versus/Syncing -->
-      <h2>Syncing with Other Repositories</h2>
+      <h2>Working with Remote Repositories</h2>
       <p>
       Syncing with other repositories in Gitless works quite similar to
       Git:
