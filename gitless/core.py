@@ -52,9 +52,6 @@ def init_repository(url=None):
   Args:
     url: if given the local repository will be a clone of the remote repository
       given by this url.
-
-  Returns:
-    the Gitless's repository created
   """
   cwd = os.getcwd()
   try:
@@ -97,11 +94,7 @@ class Repository(object):
   """
 
   def __init__(self):
-    """Create a Repository out of the current working repository.
-
-    Raises:
-      NotInRepoError: if there's no current working repository.
-    """
+    """Create a Repository out of the current working repository."""
     try:
       path = pygit2.discover_repository(os.getcwd())
     except KeyError:
@@ -173,16 +166,10 @@ class Repository(object):
       b = self.git_repo.head
     return self.lookup_branch(b.shorthand)
 
-  def create_branch(self, name, commit):
-    """Create a new branch.
-
-    Args:
-      name: the name of the new branch.
-      commit: the commit that is to become the "head" of the new branch.
-    """
+  def create_branch(self, name, head):
     try:
       return Branch(
-          self.git_repo.create_branch(name, commit, False),  # force=False
+          self.git_repo.create_branch(name, head, False),  # force=False
           self)
     except ValueError as e:
       # Edit pygit2's error msg (the message exposes Git details that will
@@ -191,7 +178,6 @@ class Repository(object):
           str(e).replace('refs/heads/', '').replace('reference', 'branch'))
 
   def lookup_branch(self, branch_name):
-    """Return the branch object corresponding to the given branch name."""
     git_branch = self.git_repo.lookup_branch(
         branch_name, pygit2.GIT_BRANCH_LOCAL)
     if git_branch:
@@ -389,9 +375,9 @@ class RemoteCollection(object):
   def create(self, name, url):
     if '/' in name:
       raise ValueError(
-          'Invalid remote name \'{0}\': remotes can\'t have \'/\''.format(name))
+          'Invalid remote name {0}: remotes can\'t have \'/\''.format(name))
     if not url.strip():
-      raise ValueError('Invalid url \'{0}\''.format(url))
+      raise ValueError('Invalid url {0}'.format(url))
 
     # Check that the given url corresponds to a git repo
     try:
@@ -419,14 +405,7 @@ class Remote(object):
     self.name = self.git_remote.name
     self.url = self.git_remote.url
 
-
-  def create_branch(self, name, commit):
-    """Create a new branch in the remote repository.
-
-    Args:
-      name: the name of the new branch.
-      commit: the commit that is to become the "head" of the new branch.
-    """
+  def create_branch(self, name, head):
     if self.lookup_branch(name):
       raise GlError(
           'Branch {0} already exists in remote repository {1}'.format(
@@ -434,7 +413,7 @@ class Remote(object):
     # Push won't let us push the creation of a new branch from a SHA. So we
     # create a temporary local ref, make it point to the commit, and do the
     # push
-    tmp_b = self.gl_repo.create_branch('gl_tmp_ref', commit)
+    tmp_b = self.gl_repo.create_branch('gl_tmp_ref', head)
     try:
       git.push(self.name, '{0}:{1}'.format(tmp_b, name))
       return self.lookup_branch(name)
@@ -454,7 +433,6 @@ class Remote(object):
       yield regex.match(head).group(1)
 
   def lookup_branch(self, branch_name):
-    """Return the RemoteBranch object corresponding to the given branch name."""
     if not stdout(git('ls-remote', '--heads', self.name, branch_name)):
       return None
     # The branch exists in the remote
@@ -479,7 +457,6 @@ class RemoteBranch(object):
     self.gl_repo = gl_repo
     self.remote_name = self.git_branch.remote_name
     self.branch_name = self.git_branch.branch_name[len(self.remote_name) + 1:]
-
 
   def delete(self):
     try:
@@ -527,7 +504,6 @@ class Branch(object):
     self.git_branch = git_branch
     self.gl_repo = gl_repo
     self.branch_name = self.git_branch.branch_name
-
 
   def delete(self):
     if self.is_current:
@@ -616,7 +592,6 @@ class Branch(object):
     pygit2.GIT_STATUS_CURRENT: (GL_STATUS_TRACKED, True, True, False, False),
     pygit2.GIT_STATUS_IGNORED: (GL_STATUS_IGNORED, False, True, True, False),
     pygit2.GIT_STATUS_CONFLICTED: (GL_STATUS_TRACKED, True, True, True, True),
-
 
     ### WT_* ###
     pygit2.GIT_STATUS_WT_NEW: (GL_STATUS_UNTRACKED, False, True, True, False),
@@ -726,7 +701,7 @@ class Branch(object):
       raise GlError('File {0} in unkown status {1}'.format(path, git_st))
 
   def untrack_file(self, path):
-    """Stop tracking changes to the given path."""
+    """Stop tracking changes to path."""
     assert not os.path.isabs(path)
 
     gl_st, git_st, is_au = self._status_file(path)
@@ -779,7 +754,7 @@ class Branch(object):
       index.add(path)
 
   def diff_file(self, path):
-    """Diff the working version of the given path with its committed version."""
+    """Diff the working version of path with its committed version."""
     assert not os.path.isabs(path)
 
     git_repo = self.gl_repo.git_repo
@@ -925,7 +900,6 @@ class Branch(object):
     self._fuse(commits, fuse_cb=fuse_cb)
 
   def fuse_continue(self, fuse_cb=None):
-    """Resume a fuse in progress."""
     if not self.fuse_in_progress:
       raise GlError('No fuse in progress, nothing to continue')
     commits = self._load_fuse_commits()
