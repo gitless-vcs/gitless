@@ -611,35 +611,38 @@ class Branch(object):
     return Index(self.gl_repo.git_repo.index)
 
   _st_map = {
-    # git status: gl status, exists_at_head, exists_in_wd, modified
+    # git status: gl status, exists_at_head, exists_in_wd, modified, conflict
 
-    pygit2.GIT_STATUS_CURRENT: (GL_STATUS_TRACKED, True, True, False),
-    pygit2.GIT_STATUS_IGNORED: (GL_STATUS_IGNORED, False, True, True),
+    pygit2.GIT_STATUS_CURRENT: (GL_STATUS_TRACKED, True, True, False, False),
+    pygit2.GIT_STATUS_IGNORED: (GL_STATUS_IGNORED, False, True, True, False),
+    pygit2.GIT_STATUS_CONFLICTED: (GL_STATUS_TRACKED, True, True, True, True),
+
 
     ### WT_* ###
-    pygit2.GIT_STATUS_WT_NEW: (GL_STATUS_UNTRACKED, False, True, True),
-    pygit2.GIT_STATUS_WT_MODIFIED: (GL_STATUS_TRACKED, True, True, True),
-    pygit2.GIT_STATUS_WT_DELETED: (GL_STATUS_TRACKED, True, False, True),
+    pygit2.GIT_STATUS_WT_NEW: (GL_STATUS_UNTRACKED, False, True, True, False),
+    pygit2.GIT_STATUS_WT_MODIFIED: (GL_STATUS_TRACKED, True, True, True, False),
+    pygit2.GIT_STATUS_WT_DELETED: (GL_STATUS_TRACKED, True, False, True, False),
 
     ### INDEX_* ###
-    pygit2.GIT_STATUS_INDEX_NEW: (GL_STATUS_TRACKED, False, True, True),
-    pygit2.GIT_STATUS_INDEX_MODIFIED: (GL_STATUS_TRACKED, True, True, True),
-    pygit2.GIT_STATUS_INDEX_DELETED: (GL_STATUS_TRACKED, True, False, True),
+    pygit2.GIT_STATUS_INDEX_NEW: (GL_STATUS_TRACKED, False, True, True, False),
+    pygit2.GIT_STATUS_INDEX_MODIFIED: (
+      GL_STATUS_TRACKED, True, True, True, False),
+    pygit2.GIT_STATUS_INDEX_DELETED: (
+      GL_STATUS_TRACKED, True, False, True, False),
 
     ### WT_NEW | INDEX_* ###
     # WT_NEW | INDEX_NEW -> can't happen
     # WT_NEW | INDEX_MODIFIED -> can't happen
     # WT_NEW | INDEX_DELETED -> could happen if user broke gl layer (e.g., did
-    # `git rm` and then created file with same name). Also, for some reason,
-    # files with conflicts have this status code
+    # `git rm` and then created file with same name).
     pygit2.GIT_STATUS_WT_NEW | pygit2.GIT_STATUS_INDEX_DELETED: (
-      GL_STATUS_TRACKED, True, True, True),
+      GL_STATUS_TRACKED, True, True, True, False),
 
     ### WT_MODIFIED | INDEX_* ###
     pygit2.GIT_STATUS_WT_MODIFIED | pygit2.GIT_STATUS_INDEX_NEW: (
-      GL_STATUS_TRACKED, False, True, True),
+      GL_STATUS_TRACKED, False, True, True, False),
     pygit2.GIT_STATUS_WT_MODIFIED | pygit2.GIT_STATUS_INDEX_MODIFIED: (
-      GL_STATUS_TRACKED, True, True, True),
+      GL_STATUS_TRACKED, True, True, True, False),
     # WT_MODIFIED | INDEX_DELETED -> can't happen
 
     ### WT_DELETED | INDEX_* ### -> can't happen
@@ -662,17 +665,8 @@ class Branch(object):
     Ignored and tracked unmodified files are not reported.
     File paths are always relative to the repo root.
     """
-    index = self._index
-
     for fp, git_s in self.gl_repo.git_repo.status().items():
-      in_conflict = False
-      if index.conflicts:
-        try:  # `fp in index.conflicts` doesn't work
-          index.conflicts[fp]
-          in_conflict = True
-        except KeyError:
-          pass
-      yield self.FileStatus(fp, *(self._st_map[git_s] + (in_conflict,)))
+      yield self.FileStatus(fp, *self._st_map[git_s])
 
     # status doesn't report au files
     au_files = self._au_files()
@@ -689,27 +683,18 @@ class Branch(object):
   def _status_file(self, path):
     assert not os.path.isabs(path)
 
-    git_s = self.gl_repo.git_repo.status_file(path)
+    git_st = self.gl_repo.git_repo.status_file(path)
 
-    cmd_out = stdout(git(
-      'ls-files', '-v', '--full-name', path, _cwd=self.gl_repo.root))
-    if cmd_out and cmd_out[0] == 'h':
-      exists_in_wd = os.path.exists(os.path.join(self.gl_repo.root, path))
-      return (
-          self.FileStatus(
-            path, GL_STATUS_UNTRACKED, True, exists_in_wd, True, False),
-          git_s, True)
-
-    index = self._index
-    in_conflict = False
-    if index.conflicts:
-      try:  # `fp in index.conflicts` doesn't work
-        index.conflicts[path]
-        in_conflict = True
-      except KeyError:
-        pass
-    f_st = self.FileStatus(path, *(self._st_map[git_s] + (in_conflict,)))
-    return f_st, git_s, False
+    root = self.gl_repo.root
+    cmd_out = stdout(git('ls-files', '-v', '--full-name', path, _cwd=root))
+    is_au = cmd_out and cmd_out[0] == 'h'
+    if is_au:
+      exists_in_wd = os.path.exists(os.path.join(root, path))
+      f_st = self.FileStatus(
+          path, GL_STATUS_UNTRACKED, True, exists_in_wd, True, False)
+    else:
+      f_st = self.FileStatus(path, *self._st_map[git_st])
+    return f_st, git_st, is_au
 
 
   # File related methods
