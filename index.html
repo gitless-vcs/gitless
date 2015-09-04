@@ -545,8 +545,7 @@ known to git.
       or not:
       </p>
       <div class="code vs">
-        <pre class="gl"><code><span class="comment">Say we have committed file `foo` with modifications</span>
-<span class="shell">$</span> gl status
+        <pre class="gl"><code><span class="shell">$</span> gl status
 ...
 Tracked files with modifications:
 ...
@@ -576,8 +575,7 @@ Tracked files with modifications:
   <span class="ansi-yellow">foo</span>
 ...
 </code></pre>
-<pre class="git"><code><span class="comment">Say we have committed file `foo` with modifications</span>
-<span class="shell">$</span> git status
+<pre class="git"><code><span class="shell">$</span> git status
 ...
 Changes not staged for commit:
 ...
@@ -585,9 +583,9 @@ Changes not staged for commit:
 ...
 
 <span class="task">Stop tracking changes to `foo`</span>
-<span class="comment">No way to do this, if you want to prevent accidental
-committing of the file you can always do `git add` of
-all the files but `foo` everytime you do a commit.
+<span class="comment">No way to do this, if you want to prevent the
+accidental commit of `foo` you can do `git add` of
+all files but `foo` everytime you do a commit.
 Alternatively, you can ignore the file by marking it
 as assumed unchanged</span>
 <span class="shell">$</span> git update-index --assume-unchanged foo
@@ -624,8 +622,7 @@ Changes not staged for commit:
       remember this):
       </p>
       <div class="code vs">
-        <pre class="gl"><code><span class="comment">Say we have committed file `foo` with modifications</span>
-<span class="shell">$</span> gl status
+        <pre class="gl"><code><span class="shell">$</span> gl status
 ...
 Tracked files with modifications:
 ...
@@ -659,8 +656,7 @@ into the new branch you can use the mo/move-over
 flag to move over the changes in the current branch
 to the destination branch</span>
 </code></pre>
-<pre class="git"><code><span class="comment">Say we have committed file `foo` with modifications</span>
-<span class="shell">$</span> git status
+<pre class="git"><code><span class="shell">$</span> git status
 ...
 Changes not staged for commit:
 ...

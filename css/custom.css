@@ -72,12 +72,34 @@ h4 {
 
 .vs { width: 780px; }
 
+.gl::before {
+  position: absolute;
+  content: "";
+  top: -15px;
+  left: 340px;
+  width: 30px;
+  height: 37px;
+  background: url('../ribbon-gl.png') 0 0 no-repeat;
+}
+
 .vs .gl { 
+  position: relative;
   float: left;
   width: 370px;
 }
 
+.git::before {
+  position: absolute;
+  content: "";
+  top: -15px;
+  left: 350px;
+  width: 30px;
+  height: 37px;
+  background: url('../ribbon-git.png') 0 0 no-repeat;
+}
+
 .vs .git {
+  position: relative;
   float: left;
   width: 370px;
   border-left: 1px dotted gray;
