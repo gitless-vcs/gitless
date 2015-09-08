@@ -353,7 +353,7 @@ class TestDiffFile(TestEndToEnd):
     self.assertEqual(out1, out2)
 
 
-class TestFuse(TestEndToEnd):
+class TestOp(TestEndToEnd):
 
   COMMITS_NUMBER = 4
   OTHER = 'other'
@@ -361,7 +361,7 @@ class TestFuse(TestEndToEnd):
   OTHER_FILE = 'other_file'
 
   def setUp(self):
-    super(TestFuse, self).setUp()
+    super(TestOp, self).setUp()
 
     self.commits = {}
     def create_commits(branch_name, fp):
@@ -381,6 +381,9 @@ class TestFuse(TestEndToEnd):
     gl.switch(self.OTHER)
     create_commits(self.OTHER, self.OTHER_FILE)
     gl.switch('master')
+
+
+class TestFuse(TestOp):
 
   def __assert_history(self, expected):
     out = utils.stdout(gl.history(_tty_out=False))
@@ -590,6 +593,16 @@ class TestFuse(TestEndToEnd):
 #      self.fail()
 #    except ErrorReturnCode as e:
 #      self.assertTrue('failed to apply' in utils.stderr(e))
+
+
+class TestMerge(TestOp):
+
+  def test_uncommitted_changes(self):
+    utils.write_file(self.MASTER_FILE, contents='uncommitted')
+    utils.write_file('master_untracked', contents='uncommitted')
+    gl.merge(self.OTHER)
+    self.assertEqual('uncommitted', utils.read_file(self.MASTER_FILE))
+    self.assertEqual('uncommitted', utils.read_file('master_untracked'))
 
 
 class TestPerformance(TestEndToEnd):

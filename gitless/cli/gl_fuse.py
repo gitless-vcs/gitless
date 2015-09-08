@@ -50,7 +50,7 @@ def parser(subparsers, repo):
 def main(args, repo):
   current_b = repo.current_branch
   if args.abort:
-    current_b.abort_fuse(fuse_cb=pprint.FUSE_CB)
+    current_b.abort_fuse(op_cb=pprint.OP_CB)
     pprint.ok('Fuse aborted successfully')
     return True
 
@@ -90,7 +90,7 @@ def main(args, repo):
   try:
     current_b.fuse(
         src_branch, insertion_point, only=only, exclude=exclude,
-        fuse_cb=pprint.FUSE_CB)
+        op_cb=pprint.OP_CB)
     pprint.ok('Fuse succeeded')
   except core.ApplyFailedError as e:
     pprint.ok('Fuse succeeded')

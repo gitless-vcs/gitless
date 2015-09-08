@@ -49,13 +49,9 @@ def main(args, repo):
   pprint.commit(ci)
 
   if curr_b.fuse_in_progress:
-    pprint.blank()
-    try:
-      curr_b.fuse_continue(fuse_cb=pprint.FUSE_CB)
-      pprint.ok('Fuse succeeded')
-    except core.ApplyFailedError as e:
-      pprint.ok('Fuse succeeded')
-      raise e
+    _op_continue(curr_b.fuse_continue, 'Fuse')
+  elif curr_b.merge_in_progress:
+    _op_continue(curr_b.merge_continue, 'Merge')
 
   return True
 
@@ -66,3 +62,13 @@ def _auto_track(files, curr_b):
     f = curr_b.status_file(fp)
     if f.type == core.GL_STATUS_UNTRACKED:
       curr_b.track_file(f.fp)
+
+
+def _op_continue(op, fn):
+  pprint.blank()
+  try:
+    op(op_cb=pprint.OP_CB)
+    pprint.ok('{0} succeeded'.format(op))
+  except core.ApplyFailedError as e:
+    pprint.ok('{0} succeeded'.format(op))
+    raise e

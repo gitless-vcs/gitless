@@ -776,7 +776,7 @@ class Branch(object):
 
   # Merge related methods
 
-  def merge(self, src):
+  def merge(self, src, op_cb=None):
     """Merges the divergent changes of the src branch onto this one."""
     self._check_is_current()
     self._check_op_not_in_progress()
@@ -787,7 +787,27 @@ class Branch(object):
     try:
       git.merge(src, '--no-ff')
     except ErrorReturnCode as e:
-      raise GlError(stdout(e) + stderr(e))
+      err = stderr(e)
+      if not 'stash' in err:
+        raise GlError(stdout(e) + err)
+      if op_cb and op_cb.save:
+        op_cb.save()
+      git.stash.save('--', _stash_msg_merge)
+      try:
+        git.merge(src, '--no-ff')
+      except ErrorReturnCode as e:
+        raise GlError(stdout(e) + stderr(e))
+
+    restore_fn = op_cb.restore_ok if op_cb else None
+    self._safe_restore(_stash_msg_merge, restore_fn=restore_fn)
+    self._state_cleanup()
+
+  def merge_continue(self, op_cb=None):
+    if not self.merge_in_progress:
+      raise GlError('No merge in progress, nothing to continue')
+    restore_fn = op_cb.restore_ok if op_cb else None
+    self._safe_restore(_stash_msg_merge, restore_fn=restore_fn)
+    self._state_cleanup()
 
   @property
   def merge_in_progress(self):
@@ -825,7 +845,7 @@ class Branch(object):
         yield git_repo[ci_id]
     os.remove(self._fuse_commits_fp)
 
-  def fuse(self, src, ip, only=None, exclude=None, fuse_cb=None):
+  def fuse(self, src, ip, only=None, exclude=None, op_cb=None):
     """Fuse the given commits onto this branch.
 
     Args:
@@ -835,12 +855,12 @@ class Branch(object):
         divergent commits from self or the divergent point.
       only: ids of commits to use only.
       exclude: ids of commtis to exclude.
-      fuse_cb: see FuseCb.
+      op_cb: see OpCb.
     """
     self._check_is_current()
     self._check_op_not_in_progress()
 
-    save_fn = fuse_cb.save if fuse_cb else None
+    save_fn = op_cb.save if op_cb else None
     repo = self.gl_repo
     mb = repo.merge_base(self, src)
 
@@ -872,8 +892,8 @@ class Branch(object):
           fuse_commits = itertools.chain([fuse_ci], fuse_commits)
           break
         detach_point = ci.id
-        if fuse_cb and fuse_cb.apply_ok:
-          fuse_cb.apply_ok(ci)
+        if op_cb and op_cb.apply_ok:
+          op_cb.apply_ok(ci)
 
     after_commits = self.history(reverse=True)
     after_commits.hide(ip)
@@ -881,7 +901,7 @@ class Branch(object):
     commits, _commits = itertools.tee(commits, 2)
     if not any(_commits):  # it's a ff
       self._safe_reset(detach_point, _stash_msg_fuse, save_fn=save_fn)
-      restore_fn = fuse_cb.restore_ok if fuse_cb else None
+      restore_fn = op_cb.restore_ok if op_cb else None
       self._safe_restore(_stash_msg_fuse, restore_fn=restore_fn)
       return
 
@@ -897,15 +917,15 @@ class Branch(object):
     repo.git_repo.set_head(repo.git_repo.head.peel().id)
     self._safe_reset(detach_point, _stash_msg_fuse, save_fn=save_fn)
 
-    self._fuse(commits, fuse_cb=fuse_cb)
+    self._fuse(commits, op_cb=op_cb)
 
-  def fuse_continue(self, fuse_cb=None):
+  def fuse_continue(self, op_cb=None):
     if not self.fuse_in_progress:
       raise GlError('No fuse in progress, nothing to continue')
     commits = self._load_fuse_commits()
-    self._fuse(commits, fuse_cb=fuse_cb)
+    self._fuse(commits, op_cb=op_cb)
 
-  def _fuse(self, commits, fuse_cb=None):
+  def _fuse(self, commits, op_cb=None):
     git_repo = self.gl_repo.git_repo
     committer = git_repo.default_signature
 
@@ -913,13 +933,13 @@ class Branch(object):
       git_repo.cherrypick(ci.id)
       index = self._index
       if index.conflicts:
-        if fuse_cb and fuse_cb.apply_err:
-          fuse_cb.apply_err(ci)
+        if op_cb and op_cb.apply_err:
+          op_cb.apply_err(ci)
         self._save_fuse_commits(commits)
         raise GlError('There are conflicts you need to resolve')
 
-      if fuse_cb and fuse_cb.apply_ok:
-        fuse_cb.apply_ok(ci)
+      if op_cb and op_cb.apply_ok:
+        op_cb.apply_ok(ci)
       tree_oid = index.write_tree(git_repo)
       git_repo.create_commit(
           'HEAD',  # the name of the reference to update
@@ -931,14 +951,14 @@ class Branch(object):
     orig_branch_ref.set_target(git_repo.head.target)
     git_repo.set_head(orig_branch_ref.name)
     self._state_cleanup()
-    restore_fn = fuse_cb.restore_ok if fuse_cb else None
+    restore_fn = op_cb.restore_ok if op_cb else None
     self._safe_restore(_stash_msg_fuse, restore_fn=restore_fn)
 
   @property
   def fuse_in_progress(self):
     return self.gl_repo._ref_exists('GL_FUSE_ORIG_HEAD')
 
-  def abort_fuse(self, fuse_cb=None):
+  def abort_fuse(self, op_cb=None):
     if not self.fuse_in_progress:
       raise GlError('No fuse in progress, nothing to abort')
     git_repo = self.gl_repo.git_repo
@@ -946,7 +966,7 @@ class Branch(object):
     git_repo.reset(git_repo.head.peel().hex, pygit2.GIT_RESET_HARD)
 
     self._state_cleanup()
-    restore_fn = fuse_cb.restore_ok if fuse_cb else None
+    restore_fn = op_cb.restore_ok if op_cb else None
     self._safe_restore(_stash_msg_fuse, restore_fn=restore_fn)
 
   def _state_cleanup(self):
@@ -1044,9 +1064,6 @@ class Branch(object):
         msg, get_tree_and_update_index(),  # the commit tree
         parents)
 
-    if self.merge_in_progress:
-      self.gl_repo.git_repo.state_cleanup()
-
     return self.gl_repo.git_repo[ci_oid]
 
   def publish(self, branch):
@@ -1109,11 +1126,14 @@ def _stash_msg(name):
 def _stash_msg_fuse(name):
   return _stash_msg('fuse-{0}'.format(name))
 
+def _stash_msg_merge(name):
+  return _stash_msg('merge-{0}'.format(name))
+
 
 # Misc
 
-FuseCb = collections.namedtuple(
-    'FuseCb', ['apply_ok', 'apply_err', 'save', 'restore_ok'])
+OpCb = collections.namedtuple(
+    'OpCb', ['apply_ok', 'apply_err', 'save', 'restore_ok'])
 
 def stdout(p):
   return p.stdout.decode(ENCODING)

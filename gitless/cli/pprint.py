@@ -145,7 +145,7 @@ def commit(ci, compact=False, stream=sys.stdout.write):
   with indent(4):
     puts(ci.message, stream=stream)
 
-# Fuse Callbacks
+# Op Callbacks
 
 def apply_ok(ci):
   ok('Insertion of {0} succeeded'.format(ci.id))
@@ -165,7 +165,7 @@ def save():
 def restore_ok():
   ok('Uncommitted changes applied successfully to the new head of the branch')
 
-FUSE_CB = core.FuseCb(apply_ok, apply_err, save, restore_ok)
+OP_CB = core.OpCb(apply_ok, apply_err, save, restore_ok)
 
 
 class FixedOffset(tzinfo):
