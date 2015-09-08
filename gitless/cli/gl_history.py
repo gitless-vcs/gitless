@@ -10,8 +10,6 @@ from __future__ import unicode_literals
 import os
 import tempfile
 
-from clint.textui import colored
-
 from . import helpers, pprint
 
 
