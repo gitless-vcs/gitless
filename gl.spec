@@ -3,7 +3,7 @@ import os
 
 a = Analysis(['gl.py'],
              pathex=[os.getcwd()],
-             hiddenimports=['pygit2_cffi_3adedda7x2a59b7ee'],
+             hiddenimports=['pygit2_cffi_51591433xe8494016'],
              hookspath=None,
              runtime_hooks=None)
 
