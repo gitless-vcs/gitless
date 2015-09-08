@@ -19,10 +19,10 @@ before_script:
   - git config --global user.email "travis@test.com"
 
 script:
-  - nosetests
+  - nosetests --logging-level=WARN
   # nose doesn't like the number on test_e2e so it's not detected by the
   # previous command.
-  - nosetests gitless/tests/test_e2e.py
+  - nosetests gitless/tests/test_e2e.py --logging-level=WARN
 
 branches:
   only:
