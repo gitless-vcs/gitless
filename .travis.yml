@@ -27,3 +27,5 @@ script:
 branches:
   only:
     - develop
+
+sudo: false
