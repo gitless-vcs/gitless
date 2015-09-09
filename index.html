@@ -256,8 +256,7 @@ Untracked files:
       </p>
       <p>
       A file is ignored if it's matched by the ignore specification described in
-      the <code>.gitignore</code> file (which is usually present in the root of
-      the repository).
+      a <code>.gitignore</code> file.
       In the example above,
       there is a <code>.gitignore</code> file whose content is '*.pyc'; since
       <code>foo.pyc</code> is matched by that pattern it's therefore an
@@ -306,7 +305,7 @@ overwritten by checkout. Do you wish to continue? (y/N)
       <p>
       <p>
       The <code><a id="gl-diff">gl diff</a></code> command can be used to see the
-      difference between the working and committed versions of files. Like with
+      difference between the working and committed versions of files. Like
       <code>commit</code>, the default set of files to diff is
       the set of all tracked modified files but it can be customized with the
       <code>o/only</code>, <code>e/exclude</code>, and <code>i/include</code>
@@ -322,7 +321,7 @@ overwritten by checkout. Do you wish to continue? (y/N)
       existing files or new files you create on a branch will not be present on
       the other branch when you switch branches.
       </p>
-      <p>A new branch can be created with the
+      <p>To create a new branch you use the
       <a id="gl-branch">gl branch</a>
       command. To switch to another branch you use the
       <a id="gl-switch">gl switch</a> command:
@@ -335,7 +334,7 @@ overwritten by checkout. Do you wish to continue? (y/N)
 </code></pre>
       </div>
       <p>
-      To list all available branches:
+      To list all branches:
       </p>
       <div class="code">
       <pre><code><span class="shell">$</span> gl branch
@@ -350,6 +349,13 @@ List of branches:
 </code></pre>
       </div>
 
+      <p>
+      Each branch has a head which is the last commit done on the branch. To
+      change the head of a branch you use the <code>sh/set-head</code> flag.
+      This won't touch your working directory, if you additionaly want to
+      reset your working directory to match the new head you use
+      <code>gl checkout</code>.
+      </p>
       <p>
       Eventually branches will end up having divergent
       changes. There are two ways to bring changes from one branch onto the
