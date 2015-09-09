@@ -13,13 +13,13 @@ from . import helpers, pprint
 
 
 def parser(subparsers, repo):
+  desc = 'fuse the divergent changes of a branch onto the current branch'
   fuse_parser = subparsers.add_parser(
-      'fuse',
-      help='fuse the divergent changes of a branch onto the current branch',
-      description=(
+      'fuse', help=desc, description=(
+        desc.capitalize() + '. ' +
         'By default all divergent changes from the given source branch are '
-        'fused. To customize the set of commmits to be fused you can use the '
-        'only and exclude flags'))
+        'fused. To customize the set of commmits to fuse use the only and '
+        'exclude flags'))
   fuse_parser.add_argument(
       'src', nargs='?',
       help=(
@@ -50,7 +50,7 @@ def parser(subparsers, repo):
 def main(args, repo):
   current_b = repo.current_branch
   if args.abort:
-    current_b.abort_fuse(fuse_cb=pprint.FUSE_CB)
+    current_b.abort_fuse(op_cb=pprint.OP_CB)
     pprint.ok('Fuse aborted successfully')
     return True
 
@@ -90,7 +90,7 @@ def main(args, repo):
   try:
     current_b.fuse(
         src_branch, insertion_point, only=only, exclude=exclude,
-        fuse_cb=pprint.FUSE_CB)
+        op_cb=pprint.OP_CB)
     pprint.ok('Fuse succeeded')
   except core.ApplyFailedError as e:
     pprint.ok('Fuse succeeded')

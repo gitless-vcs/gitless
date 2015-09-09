@@ -12,15 +12,18 @@ from . import pprint
 
 def parser(subparsers, _):
   """Adds the remote parser to the given subparsers object."""
+  desc = 'list, create, edit or delete remotes'
   remote_parser = subparsers.add_parser(
-      'remote', help='list, create, edit or delete remotes')
+      'remote', help=desc, description=desc.capitalize())
   remote_parser.add_argument(
-      '-c', '--create', nargs='?', help='create remote', dest='remote_name')
+      '-c', '--create', nargs='?', help='create remote', dest='remote_name',
+      metavar='remote')
   remote_parser.add_argument(
       'remote_url', nargs='?',
       help='the url of the remote (only relevant if a new remote is created)')
   remote_parser.add_argument(
-      '-d', '--delete', nargs='+', help='delete remote(es)', dest='delete_r')
+      '-d', '--delete', nargs='+', help='delete remote(es)', dest='delete_r',
+      metavar='remote')
   remote_parser.set_defaults(func=main)
 
 
@@ -42,8 +45,8 @@ def main(args, repo):
 def _do_list(remotes):
   pprint.msg('List of remotes:')
   pprint.exp(
-      'do gl remote -c <r> <r_url> to add a new remote r mapping to r_url')
-  pprint.exp('do gl remote -d <r> to delete remote r')
+      'do gl remote -c r r_url to add a new remote r mapping to r_url')
+  pprint.exp('do gl remote -d r to delete remote r')
   pprint.blank()
 
   if not len(remotes):

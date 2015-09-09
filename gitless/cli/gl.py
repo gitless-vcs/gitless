@@ -29,7 +29,7 @@ ERRORS_FOUND = 1
 INTERNAL_ERROR = 3
 NOT_IN_GL_REPO = 4
 
-VERSION = '0.8'
+VERSION = '0.8.1'
 URL = 'http://gitless.com'
 
 
@@ -51,7 +51,7 @@ def main():
       '--version', action='version', version=(
          'GL Version: {0}\nYou can check if there\'s a new version of Gitless '
          'available at {1}'.format(VERSION, URL)))
-  subparsers = parser.add_subparsers(dest='subcmd_name')
+  subparsers = parser.add_subparsers(title='subcommands', dest='subcmd_name')
   subparsers.required = True
 
   sub_cmds = [

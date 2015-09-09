@@ -20,7 +20,7 @@ from . import pprint
 IS_PY2 = sys.version_info[0] == 2
 ENCODING = getpreferredencoding() or 'utf-8'
 
-_COMMIT_FILE = '.GL_COMMIT_EDIT_MSG'
+_COMMIT_FILE = 'GL_COMMIT_EDIT_MSG'
 _MERGE_MSG_FILE = 'MERGE_MSG'
 
 

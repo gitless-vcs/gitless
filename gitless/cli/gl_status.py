@@ -18,8 +18,9 @@ from . import helpers, pprint
 
 def parser(subparsers, repo):
   """Adds the status parser to the given subparsers object."""
+  desc = 'show status of the repo'
   status_parser = subparsers.add_parser(
-      'status', help='show status of the repo')
+      'status', help=desc, description=desc.capitalize())
   status_parser.add_argument(
       'paths', nargs='*', help='the specific path(s) to status',
       action=helpers.PathProcessor, repo=repo)
@@ -69,9 +70,9 @@ def _print_tracked_mod_files(tracked_mod_list, relative_paths, repo):
   pprint.msg('Tracked files with modifications:')
   pprint.exp('these will be automatically considered for commit')
   pprint.exp(
-      'use gl untrack <f> if you don\'t want to track changes to file f')
+      'use gl untrack f if you don\'t want to track changes to file f')
   pprint.exp(
-      'if file f was committed before, use gl checkout <f> to discard '
+      'if file f was committed before, use gl checkout f to discard '
       'local changes')
   pprint.blank()
 
@@ -103,7 +104,7 @@ def _print_tracked_mod_files(tracked_mod_list, relative_paths, repo):
 def _print_untracked_files(untracked_list, relative_paths, repo):
   pprint.msg('Untracked files:')
   pprint.exp('these won\'t be considered for commit')
-  pprint.exp('use gl track <f> if you want to track changes to file f')
+  pprint.exp('use gl track f if you want to track changes to file f')
   pprint.blank()
 
   if not untracked_list:
@@ -112,20 +113,23 @@ def _print_untracked_files(untracked_list, relative_paths, repo):
 
   root = repo.root
   for f in untracked_list:
-    s = ''
+    exp = ''
     color = colored.blue
-    if f.exists_at_head:
+    if f.in_conflict:
+      exp = ' (with conflicts)'
+      color = colored.cyan
+    elif f.exists_at_head:
       color = colored.magenta
       if f.exists_in_wd:
-        s = ' (exists at head)'
+        exp = ' (exists at head)'
       else:
-        s = ' (exists at head but not in working directory)'
+        exp = ' (exists at head but not in working directory)'
 
     fp = os.path.relpath(os.path.join(root, f.fp)) if relative_paths else f.fp
     if fp == '.':
       continue
 
-    pprint.item(color(fp), opt_text=s)
+    pprint.item(color(fp), opt_text=exp)
 
 
 def _print_conflict_exp(op):
@@ -134,6 +138,6 @@ def _print_conflict_exp(op):
       'commiting'.format(op))
   pprint.exp(
       'use gl {0} --abort to go back to the state before the {0}'.format(op))
-  pprint.exp('use gl resolve <f> to mark file f as resolved')
+  pprint.exp('use gl resolve f to mark file f as resolved')
   pprint.exp('once you solved all conflicts do gl commit to continue')
   pprint.blank()

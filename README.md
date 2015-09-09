@@ -63,7 +63,7 @@ the Python Package Index).
 To install from source you need to have Python (2.6, 2.7, 3.2+ or pypy)
 installed.
 
-Additionaly, you need to [install pygit2](
+Additionaly, you need to [install pygit2 (v0.23.0)](
 http://www.pygit2.org/install.html "pygit2 install").
 
 Then, download the source code tarball available @
@@ -78,7 +78,7 @@ If you are a Python fan you might find it easier to install
 Gitless via the Python Package Index. To do this, you need to have
 Python (2.6, 2.7, 3.2+ or pypy) installed.
 
-Additionaly, you need to [install pygit2](
+Additionaly, you need to [install pygit2 (v0.23.0)](
 http://www.pygit2.org/install.html "pygit2 install").
 
 Then, just do:

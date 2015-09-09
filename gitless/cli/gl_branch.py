@@ -7,6 +7,11 @@
 
 from __future__ import unicode_literals
 
+try:
+  from StringIO import StringIO
+except ImportError:
+  from io import StringIO
+
 from clint.textui import colored
 
 from gitless import core
@@ -16,30 +21,40 @@ from . import helpers, pprint
 
 def parser(subparsers, _):
   """Adds the branch parser to the given subparsers object."""
+  desc = 'list, create, edit or delete branches'
   branch_parser = subparsers.add_parser(
-      'branch', help='list, create, edit or delete branches')
+      'branch', help=desc, description=desc.capitalize())
   branch_parser.add_argument(
       '-r', '--remote',
       help='list remote branches in addition to local branches',
       action='store_true')
 
   branch_parser.add_argument(
-      '-c', '--create', nargs='+', help='create branch(es)', dest='create_b')
+      '-c', '--create', nargs='+', help='create branch(es)', dest='create_b',
+      metavar='branch')
   branch_parser.add_argument(
       '-dp', '--divergent-point',
       help='the commit from where to \'branch out\' (only relevant if a new '
       'branch is created; defaults to HEAD)', default='HEAD',
       dest='dp')
   branch_parser.add_argument(
-      '-d', '--delete', nargs='+', help='delete branch(es)', dest='delete_b')
+      '-d', '--delete', nargs='+', help='delete branch(es)', dest='delete_b',
+      metavar='branch')
 
+  branch_parser.add_argument(
+      '-sh', '--set-head', help='set the head of the current branch',
+      dest='new_head', metavar='commit_id')
   branch_parser.add_argument(
       '-su', '--set-upstream',
       help='set the upstream branch of the current branch',
-      dest='upstream_b')
+      dest='upstream_b', metavar='branch')
   branch_parser.add_argument(
       '-uu', '--unset-upstream',
       help='unset the upstream branch of the current branch',
+      action='store_true')
+
+  branch_parser.add_argument(
+      '-v', '--verbose', help='be verbose, will output the head of each branch',
       action='store_true')
   branch_parser.set_defaults(func=main)
 
@@ -54,35 +69,38 @@ def main(args, repo):
     ret = _do_set_upstream(args.upstream_b, repo)
   elif args.unset_upstream:
     ret = _do_unset_upstream(repo)
+  elif args.new_head:
+    ret = _do_set_head(args.new_head, repo)
   else:
-    _do_list(repo, args.remote)
+    _do_list(repo, args.remote, v=args.verbose)
 
   return ret
 
 
-def _do_list(repo, list_remote):
+def _do_list(repo, list_remote, v=False):
   pprint.msg('List of branches:')
-  pprint.exp('do gl branch -c <b> to create branch b')
-  pprint.exp('do gl branch -d <b> to delete branch b')
-  pprint.exp('do gl switch <b> to switch to branch b')
+  pprint.exp('do gl branch -c b to create branch b')
+  pprint.exp('do gl branch -d b to delete branch b')
+  pprint.exp('do gl switch b to switch to branch b')
   pprint.exp('* = current branch')
   pprint.blank()
 
+
   for b in (repo.lookup_branch(n) for n in repo.listall_branches()):
     current_str = '*' if b.is_current else ' '
-    upstream_str = ''
-    try:
-      upstream_str = '(upstream is {0})'.format(b.upstream_name)
-    except KeyError:
-      pass
+    upstream_str = '(upstream is {0})'.format(b.upstream) if b.upstream else ''
     color = colored.green if b.is_current else colored.yellow
     pprint.item(
         '{0} {1} {2}'.format(current_str, color(b.branch_name), upstream_str))
+    if v:
+      pprint.item('    ➜ head is {0}'.format(_ci_str(b.head)))
 
   if list_remote:
     for r in repo.remotes:
       for b in (r.lookup_branch(n) for n in r.listall_branches()):
         pprint.item('  {0}'.format(colored.yellow(b.branch_name)))
+        if v:
+          pprint.item('    ➜ head is {0}'.format(_ci_str(b.head)))
 
 
 def _do_create(create_b, dp, repo):
@@ -91,7 +109,7 @@ def _do_create(create_b, dp, repo):
   try:
     target = repo.revparse_single(dp)
   except KeyError:
-    raise ValueError('Invalid divergent point "{0}"'.format(dp))
+    raise ValueError('Invalid divergent point {0}'.format(dp))
 
   for b_name in create_b:
     r = repo
@@ -142,7 +160,7 @@ def _do_delete(delete_b, repo):
     except core.BranchIsCurrentError as e:
       pprint.err(e)
       pprint.err_exp(
-          'do gl branch <b> to create or switch to another branch b and then '
+          'do gl branch b to create or switch to another branch b and then '
           'gl branch -d {0} to remove branch {0}'.format(b))
       errors_found = True
 
@@ -161,3 +179,22 @@ def _do_unset_upstream(repo):
   curr_b.upstream = None
   pprint.ok('Upstream unset for current branch {0}'.format(curr_b))
   return True
+
+
+def _do_set_head(commit_id, repo):
+  try:
+    commit = repo.revparse_single(commit_id)
+  except KeyError:
+    raise ValueError('Invalid head {0}'.format(commit_id))
+
+  curr_b = repo.current_branch
+  curr_b.head = commit.id
+  pprint.ok(
+      'Head of current branch {0} is now {1}'.format(curr_b, _ci_str(commit)))
+  return True
+
+
+def _ci_str(ci):
+  ci_str = StringIO()
+  pprint.commit(ci, compact=True, stream=ci_str.write)
+  return ci_str.getvalue().strip()

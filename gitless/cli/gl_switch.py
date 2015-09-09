@@ -12,8 +12,9 @@ from . import pprint
 
 def parser(subparsers, _):
   """Adds the switch parser to the given subparsers object."""
+  desc = 'switch branches'
   switch_parser = subparsers.add_parser(
-      'switch', help='switch branches')
+      'switch', help=desc, description=desc.capitalize())
   switch_parser.add_argument('branch', help='switch to branch')
   switch_parser.add_argument(
       '-mo', '--move-over',

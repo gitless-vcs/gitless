@@ -7,13 +7,15 @@
 
 from __future__ import unicode_literals
 
+from gitless import core
 
 from . import helpers, pprint
 
 
 def parser(subparsers, repo):
+  desc = 'merge the divergent changes of one branch onto another'
   merge_parser = subparsers.add_parser(
-      'merge', help='merge the divergent changes of one branch onto another')
+      'merge', help=desc, description=desc.capitalize())
   group = merge_parser.add_mutually_exclusive_group()
   group.add_argument(
       'src', nargs='?', help='the source branch to read changes from')
@@ -29,6 +31,11 @@ def main(args, repo):
     pprint.ok('Merge aborted successfully')
     return True
 
-  current_b.merge(helpers.get_branch_or_use_upstream(args.src, 'src', repo))
-  pprint.ok('Merge succeeded')
+  src_branch = helpers.get_branch_or_use_upstream(args.src, 'src', repo)
+  try:
+    current_b.merge(src_branch, op_cb=pprint.OP_CB)
+    pprint.ok('Merge succeeded')
+  except core.ApplyFailedError as e:
+    pprint.ok('Merge succeeded')
+    raise e
   return True

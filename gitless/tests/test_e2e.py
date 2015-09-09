@@ -353,7 +353,7 @@ class TestDiffFile(TestEndToEnd):
     self.assertEqual(out1, out2)
 
 
-class TestFuse(TestEndToEnd):
+class TestOp(TestEndToEnd):
 
   COMMITS_NUMBER = 4
   OTHER = 'other'
@@ -361,7 +361,7 @@ class TestFuse(TestEndToEnd):
   OTHER_FILE = 'other_file'
 
   def setUp(self):
-    super(TestFuse, self).setUp()
+    super(TestOp, self).setUp()
 
     self.commits = {}
     def create_commits(branch_name, fp):
@@ -381,6 +381,9 @@ class TestFuse(TestEndToEnd):
     gl.switch(self.OTHER)
     create_commits(self.OTHER, self.OTHER_FILE)
     gl.switch('master')
+
+
+class TestFuse(TestOp):
 
   def __assert_history(self, expected):
     out = utils.stdout(gl.history(_tty_out=False))
@@ -463,6 +466,38 @@ class TestFuse(TestEndToEnd):
     self.__assert_history(
         self.__build(self.OTHER, range(1, self.COMMITS_NUMBER)) +
         self.__build('master'))
+
+  def test_conflicts_switch(self):
+    gl.switch('other')
+    utils.write_file(self.OTHER_FILE, contents='uncommitted')
+    gl.switch('master')
+    try:
+      gl.fuse(self.OTHER, e=self.commits[self.OTHER][0])
+      self.fail()
+    except ErrorReturnCode:
+      pass
+
+    # Switch
+    gl.switch('other')
+    self.__assert_history(self.__build('other'))
+    st_out = utils.stdout(gl.status())
+    self.assertTrue('fuse' not in st_out)
+    self.assertTrue('conflict' not in st_out)
+
+    gl.switch('master')
+    st_out = utils.stdout(gl.status())
+    self.assertTrue('fuse' in st_out)
+    self.assertTrue('conflict' in st_out)
+
+    # Check that we are able to complete the fuse after switch
+    gl.resolve(self.OTHER_FILE)
+    gl.commit(m='ci 1 in other')
+    self.__assert_history(
+        self.__build(self.OTHER, range(1, self.COMMITS_NUMBER)) +
+        self.__build('master'))
+
+    gl.switch('other')
+    self.assertEqual('uncommitted', utils.read_file(self.OTHER_FILE))
 
   def test_conflicts_multiple(self):
     gl.branch(c='tmp', divergent_point='HEAD~2')
@@ -560,6 +595,16 @@ class TestFuse(TestEndToEnd):
 #      self.assertTrue('failed to apply' in utils.stderr(e))
 
 
+class TestMerge(TestOp):
+
+  def test_uncommitted_changes(self):
+    utils.write_file(self.MASTER_FILE, contents='uncommitted')
+    utils.write_file('master_untracked', contents='uncommitted')
+    gl.merge(self.OTHER)
+    self.assertEqual('uncommitted', utils.read_file(self.MASTER_FILE))
+    self.assertEqual('uncommitted', utils.read_file('master_untracked'))
+
+
 class TestPerformance(TestEndToEnd):
 
   FPS_QTY = 10000
@@ -571,11 +616,9 @@ class TestPerformance(TestEndToEnd):
       utils.write_file(fp, fp)
 
   def test_status_performance(self):
-    """Assert that gl status is not too slow."""
-
     def assert_status_performance():
-      # The test fails if gl status takes more than 100 times
-      # the time git status took.
+      # The test fails if `gl status` takes more than 100 times
+      # the time `git status` took.
       MAX_TOLERANCE = 100
 
       t = time.time()
@@ -599,7 +642,6 @@ class TestPerformance(TestEndToEnd):
     assert_status_performance()
 
   def test_branch_switch_performance(self):
-    """Assert that switching branches is not too slow."""
     MAX_TOLERANCE = 100
 
     gl.commit(o='f1', m='commit')

@@ -15,12 +15,13 @@ from . import helpers, pprint
 
 def parser(subparsers, repo):
   """Adds the commit parser to the given subparsers object."""
+  desc = 'save changes to the local repository'
   commit_parser = subparsers.add_parser(
-      'commit', help='record changes in the local repository',
-      description=(
+      'commit', help=desc, description=(
+        desc.capitalize() + '. ' +
         'By default all tracked modified files are committed. To customize the'
-        ' set of files to be committed you can use the only, exclude, and '
-        'include flags'))
+        ' set of files to be committed use the only, exclude, and include '
+        'flags'))
   commit_parser.add_argument(
       '-m', '--message', help='Commit message', dest='m')
   helpers.oei_flags(commit_parser, repo)
@@ -32,7 +33,7 @@ def main(args, repo):
 
   if not commit_files:
     pprint.err('No files to commit')
-    pprint.err_exp('use gl track <f> if you want to track changes to file f')
+    pprint.err_exp('use gl track f if you want to track changes to file f')
     return False
 
   msg = args.m if args.m else commit_dialog.show(commit_files, repo)
@@ -48,13 +49,9 @@ def main(args, repo):
   pprint.commit(ci)
 
   if curr_b.fuse_in_progress:
-    pprint.blank()
-    try:
-      curr_b.fuse_continue(fuse_cb=pprint.FUSE_CB)
-      pprint.ok('Fuse succeeded')
-    except core.ApplyFailedError as e:
-      pprint.ok('Fuse succeeded')
-      raise e
+    _op_continue(curr_b.fuse_continue, 'Fuse')
+  elif curr_b.merge_in_progress:
+    _op_continue(curr_b.merge_continue, 'Merge')
 
   return True
 
@@ -65,3 +62,13 @@ def _auto_track(files, curr_b):
     f = curr_b.status_file(fp)
     if f.type == core.GL_STATUS_UNTRACKED:
       curr_b.track_file(f.fp)
+
+
+def _op_continue(op, fn):
+  pprint.blank()
+  try:
+    op(op_cb=pprint.OP_CB)
+    pprint.ok('{0} succeeded'.format(op))
+  except core.ApplyFailedError as e:
+    pprint.ok('{0} succeeded'.format(op))
+    raise e

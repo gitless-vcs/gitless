@@ -124,8 +124,17 @@ def get_user_input(text='> '):
   return input(text)
 
 
-def commit(ci, color=colored.yellow, stream=sys.stdout.write):
+def commit(ci, compact=False, stream=sys.stdout.write):
+  merge_commit = len(ci.parent_ids) > 1
+  color = colored.magenta if merge_commit else colored.yellow
+  if compact:
+    title = ci.message.splitlines()[0]
+    puts('{0} {1}'.format(color(str(ci.id)[:7]), title), stream=stream)
+    return
   puts(color('Commit Id: {0}'.format(ci.id)), stream=stream)
+  if merge_commit:
+    merges_str = ' '.join(str(oid)[:7] for oid in ci.parent_ids)
+    puts(color('Merges:    {0}'.format(merges_str)), stream=stream)
   puts(
       color('Author:    {0} <{1}>'.format(ci.author.name, ci.author.email)),
       stream=stream)
@@ -136,7 +145,7 @@ def commit(ci, color=colored.yellow, stream=sys.stdout.write):
   with indent(4):
     puts(ci.message, stream=stream)
 
-# Fuse Callbacks
+# Op Callbacks
 
 def apply_ok(ci):
   ok('Insertion of {0} succeeded'.format(ci.id))
@@ -151,12 +160,12 @@ def apply_err(ci):
   blank()
 
 def save():
-  warn('Uncommitted changes would prevent fuse, temporarily saving them')
+  warn('Temporarily saving uncommitted changes')
 
 def restore_ok():
   ok('Uncommitted changes applied successfully to the new head of the branch')
 
-FUSE_CB = core.FuseCb(apply_ok, apply_err, save, restore_ok)
+OP_CB = core.OpCb(apply_ok, apply_err, save, restore_ok)
 
 
 class FixedOffset(tzinfo):
