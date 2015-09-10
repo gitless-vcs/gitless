@@ -68,7 +68,7 @@ def _op_continue(op, fn):
   pprint.blank()
   try:
     op(op_cb=pprint.OP_CB)
-    pprint.ok('{0} succeeded'.format(op))
+    pprint.ok('{0} succeeded'.format(fn))
   except core.ApplyFailedError as e:
-    pprint.ok('{0} succeeded'.format(op))
+    pprint.ok('{0} succeeded'.format(fn))
     raise e

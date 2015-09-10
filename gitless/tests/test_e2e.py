@@ -604,6 +604,26 @@ class TestMerge(TestOp):
     self.assertEqual('uncommitted', utils.read_file(self.MASTER_FILE))
     self.assertEqual('uncommitted', utils.read_file('master_untracked'))
 
+  def test_uncommitted_tracked_changes_that_conflict(self):
+    gl.branch(c='tmp', divergent_point='HEAD~1')
+    gl.switch('tmp')
+    utils.write_file(self.MASTER_FILE, contents='uncommitted')
+    self.assertRaisesRegexp(
+        ErrorReturnCode, 'failed to apply', gl.merge, 'master')
+    contents = utils.read_file(self.MASTER_FILE)
+    self.assertTrue('uncommitted' in contents)
+    self.assertTrue('contents 2' in contents)
+
+  def test_uncommitted_tracked_changes_that_conflict_append(self):
+    gl.branch(c='tmp', divergent_point='HEAD~1')
+    gl.switch('tmp')
+    utils.append_to_file(self.MASTER_FILE, contents='uncommitted')
+    self.assertRaisesRegexp(
+        ErrorReturnCode, 'failed to apply', gl.merge, 'master')
+    contents = utils.read_file(self.MASTER_FILE)
+    self.assertTrue('uncommitted' in contents)
+    self.assertTrue('contents 2' in contents)
+
 
 class TestPerformance(TestEndToEnd):
 

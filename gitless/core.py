@@ -792,7 +792,7 @@ class Branch(object):
         raise GlError(stdout(e) + err)
       if op_cb and op_cb.save:
         op_cb.save()
-      git.stash.save('--', _stash_msg_merge)
+      git.stash.save('--', _stash_msg_merge(self))
       try:
         git.merge(src, '--no-ff')
       except ErrorReturnCode as e:
