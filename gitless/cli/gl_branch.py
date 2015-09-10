@@ -98,7 +98,7 @@ def _do_list(repo, list_remote, v=False):
   if list_remote:
     for r in repo.remotes:
       for b in (r.lookup_branch(n) for n in r.listall_branches()):
-        pprint.item('  {0}'.format(colored.yellow(b.branch_name)))
+        pprint.item('  {0}'.format(colored.yellow(str(b))))
         if v:
           pprint.item('    ➜ head is {0}'.format(_ci_str(b.head)))
 
