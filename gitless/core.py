@@ -862,14 +862,10 @@ class Branch(object):
 
     save_fn = op_cb.save if op_cb else None
     repo = self.gl_repo
-    mb = repo.merge_base(self, src)
 
-    if mb == src.target:  # either self is ahead or both branches are equal
-      raise GlError('No commits to fuse')
-
-    mb_to_src = src.history(reverse=True)
-    mb_to_src.hide(mb)
-    divergent_commits, fuse_commits = itertools.tee(mb_to_src, 2)
+    ip_to_src = src.history(reverse=True)
+    ip_to_src.hide(ip)
+    divergent_commits, fuse_commits = itertools.tee(ip_to_src, 2)
 
     if only:
       fuse_commits = (ci for ci in fuse_commits if ci.id in only)
@@ -883,10 +879,10 @@ class Branch(object):
     # Figure out where to detach head
     # If the ip is not the mb, then we need to detach at the ip, because the
     # first div commit won't have the ip as its parent
-    # But, if the ip **is** the mb we can advance the head until the div
+    # But, if the ip **is** the merge base we can advance the head until the div
     # commits and the commits to fuse diverge
     detach_point = ip
-    if ip == mb:
+    if ip == repo.merge_base(self, src):
       for ci, fuse_ci in zip(divergent_commits, fuse_commits):
         if ci.id != fuse_ci.id:
           fuse_commits = itertools.chain([fuse_ci], fuse_commits)
