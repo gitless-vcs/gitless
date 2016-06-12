@@ -1108,7 +1108,7 @@ class Branch(object):
             'branch')
 
 
-  def create_commit(self, files, msg, author=None):
+  def create_commit(self, files, msg, author=None, partials=None):
     """Record a new commit on this branch.
 
     Args:
@@ -1116,6 +1116,7 @@ class Branch(object):
       msg: the commit message.
       author: the author of the commit (defaults to the default author
         according to the repository's configuration).
+      partials: list of files to commit partially.
     """
     git_repo = self.gl_repo.git_repo
     if not author:
@@ -1125,11 +1126,14 @@ class Branch(object):
     if index.conflicts:
       raise GlError('Unresolved conflicts')
 
-    # We replicate the behaviour of doing `git commit <file>...`
     # If file f is in the list of files to be committed => commit the working
-    # version and clear the staged version.
+    # version (or the staged version if f is in the list of partially committed
+    # files) and clear the staged version.
     # If file f is not in the list of files to be committed => leave its staged
     # version (if any) intact.
+
+    if partials is None:
+      partials = []
 
     def get_tree_and_update_index():
 
@@ -1139,12 +1143,15 @@ class Branch(object):
           assert not os.path.isabs(f)
           if not os.path.exists(os.path.join(self.gl_repo.root, f)):
             index.remove(f)
-          else:
+          elif f not in partials:
             index.add(f)
 
       # Update index to how it should look like after the commit
+      partial_entries = {}
       with index:
         update()
+        for f in partials:
+          partial_entries[f] = index._git_index[f]
 
       # To create the commit tree with only the changes to the given files we:
       #   (i)   reset the index to HEAD,
@@ -1153,6 +1160,9 @@ class Branch(object):
       #   (iv)  discard the changes after being done.
       index.read_tree(git_repo.head.peel().tree)
       update()
+      for f, index_entry in partial_entries.iteritems():
+        index.add(index_entry)
+
       tree_oid = index.write_tree()
 
       index.read()  #  discard changes

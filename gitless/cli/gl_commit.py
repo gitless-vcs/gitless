@@ -7,6 +7,9 @@
 
 from __future__ import unicode_literals
 
+import subprocess
+from sh import git
+
 from gitless import core
 
 from . import commit_dialog
@@ -24,6 +27,10 @@ def parser(subparsers, repo):
         'flags'))
   commit_parser.add_argument(
       '-m', '--message', help='Commit message', dest='m')
+  commit_parser.add_argument(
+      '-p', '--partial',
+      help='Interactively select segments of files to commit', dest='p',
+      action='store_true')
   helpers.oei_flags(commit_parser, repo)
   commit_parser.set_defaults(func=main)
 
@@ -36,13 +43,19 @@ def main(args, repo):
     pprint.err_exp('use gl track f if you want to track changes to file f')
     return False
 
+  curr_b = repo.current_branch
+  partials = None
+  if args.p:
+    partials = _do_partial_selection(commit_files, curr_b)
+
   msg = args.m if args.m else commit_dialog.show(commit_files, repo)
   if not msg.strip():
+    if partials:
+      git.reset('HEAD', partials)
     raise ValueError('Missing commit message')
 
-  curr_b = repo.current_branch
   _auto_track(commit_files, curr_b)
-  ci = curr_b.create_commit(commit_files, msg)
+  ci = curr_b.create_commit(commit_files, msg, partials=partials)
   pprint.ok('Commit succeeded')
 
   pprint.blank()
@@ -54,6 +67,24 @@ def main(args, repo):
     _op_continue(curr_b.merge_continue, 'Merge')
 
   return True
+
+
+def _do_partial_selection(files, curr_b):
+  partials = []
+  for fp in files:
+    f_st = curr_b.status_file(fp)
+    if not f_st.exists_at_head:
+      pprint.warn('Can\'t select segments for new file {0}'.format(fp))
+      continue
+    if not f_st.exists_in_wd:
+      pprint.warn('Can\'t select segments for deleted file {0}'.format(fp))
+      continue
+
+    subprocess.call(['git', 'add', '-p', fp])
+    # TODO: check that at least one hunk was staged
+    partials.append(fp)
+
+  return partials
 
 
 def _auto_track(files, curr_b):
