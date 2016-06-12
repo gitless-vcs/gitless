@@ -7,11 +7,6 @@
 
 from __future__ import unicode_literals
 
-try:
-  from StringIO import StringIO
-except ImportError:
-  from io import StringIO
-
 from clint.textui import colored
 
 from gitless import core
@@ -93,14 +88,14 @@ def _do_list(repo, list_remote, v=False):
     pprint.item(
         '{0} {1} {2}'.format(current_str, color(b.branch_name), upstream_str))
     if v:
-      pprint.item('    ➜ head is {0}'.format(_ci_str(b.head)))
+      pprint.item('    ➜ head is {0}'.format(pprint.commit_str(b.head)))
 
   if list_remote:
     for r in repo.remotes:
       for b in (r.lookup_branch(n) for n in r.listall_branches()):
         pprint.item('  {0}'.format(colored.yellow(str(b))))
         if v:
-          pprint.item('    ➜ head is {0}'.format(_ci_str(b.head)))
+          pprint.item('    ➜ head is {0}'.format(pprint.commit_str(b.head)))
 
 
 def _do_create(create_b, dp, repo):
@@ -190,11 +185,5 @@ def _do_set_head(commit_id, repo):
   curr_b = repo.current_branch
   curr_b.head = commit.id
   pprint.ok(
-      'Head of current branch {0} is now {1}'.format(curr_b, _ci_str(commit)))
+      'Head of current branch {0} is now {1}'.format(curr_b, pprint.commit_str(commit)))
   return True
-
-
-def _ci_str(ci):
-  ci_str = StringIO()
-  pprint.commit(ci, compact=True, stream=ci_str.write)
-  return ci_str.getvalue().strip()

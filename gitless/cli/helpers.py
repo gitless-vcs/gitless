@@ -18,25 +18,35 @@ from . import pprint
 
 
 def get_branch(branch_name, repo):
-  b = repo.lookup_branch(branch_name)
-  if not b:
-    if '/' not in branch_name:
-      raise ValueError('Branch "{0}" doesn\'t exist'.format(branch_name))
+  return _get_ref("branch", branch_name, repo)
 
-    # It might be a remote branch
-    remote, remote_branch = branch_name.split('/', 1)
+
+def get_tag(tag_name, repo):
+  return _get_ref("tag", tag_name, repo)
+
+
+def _get_ref(ref_type, ref_name, repo):
+  ref_type_cap = ref_type.capitalize()
+  r = getattr(repo, "lookup_" + ref_type)(ref_name)
+  if not r:
+    if '/' not in ref_name:
+      raise ValueError(
+          '{0} "{1}" doesn\'t exist'.format(ref_type_cap, ref_name))
+
+    # It might be a remote ref
+    remote, remote_ref = ref_name.split('/', 1)
     try:
-      r = repo.remotes[remote]
+      remote_repo = repo.remotes[remote]
     except KeyError:
       raise ValueError(
           'Remote "{0}" doesn\'t exist, and there is no local '
-          'branch "{1}"'.format(remote, branch_name))
+          '{1} "{2}"'.format(remote, ref_type_cap, ref_name))
 
-    b = r.lookup_branch(remote_branch)
-    if not b:
-      raise ValueError('Branch "{0}" doesn\'t exist in remote "{1}"'.format(
-          remote_branch, remote))
-  return b
+    r = getattr(remote_repo, "lookup_" + ref_type)(remote_ref)
+    if not r:
+      raise ValueError('{0} "{1}" doesn\'t exist in remote "{2}"'.format(
+          ref_type_cap, remote_ref, remote))
+  return r
 
 
 def get_branch_or_use_upstream(branch_name, arg, repo):

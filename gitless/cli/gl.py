@@ -17,7 +17,7 @@ from clint.textui import colored
 from gitless import core
 
 from . import (
-    gl_track, gl_untrack, gl_status, gl_diff, gl_commit, gl_branch,
+    gl_track, gl_untrack, gl_status, gl_diff, gl_commit, gl_branch, gl_tag,
     gl_checkout, gl_merge, gl_resolve, gl_fuse, gl_remote, gl_publish,
     gl_switch, gl_init, gl_history)
 from . import pprint
@@ -55,7 +55,7 @@ def main():
   subparsers.required = True
 
   sub_cmds = [
-      gl_track, gl_untrack, gl_status, gl_diff, gl_commit, gl_branch,
+      gl_track, gl_untrack, gl_status, gl_diff, gl_commit, gl_branch, gl_tag,
       gl_checkout, gl_merge, gl_resolve, gl_fuse, gl_remote, gl_publish,
       gl_switch, gl_init, gl_history]
   for sub_cmd in sub_cmds:
