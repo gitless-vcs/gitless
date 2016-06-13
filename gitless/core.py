@@ -1160,8 +1160,8 @@ class Branch(object):
       #   (iv)  discard the changes after being done.
       index.read_tree(git_repo.head.peel().tree)
       update()
-      for f, index_entry in partial_entries.iteritems():
-        index.add(index_entry)
+      for f in partial_entries.keys():
+        index.add(partial_entries[f])
 
       tree_oid = index.write_tree()
 
