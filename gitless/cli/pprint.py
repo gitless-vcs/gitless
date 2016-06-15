@@ -7,6 +7,11 @@
 
 from __future__ import unicode_literals
 
+try:
+  from StringIO import StringIO
+except ImportError:
+  from io import StringIO
+
 from datetime import datetime, tzinfo, timedelta
 from locale import getpreferredencoding
 import re
@@ -122,6 +127,12 @@ def get_user_input(text='> '):
   except NameError:
     pass
   return input(text)
+
+
+def commit_str(ci):
+  ci_str = StringIO()
+  commit(ci, compact=True, stream=ci_str.write)
+  return ci_str.getvalue().strip()
 
 
 def commit(ci, compact=False, stream=sys.stdout.write):

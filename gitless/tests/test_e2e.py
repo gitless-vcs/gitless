@@ -287,6 +287,30 @@ class TestBranch(TestEndToEnd):
         ErrorReturnCode, gl.branch, '-su', 'non-existent/non-existent')
 
 
+class TestTag(TestEndToEnd):
+
+  TAG_1 = 'tag1'
+
+  def setUp(self):
+    super(TestTag, self).setUp()
+    utils.write_file('f')
+    gl.commit(o='f', m='commit')
+
+  def test_create(self):
+    gl.tag(c=self.TAG_1)
+    self.assertRaises(ErrorReturnCode, gl.tag, c=self.TAG_1)
+    self.assertRaises(ErrorReturnCode, gl.tag, c='evil*named*tag')
+    if self.TAG_1 not in utils.stdout(gl.tag(_tty_out=False)):
+      self.fail()
+
+  def test_remove(self):
+    gl.tag(c=self.TAG_1)
+    gl.tag(d=self.TAG_1, _in='n')
+    gl.tag(d=self.TAG_1, _in='y')
+    if self.TAG_1 in utils.stdout(gl.tag(_tty_out=False)):
+      self.fail()
+
+
 class TestDiffFile(TestEndToEnd):
 
   TRACKED_FP = 't_fp'

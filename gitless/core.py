@@ -156,6 +156,41 @@ class Repository(object):
     return self.git_repo.lookup_reference(ref).target
 
 
+  # Tag related methods
+
+  def create_tag(self, name, commit):
+    tagger = self.git_repo.default_signature
+    try:
+      self.git_repo.create_tag(
+          name, commit.id, pygit2.GIT_OBJ_COMMIT, tagger, "")
+      return Tag(name, commit)
+    except ValueError as e:
+      raise ValueError(
+          str(e).replace('refs/tags/', '').replace('reference', 'tag'))
+
+  def lookup_tag(self, tag_name):
+    try:
+      # We peel to get the commit pointed to by the tag (in the case of annotated
+      # tags, lookup_reference returns a tag object)
+      tag_target = self.git_repo.lookup_reference(
+          'refs/tags/{0}'.format(tag_name)).peel()
+      if tag_target:
+        return Tag(tag_name, tag_target)
+    except KeyError:
+      pass
+
+  def listall_tags(self):
+    """Returns a list with the names of all tags in this repository.
+
+    Use lookup_tag to get the Tag object corresponding to eacn name.
+    """
+    for ref in self.git_repo.listall_references():
+      if ref.startswith('refs/tags/'):
+        if ref.endswith('^{}'):
+          continue
+        yield ref[10:]
+
+
   # Branch related methods
 
   @property
@@ -405,6 +440,9 @@ class Remote(object):
     self.name = self.git_remote.name
     self.url = self.git_remote.url
 
+
+  # Branch related methods
+
   def create_branch(self, name, head):
     if self.lookup_branch(name):
       raise GlError(
@@ -440,6 +478,77 @@ class Remote(object):
     git_branch = self.gl_repo.git_repo.lookup_branch(
         self.git_remote.name + '/' + branch_name, pygit2.GIT_BRANCH_REMOTE)
     return RemoteBranch(git_branch, self.gl_repo)
+
+
+  # Tag related methods
+
+  def create_tag(self, name, commit):
+    if self.lookup_tag(name):
+      raise GlError(
+          'Tag {0} already exists in remote repository {1}'.format(
+              name, self.name))
+    # We can't create a tag in a remote without creating a local one first. So
+    # we create a temporary local ref, make it point to the commit, and do the
+    # push
+    tmp_t = self.gl_repo.create_tag('gl_tmp_ref', commit)
+    try:
+      git.push(self.name, 'refs/tags/{0}:refs/tags/{1}'.format(tmp_t, name))
+      return self.lookup_tag(name)
+    except ErrorReturnCode as e:
+      raise GlError(stderr(e))
+    finally:
+      tmp_t.delete()
+
+  def listall_tags(self):
+    """Return a list with the names of all tags in this repository.
+
+    Use lookup_tag if you want to get the RemoteTag object corresponding
+    to each name.
+    """
+    regex = re.compile(r'.*\trefs/tags/(.*)')
+    for head in stdout(git('ls-remote', '--tags', self.name)).splitlines():
+      tag_name = regex.match(head).group(1)
+      if tag_name.endswith('^{}'):
+        continue
+      yield tag_name
+
+  def lookup_tag(self, tag_name):
+    tag_info = stdout(git('ls-remote', '--tags', self.name, tag_name))
+    if not tag_info:
+      return None
+    # The tag exists in the remote
+    git.fetch(self.git_remote.name, tag_name)
+
+    regex = re.compile(r'(.*)\trefs/tags/.*')
+    commit_id = regex.match(tag_info).group(1)
+    commit = self.gl_repo.git_repo.get(commit_id).peel(pygit2.GIT_OBJ_COMMIT)
+
+    return RemoteTag(self.git_remote.name, tag_name, commit)
+
+
+class RemoteTag(object):
+  """A tag that lives on some remote repository.
+
+  Attributes:
+    tag_name: the name of this tag:
+    remote_name: the name of the remote that represents the remote repository
+      where this tags lives.
+    commit: the commit this tag labels.
+  """
+
+  def __init__(self, remote_name, tag_name, commit):
+    self.remote_name = remote_name
+    self.tag_name = tag_name
+    self.commit = commit
+
+  def delete(self):
+    try:
+      git.push(self.remote_name, ':{0}'.format(self.tag_name))
+    except ErrorReturnCode as e:
+      raise GlError(stderr(e))
+
+  def __str__(self):
+    return self.remote_name + '/' + self.tag_name
 
 
 class RemoteBranch(object):
@@ -798,16 +907,16 @@ class Branch(object):
       except ErrorReturnCode as e:
         raise GlError(stdout(e) + stderr(e))
 
+    self._state_cleanup()
     restore_fn = op_cb.restore_ok if op_cb else None
     self._safe_restore(_stash_msg_merge, restore_fn=restore_fn)
-    self._state_cleanup()
 
   def merge_continue(self, op_cb=None):
     if not self.merge_in_progress:
       raise GlError('No merge in progress, nothing to continue')
+    self._state_cleanup()
     restore_fn = op_cb.restore_ok if op_cb else None
     self._safe_restore(_stash_msg_merge, restore_fn=restore_fn)
-    self._state_cleanup()
 
   @property
   def merge_in_progress(self):
@@ -862,14 +971,10 @@ class Branch(object):
 
     save_fn = op_cb.save if op_cb else None
     repo = self.gl_repo
-    mb = repo.merge_base(self, src)
 
-    if mb == src.target:  # either self is ahead or both branches are equal
-      raise GlError('No commits to fuse')
-
-    mb_to_src = src.history(reverse=True)
-    mb_to_src.hide(mb)
-    divergent_commits, fuse_commits = itertools.tee(mb_to_src, 2)
+    ip_to_src = src.history(reverse=True)
+    ip_to_src.hide(ip)
+    divergent_commits, fuse_commits = itertools.tee(ip_to_src, 2)
 
     if only:
       fuse_commits = (ci for ci in fuse_commits if ci.id in only)
@@ -883,10 +988,10 @@ class Branch(object):
     # Figure out where to detach head
     # If the ip is not the mb, then we need to detach at the ip, because the
     # first div commit won't have the ip as its parent
-    # But, if the ip **is** the mb we can advance the head until the div
+    # But, if the ip **is** the merge base we can advance the head until the div
     # commits and the commits to fuse diverge
     detach_point = ip
-    if ip == mb:
+    if ip == repo.merge_base(self, src):
       for ci, fuse_ci in zip(divergent_commits, fuse_commits):
         if ci.id != fuse_ci.id:
           fuse_commits = itertools.chain([fuse_ci], fuse_commits)
@@ -1003,7 +1108,7 @@ class Branch(object):
             'branch')
 
 
-  def create_commit(self, files, msg, author=None):
+  def create_commit(self, files, msg, author=None, partials=None):
     """Record a new commit on this branch.
 
     Args:
@@ -1011,6 +1116,7 @@ class Branch(object):
       msg: the commit message.
       author: the author of the commit (defaults to the default author
         according to the repository's configuration).
+      partials: list of files to commit partially.
     """
     git_repo = self.gl_repo.git_repo
     if not author:
@@ -1020,11 +1126,14 @@ class Branch(object):
     if index.conflicts:
       raise GlError('Unresolved conflicts')
 
-    # We replicate the behaviour of doing `git commit <file>...`
     # If file f is in the list of files to be committed => commit the working
-    # version and clear the staged version.
+    # version (or the staged version if f is in the list of partially committed
+    # files) and clear the staged version.
     # If file f is not in the list of files to be committed => leave its staged
     # version (if any) intact.
+
+    if partials is None:
+      partials = []
 
     def get_tree_and_update_index():
 
@@ -1034,12 +1143,15 @@ class Branch(object):
           assert not os.path.isabs(f)
           if not os.path.exists(os.path.join(self.gl_repo.root, f)):
             index.remove(f)
-          else:
+          elif f not in partials:
             index.add(f)
 
       # Update index to how it should look like after the commit
+      partial_entries = {}
       with index:
         update()
+        for f in partials:
+          partial_entries[f] = index._git_index[f]
 
       # To create the commit tree with only the changes to the given files we:
       #   (i)   reset the index to HEAD,
@@ -1048,6 +1160,9 @@ class Branch(object):
       #   (iv)  discard the changes after being done.
       index.read_tree(git_repo.head.peel().tree)
       update()
+      for f in partial_entries.keys():
+        index.add(partial_entries[f])
+
       tree_oid = index.write_tree()
 
       index.read()  #  discard changes
@@ -1103,6 +1218,25 @@ class Branch(object):
     if not self.is_current:
       raise BranchIsCurrentError(
         'Branch {0} is the current branch'.format(self.branch_name))
+
+
+class Tag(object):
+  """Static label for a commit.
+
+  Attributes:
+    tag_name: the name of this tag.
+    commit: the commit this tag labels.
+  """
+
+  def __init__(self, tag_name, commit):
+    self.tag_name = tag_name
+    self.commit = commit
+
+  def delete(self):
+    git.tag('-d', self.tag_name)
+
+  def __str__(self):
+    return self.tag_name
 
 
 # Helpers for stashing

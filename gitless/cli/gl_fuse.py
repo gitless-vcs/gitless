@@ -40,7 +40,7 @@ def parser(subparsers, repo):
   fuse_parser.add_argument(
       '-ip', '--insertion-point', nargs='?',
       help=(
-        'the commit where to put the divergent changes, dp for '
+        'the divergent changes will be inserted after the commit given, dp for '
         'divergent point is the default'), metavar='commit_id')
   fuse_parser.add_argument(
       '-a', '--abort', help='abort the fuse in progress', action='store_true')
@@ -55,11 +55,21 @@ def main(args, repo):
     return True
 
   src_branch = helpers.get_branch_or_use_upstream(args.src, 'src', repo)
-  dp = repo.merge_base(current_b, src_branch)
+
+  mb = repo.merge_base(current_b, src_branch)
+  if mb == src_branch.target:  # the current branch is ahead or both branches are equal
+    pprint.err('No commits to fuse')
+    return False
+
+  if (not args.insertion_point or args.insertion_point == 'dp' or
+      args.insertion_point == 'divergent-point'):
+    insertion_point = mb
+  else:
+    insertion_point = repo.revparse_single(args.insertion_point).id
 
   def valid_input(inp):
     walker = src_branch.history()
-    walker.hide(dp)
+    walker.hide(insertion_point)
     divergent_ids = frozenset(ci.id for ci in walker)
 
     errors_found = False
@@ -81,11 +91,6 @@ def main(args, repo):
     if not valid_input(exclude):
       return False
 
-  if (not args.insertion_point or args.insertion_point == 'dp' or
-      args.insertion_point == 'divergent-point'):
-    insertion_point = dp
-  else:
-    insertion_point = repo.revparse_single(args.insertion_point).id
 
   try:
     current_b.fuse(
