@@ -46,17 +46,17 @@
       <div>
         <ul style="margin-top: 2em">
           <li>
-            <a href="https://github.com/sdg-mit/gitless/releases/download/v0.8.2/gl-v0.8.2-darwin-x86_64.tar.gz">
+            <a href="https://github.com/sdg-mit/gitless/releases/download/v0.8.3/gl-v0.8.3-darwin-x86_64.tar.gz">
             Mac OS X Binary (.tar.gz)
             </a>
           </li>
           <li>
-            <a href="https://github.com/sdg-mit/gitless/releases/download/v0.8.2/gl-v0.8.2-linux-x86_64.tar.gz">
+            <a href="https://github.com/sdg-mit/gitless/releases/download/v0.8.3/gl-v0.8.3-linux-x86_64.tar.gz">
             Linux Binary (.tar.gz)
             </a>
           </li>
           <li>
-            <a href="https://github.com/sdg-mit/gitless/archive/v0.8.2.tar.gz">
+            <a href="https://github.com/sdg-mit/gitless/archive/v0.8.3.tar.gz">
             Source Code (.tar.gz)
             </a>
           </li>
@@ -67,7 +67,7 @@
         <a href="https://github.com/sdg-mit/gitless/blob/master/README.md#install">
         see the readme file</a>.
         After installation, you should be able to execute the <code>gl</code>
-        command. The current Gitless version is 0.8.2
+        command. The current Gitless version is 0.8.3
         (<a href="https://github.com/sdg-mit/gitless/releases">release notes</a>).
         </p>
 
@@ -148,6 +148,10 @@
             - switch branches
           </li>
           <li>
+            <code><a href="#gl-tag">gl tag</a></code>
+            - list, create, or delete tags
+          </li>
+          <li>
             <code><a href="#gl-merge">gl merge</a></code>
             - merge the divergent changes of one branch onto another
           </li>
@@ -177,6 +181,7 @@
         <a href="#repository">Creating a Repository</a>,
         <a href="#changes">Saving Changes</a>,
         <a href="#branching">Branching</a>,
+        <a href="#tagging">Tagging</a>,
         <a href="#remote">Working with Remote Repositories</a>.
       </p>
       <a id="repository"><h3>Creating a Repository</h3></a>
@@ -300,8 +305,8 @@ overwritten by checkout. Do you wish to continue? (y/N)
 <span class="shell">$</span> gl commit -m"only foo and baz" -e bar.py -i baz.py
 <span class="shell">$</span> gl commit -m"foo, bar and baz" -i baz.py</code></pre></div>
       <p>
-      (A <code>p/partial</code> flag that allows you to interactively select
-      segments of files to commit is coming soon.)
+      There's also a <code>p/partial</code> flag that allows you to
+      interactively select segments of files to commit.
       <p>
       <p>
       The <code><a id="gl-diff">gl diff</a></code> command can be used to see the
@@ -426,6 +431,35 @@ List of branches:
       <code>gl branch -su upstream_branch</code>.
       </p>
 
+
+      <a id="tagging"><h3>Tagging</h3></a>
+      <p>
+      You use tags to signify a commit is special in some way. For example, you
+      can use <code><a id="gl-tag">gl tag</a></code> to create a tag with name
+      "v1.0" and make it point to the commit that represents release v1.0:
+      </p>
+      <div class="code">
+      <pre><code><span class="shell">$</span> gl tag -c v1.0
+<span class="ansi-green">✔ Created new tag v1.0</span>
+</code></pre>
+      </div>
+      <p>In this case, the tag will point to the head of the current branch, but
+      you can tag other commits with the <code>ci/commit</code> flag.
+      </p>
+      <p>
+      To list all tags:
+      </p>
+      <div class="code">
+      <pre><code><span class="shell">$</span> gl tag
+List of tags:
+  ➜ do gl tag &lt;t&gt; to create tag t
+  ➜ do gl tag -d &lt;t&gt; to delete tag t
+
+    v1.0 ➜  tags <span class="ansi-yellow">311bf7c</span> Ready to release
+</code></pre>
+      </div>
+
+
       <a id="remote"><h3>Working with Remote Repositories</h3></a>
       <p>
       To refer to a remote repository you could always use its URL, but an
@@ -460,7 +494,11 @@ successfully</span>
       <code>gl branch -c experiment/develop</code> this will create a branch
       <code>develop</code> that lives in the remote experiment
       (same for delete). To list remote branches use the
-      <code>r/remote</code> flag of <code>gl branch</code>.
+      <code>r/remote</code> flag of <code>gl branch</code>. Creating or deleting
+      remote tags works the same way as with remote branches. If you do
+      <code>gl tag -c experiment/v1.0</code> this will create a new tag
+      <code>v0.1</code> that lives in the remote experiment. You can also list
+      remote tags with the <code>r/remote</code> flag of <code>gl tag</code>.
       </p>
 
       <p>
