@@ -907,16 +907,16 @@ class Branch(object):
       except ErrorReturnCode as e:
         raise GlError(stdout(e) + stderr(e))
 
+    self._state_cleanup()
     restore_fn = op_cb.restore_ok if op_cb else None
     self._safe_restore(_stash_msg_merge, restore_fn=restore_fn)
-    self._state_cleanup()
 
   def merge_continue(self, op_cb=None):
     if not self.merge_in_progress:
       raise GlError('No merge in progress, nothing to continue')
+    self._state_cleanup()
     restore_fn = op_cb.restore_ok if op_cb else None
     self._safe_restore(_stash_msg_merge, restore_fn=restore_fn)
-    self._state_cleanup()
 
   @property
   def merge_in_progress(self):
