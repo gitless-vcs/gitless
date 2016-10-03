@@ -299,11 +299,11 @@ overwritten by checkout. Do you wish to continue? (y/N)
       </p>
       <div class="code">
       <pre><code><span class="shell">$</span> gl commit -m"foo and bar"
-<span class="shell">$</span> gl commit -m"only foo" -o foo.py
-<span class="shell">$</span> gl commit -m"only foo and baz" -o foo.py baz.py
-<span class="shell">$</span> gl commit -m"only foo" -e bar.py
-<span class="shell">$</span> gl commit -m"only foo and baz" -e bar.py -i baz.py
-<span class="shell">$</span> gl commit -m"foo, bar and baz" -i baz.py</code></pre></div>
+<span class="shell">$</span> gl commit -m "only foo" -o foo.py
+<span class="shell">$</span> gl commit -m "only foo and baz" -o foo.py baz.py
+<span class="shell">$</span> gl commit -m "only foo" -e bar.py
+<span class="shell">$</span> gl commit -m "only foo and baz" -e bar.py -i baz.py
+<span class="shell">$</span> gl commit -m "foo, bar and baz" -i baz.py</code></pre></div>
       <p>
       There's also a <code>p/partial</code> flag that allows you to
       interactively select segments of files to commit.
