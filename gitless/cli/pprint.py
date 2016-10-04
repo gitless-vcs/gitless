@@ -37,7 +37,7 @@ def puts(s='', newline=True, stream=sys.stdout.write):
       isinstance(s, unicode) or isinstance(s, colored.ColoredString))
 
   if IS_PY2:
-    s = s.encode(ENCODING)
+    s = s.encode(ENCODING, errors='ignore')
   clint_puts(s, newline=newline, stream=stream)
 
 
