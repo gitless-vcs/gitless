@@ -1,0 +1,204 @@
+Copy/pasting from this doc might be easier than doing it from the slides.
+Each snippet has its corresponding step number and it’s delimited by '#'
+
+
+#### TASK 1 ####
+
+#### 1.1 ####
+fit-cli
+=======
+
+The ultimate fitness app. Give your gender, age, weight and height to fit-cli and get an estimate of the number of calories you burn per day just for being alive; all of this without leaving the command line!
+#############
+
+#### 1.3 ####
+
+To run fit-cli execute the fit.py script which accepts the following optional flags: -g/--gender, -a/--age, -w/--weight, -h/--height.
+#############
+
+
+
+#### TASK 2 ####
+
+#### 2.2 ####
+  parser.add_argument('-k', '--kilos', action='store_true')
+#############
+
+#### 2.2 ####
+  result = rmb(
+      args.gender, args.age, args.weight, args.height, use_kg=args.kilos)
+#############
+
+#### 2.2 ####
+def rmb(gender, age, weight, height, use_kg=False):
+  w_const_female = 9.56 if use_kg else 4.35
+  w_const_male = 13.75 if use_kg else 6.25
+  if gender == 'female':
+    return (655 + w_const_female * weight + 4.7 * height - 4.7 * age) *  1.1
+  else:
+    return (66 + w_const_male * weight + 12.7 * height - 6.76 * age) * 1.1
+#############
+
+
+#### 2.5 ####
+  parser.add_argument(
+        '-k', '--kilos', action='store_true',
+        help='if true, then the weight given as input is interpreted as kg')
+#############
+
+
+
+#### TASK 3 ####
+
+
+#### 3.1.2 ####
+  parser.add_argument(
+      '-m', '--meters', action='store_true',
+      help='if true, the height input will be interpreted in meters')
+###############
+
+#### 3.1.2 ####
+  result = rmb(
+      args.gender, args.age, args.weight, args.height, use_m=args.meters)
+###############
+
+#### 3.1.2 ####
+def rmb(gender, age, weight, height, use_m=False):
+  h_const= {
+      'female': 1.8 if use_m else 4.7,
+      'male': 5 if use_m else 12.7
+      }
+  if gender == 'female':
+    return (655 + 4.35 * weight + 4.7 * height - 4.7 * age) *  1.1
+  else:
+    return (66 + 6.25 * weight + 12.7 * height - 6.76 * age) * 1.1
+###############
+
+
+#### 3.2.2 ####
+  parser.add_argument('gender', choices=['female', 'male'])
+###############
+
+
+#### TASK 4 ####
+
+#### 4.1.2 ####
+def rmb(gender, age, weight, height, use_kg=False):
+  w_const = {
+      'female': 9.56 if use_kg else 4.35,
+      'male': 13.75 if use_kg else 6.25
+      }
+  if gender == 'female':
+    return (655 + w_const[gender] * weight + 4.7 * height - 4.7 * age) *  1.1
+  else:
+    return (66 + w_const[gender] * weight + 12.7 * height - 6.76 * age) * 1.1
+###############
+
+
+#### 4.2.2 ####
+def rmb(gender, age, weight, height, use_m=False):
+  h_const= {
+      'female': 1.8 if use_m else 4.7,
+      'male': 5 if use_m else 12.7
+      }
+  if gender == 'female':
+    return (655 + 4.35 * weight + h_const[gender] * height - 4.7 * age) *  1.1
+  else:
+    return (66 + 6.25 * weight + h_const[gender] * height - 6.76 * age) * 1.1
+###############
+
+#### TASK 5 ####
+
+#### 5.1.3 ####
+def main():
+  parser = argparse.ArgumentParser(
+      description=(
+        'fit-cli: compute your resting metabolic rate from the command line'))
+  parser.add_argument('gender', choices=['female', 'male'])
+  parser.add_argument('age', type=int)
+  parser.add_argument('weight', type=int, help='in pounds')
+  parser.add_argument('height', type=int, help='in inches')
+  parser.add_argument(
+      '-k', '--kilos', action='store_true',
+      help='if true, then the weight given as input is interpreted as kg')
+  parser.add_argument(
+      '-m', '--meters', action='store_true',
+      help='if true, the height input will be interpreted in meters')
+  args = parser.parse_args()
+
+  result = rmb(
+      args.gender, args.age, args.weight, args.height,
+      use_kg=args.kilos, use_m=args.meters)
+
+  print('Your resting metabolic rate is {0}'.format(result))
+###############
+
+#### 5.2.2 ####
+#!/usr/bin/env python
+###############
+
+#### 5.3.2 ####
+def rmb(gender, age, weight, height, use_kg=False, use_m=False):
+  w_const = {
+      'female': 9.56 if use_kg else 4.35,
+      'male': 13.75 if use_kg else 6.25
+      }
+  h_const= {
+      'female': 1.8 if use_m else 4.7,
+      'male': 5 if use_m else 12.7
+      }
+  if gender == 'female':
+    return (
+        655 + w_const[gender] * weight + h_const[gender] * height -
+        4.7 * age) *  1.1
+  else:
+    return (
+        66 + w_const[gender] * weight + h_const[gender] * height -
+        6.76 * age) * 1.1
+###############
+
+#### TASK 6 ####
+
+#### 6.1.2 ####
+def rmb(gender, age, weight, height, use_kg=False, use_m=False):
+  const = {
+      'weight': {
+         'female': 9.56 if use_kg else 4.35,
+         'male': 13.75 if use_kg else 6.25
+         },
+      'height': {
+         'female': 1.8 if use_m else 4.7,
+         'male': 5 if use_m else 12.7
+         }
+      }
+  if gender == 'female':
+    return (
+        655 + const['weight'][gender] * weight +
+        const['height'][gender] * height - 4.7 * age) *  1.1
+  else:
+    return (
+        66 + const['weight'][gender] * weight +
+        const['height'][gender] * height - 6.76 * age) * 1.1
+###############
+
+#### 6.2.2 ####
+import collections
+###############
+
+#### 6.2.2 ####
+def rmb(gender, age, weight, height, use_kg=False, use_m=False):
+  Const = collections.namedtuple('Const', ['weight', 'height'])
+  const = Const(
+      {'female': 9.56 if use_kg else 4.35,
+       'male': 13.75 if use_kg else 6.25},
+      {'female': 1.8 if use_m else 4.7,
+       'male': 5 if use_m else 12.7})
+   if gender == 'female':
+     return (
+        655 + const.weight[gender] * weight +
+        const.height[gender] * height - 4.7 * age) *  1.1
+   else:
+     return (
+        66 + const.weight[gender] * weight +
+        const.height[gender] * height - 6.76 * age) * 1.1
+###############

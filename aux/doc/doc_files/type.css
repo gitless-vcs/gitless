@@ -1,0 +1,41 @@
+/* Not Just a Grid v1.1 - June 2011 - (c) 2011 Al Redpath / Outrageous Creations! Licenced under an MIT Licence*/
+BODY {font-family: 'Droid Serif', "Times New Roman", Times, serif;font-size:75%;font-weight:normal;line-height:1.5em;letter-spacing:1px;color:#323232;}
+html>body {font-size: 14px;}
+h1, h2, h3, h4, h5, h6 {color:#000;font-family: 'Droid Sans', Arial, Helvetica, sans-serif;font-weight:bold;}
+p, ol, ul, blockquote, code, dl, dt, dd{color:#333;font-size:1em;font-weight:normal;letter-spacing:.02em;line-height:1.5em;}
+h1 {font-size:3em;line-height:1em;letter-spacing:-.03em;margin: 0 0 .5em 0;}
+h2 {font-size:2.7em;line-height:1.17em;letter-spacing:-.03em;margin: 0 0 .5em 0;}
+h3 {font-size:2.4em;line-height:1.38em;letter-spacing:-.03em;margin: 0 0 .5em 0;}
+h4 {font-size:2.1em;line-height:1.65em;letter-spacing:-.03em;margin: 0 0 0.5em 0;}
+h5 {font-size:1.8em;line-height:2em;letter-spacing:-.03em;margin: 0 0 .5em 0;}
+h6 {font-size:1.5em;line-height:1.5em;letter-spacing:-.03em;margin: 0 0 .5em 0;}
+p {margin:0 0 1.5em 1.5em;}
+blockquote {margin:10px 45px 15px 45px; font-style:italic; 	quotes:"\201C""\201D""\2018""\2019"; border-bottom:2px solid #444;border-top:2px solid #444;}
+blockquote:before {font-size:24px;content:open-quote;}
+blockquote:after {font-size:24px;content:close-quote;}
+strong {font-weight:bold;}
+em, cite, dfn, address {font-style:italic;}
+abbr[title],acronym[title],dfn[title]{cursor:help;border-bottom:1px dotted blue;}
+acronym{font-variant:small-caps;}
+address{margin: 0 0 1.5em 2.5em;}
+del{text-decoration:line-through;}
+ins{border-bottom:1px dotted green;text-decoration:none;}
+ul, ol{margin:0 0 1em 3em;list-style:disc;list-style-position:outside;}
+li{	padding: 0 0 0 .25em;}
+ol {list-style:decimal;} 
+ol.roman {list-style:lower-roman;}
+ol.alpha {list-style:lower-alpha;}
+ol.upperalpha {list-style:upper-alpha;}
+dl {margin: 0;	padding: 0;}
+dt {margin:0 0 0 1.5em;	font-weight:bold;}
+dd {margin:0 0 0 3em;}
+sup, sub {font-size:75%;}
+sup{vertical-align:super;}
+sub{vertical-align:sub;}
+a, a:link, a:visited {color:#1475a2;text-decoration:none;}
+a:hover, a:active {color:#789b10;text-decoration:none;}
+hr {height:1px;color:#444;background-color:#444;clear:both;margin:20px 30px 20px 30px;border:none;}
+code, pre, var, samp{font-family:"Courier New", Courier, monospace;}
+small{font-size:80%; vertical-align:middle;}
+big{font-size:120%; vertical-align:middle;}
+.typegrid {background:url(../images/notjustagrid/misc/typegrid.gif) top left;}
