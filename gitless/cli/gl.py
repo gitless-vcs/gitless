@@ -36,8 +36,11 @@ URL = 'http://gitless.com'
 repo = None
 try:
   repo = core.Repository()
-  colored.DISABLE_COLOR = (repo.config['color.ui'] in
-                           ['false', '0', 'off', 'no', 'never'])
+  try:
+    colored.DISABLE_COLOR = not repo.config.get_bool('color.ui')
+  except pygit2.GitError:
+    colored.DISABLE_COLOR = (
+        repo.config['color.ui'] in ['no', 'never'])
 except (core.NotInRepoError, KeyError):
   pass
 
