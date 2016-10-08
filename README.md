@@ -107,7 +107,7 @@ merge the changes onto `master` when the changes are stable and we're ready to
 cut a new release. So you'll find on `develop` the latest changes
 
 - We follow (to some extent) the [Google Python Style Guide](
-    http://google-styleguide.googlecode.com/svn/trunk/pyguide.html
+    https://google.github.io/styleguide/pyguide.html
     "Google Python Style Guide").
 Before submitting code, take a few seconds to look at the style guide and the
 Gitless's code so that your edits are consistent with the codebase
