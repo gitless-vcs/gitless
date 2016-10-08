@@ -68,8 +68,13 @@ def _launch_editor(fp, repo):
   except KeyError:
     editor = os.environ['EDITOR'] if 'EDITOR' in os.environ else 'vim'
 
-  if subprocess.call([editor, fp]) != 0:
-    raise Exception('Call to editor {0} failed'.format(editor))
+  try:
+    ret = subprocess.call([editor, fp])
+    if ret != 0:
+      pprint.err('Call to editor {0} failed'.format(editor))
+  except OSError:
+    pprint.err('Couldn\'t launch editor {0}'.format(editor))
+    pprint.err_exp('change the value of git\'s core.editor setting')
 
 
 def _extract_msg(repo):
