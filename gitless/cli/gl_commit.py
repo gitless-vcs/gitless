@@ -48,6 +48,15 @@ def main(args, repo):
   if args.p:
     partials = _do_partial_selection(commit_files, curr_b)
 
+  if not repo.config['user.name']:
+    pprint.err('Missing name for commit author')
+    pprint.err_exp('change the value of git\'s user.name setting')
+    return False
+  if not repo.config['user.email']:
+    pprint.err('Missing email for commit author')
+    pprint.err_exp('change the value of git\'s user.email setting')
+    return False
+
   msg = args.m if args.m else commit_dialog.show(commit_files, repo)
   if not msg.strip():
     if partials:
