@@ -29,15 +29,18 @@ ERRORS_FOUND = 1
 INTERNAL_ERROR = 3
 NOT_IN_GL_REPO = 4
 
-VERSION = '0.8.3'
+VERSION = '0.8.4'
 URL = 'http://gitless.com'
 
 
 repo = None
 try:
   repo = core.Repository()
-  colored.DISABLE_COLOR = (repo.config['color.ui'] in
-                           ['false', '0', 'off', 'no', 'never'])
+  try:
+    colored.DISABLE_COLOR = not repo.config.get_bool('color.ui')
+  except pygit2.GitError:
+    colored.DISABLE_COLOR = (
+        repo.config['color.ui'] in ['no', 'never'])
 except (core.NotInRepoError, KeyError):
   pass
 
