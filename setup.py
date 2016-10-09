@@ -7,7 +7,7 @@ import sys
 from setuptools import setup
 
 
-VERSION = '0.8.3'
+VERSION = '0.8.4'
 
 
 # Build helper
@@ -54,9 +54,6 @@ share a repo with need never know that you're not a Git aficionado.
 
 More info, downloads and documentation @ `Gitless's
 website <http://gitless.com>`__.
-
-Questions or comments about Gitless can be sent to the `Gitless users
-mailing list <https://groups.google.com/forum/#!forum/gl-users>`__.
 """
 
 setup(

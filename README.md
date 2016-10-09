@@ -53,10 +53,10 @@ the Python Package Index).
 
 ### Installing from source
 
-To install from source you need to have Python (2.6, 2.7, 3.2+ or pypy)
+To install from source you need to have Python (2.7, 3.2+ or pypy)
 installed.
 
-Additionaly, you need to [install pygit2 (v0.23.0)](
+Additionaly, you need to [install pygit2](
 http://www.pygit2.org/install.html "pygit2 install").
 
 Then, [download the source code tarball](http://gitless.com "Gitless's website")
@@ -69,9 +69,9 @@ and do:
 
 If you are a Python fan you might find it easier to install
 Gitless via the Python Package Index. To do this, you need to have
-Python (2.6, 2.7, 3.2+ or pypy) installed.
+Python (2.7, 3.2+ or pypy) installed.
 
-Additionaly, you need to [install pygit2 (v0.23.0)](
+Additionaly, you need to [install pygit2](
 http://www.pygit2.org/install.html "pygit2 install").
 
 Then, just do:
@@ -114,4 +114,4 @@ Gitless's code so that your edits are consistent with the codebase
 
 - Finally, if you don't want [Travis](
     https://travis-ci.org/sdg-mit/gitless "Travis") to
-be mad at you, check that tests pass in python 2.6, 2.7 and 3.2+
+be mad at you, check that tests pass in Python 2.7 and 3.2+
