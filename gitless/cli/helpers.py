@@ -11,6 +11,7 @@ import argparse
 import os
 import subprocess
 import sys
+import shlex
 
 from gitless import core
 
@@ -72,7 +73,11 @@ def page(fp, repo):
     pager = repo.config['core.pager']
   except KeyError:
     pass
-  cmd = [pager, fp] if pager else ['less', '-r', '-f', fp]
+  if pager:
+    cmd = shlex.split(pager)
+    cmd.append(fp)
+  else:
+    cmd = ['less', '-r', '-f', fp]
   subprocess.call(cmd, stdin=sys.stdin, stdout=sys.stdout)
 
 
