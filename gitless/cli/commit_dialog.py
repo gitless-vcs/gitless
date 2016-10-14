@@ -12,6 +12,7 @@ from locale import getpreferredencoding
 import os
 import subprocess
 import sys
+import shlex
 
 
 from . import pprint
@@ -68,8 +69,11 @@ def _launch_editor(fp, repo):
   except KeyError:
     editor = os.environ['EDITOR'] if 'EDITOR' in os.environ else 'vim'
 
+  cmd = shlex.split(editor)
+  cmd.append(fp)
+
   try:
-    ret = subprocess.call([editor, fp])
+    ret = subprocess.call(cmd)
     if ret != 0:
       pprint.err('Call to editor {0} failed'.format(editor))
   except OSError:
