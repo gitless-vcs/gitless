@@ -1,9 +1,9 @@
 Gitless
 =======
 
-[![PyPI version](https://badge.fury.io/py/gitless.png)](
+[![PyPI version](https://badge.fury.io/py/gitless.svg)](
     http://badge.fury.io/py/gitless)
-[![Build Status](https://travis-ci.org/sdg-mit/gitless.png?branch=develop)](
+[![Build Status](https://travis-ci.org/sdg-mit/gitless.svg?branch=develop)](
     https://travis-ci.org/sdg-mit/gitless)
 
 [Gitless](http://gitless.com "Gitless's website") is an experimental version
