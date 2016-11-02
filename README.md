@@ -5,6 +5,7 @@ Gitless
     http://badge.fury.io/py/gitless)
 [![Build Status](https://travis-ci.org/sdg-mit/gitless.svg?branch=develop)](
     https://travis-ci.org/sdg-mit/gitless)
+[![homebrew](https://img.shields.io/homebrew/v/cake.svg)](http://braumeister.org/formula/gitless)    
 
 [Gitless](http://gitless.com "Gitless's website") is an experimental version
 control system built on top of Git. Many
