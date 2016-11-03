@@ -3,6 +3,7 @@ Gitless
 
 [![PyPI version](https://badge.fury.io/py/gitless.svg)](
     http://badge.fury.io/py/gitless)
+[![homebrew](https://img.shields.io/homebrew/v/gitless.svg)](http://braumeister.org/formula/gitless)    
 [![Build Status](https://travis-ci.org/sdg-mit/gitless.svg?branch=develop)](
     https://travis-ci.org/sdg-mit/gitless)
 
@@ -79,7 +80,13 @@ Then, just do:
 
     $ pip install gitless
 
+### Installing via Homebrew
 
+If you are using [Homebrew](http://brew.sh/ "Homebrew homepage") as missing Mac OS packet manager then you can simply install Gitless with:
+```
+brew update
+brew install gitless
+```
 Documentation
 -------------
 
