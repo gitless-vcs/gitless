@@ -82,7 +82,7 @@ Then, just do:
 
 ### Installing via Homebrew
 
-If you are using [Homebrew](http://brew.sh/ "Homebrew homepage") as missing Mac OS packet manager then you can simply install Gitless with:
+If you are using [Homebrew](http://brew.sh/ "Homebrew homepage"), a package manager for Mac OS, then you can simply install Gitless with:
 ```
 brew update
 brew install gitless
