@@ -143,12 +143,11 @@ def oei_fs(args, repo):
     # Tracked modified files
     ret = frozenset(
         f.fp for f in curr_b.status()
-        if f.type == core.GL_STATUS_TRACKED and f.modified)
-    ret = ret.difference(exclude)
-    ret = ret.union(include)
+        if f.type == core.GL_STATUS_TRACKED and f.modified) # using generator expression
+    ret -= exclude
+    ret &= include
 
-  ret = list(ret)
-  ret.sort()
+  ret = sorted(list(ret))
   return ret
 
 
@@ -163,13 +162,17 @@ def _oei_validate(only, exclude, include, curr_b):
   """
   if only and (exclude or include):
     pprint.err(
-        'You provided a list of filenames to be committed only but also '
-        'provided a list of files to be excluded or included')
+        'You provided a list of filenames to be committed only (-o) but also '
+        'provided a list of files to be excluded (-e) or included (-i)')
     return False
 
   err = []
 
   def validate(fps, check_fn, msg):
+    ''' fps: files
+        check_fn: lambda(file) -> boolean
+        msg: string-format of pre-defined constant string.
+    '''
     ret = True
     if not fps:
       return ret
@@ -178,12 +181,12 @@ def _oei_validate(only, exclude, include, curr_b):
         f = curr_b.status_file(fp)
       except KeyError:
         err.append('File {0} doesn\'t exist'.format(fp))
-        ret = False
-      else:
+        ret = False # set error flag, but keep assessing other files
+      else: # executed after "try", exeption will be ignored here
         if not check_fn(f):
-          err.append(msg(fp))
+          err.append(msg(fp)) # dynamic string formatting
           ret = False
-      return ret
+    return ret
 
   only_valid = validate(
       only, lambda f: f.type == core.GL_STATUS_UNTRACKED or (
