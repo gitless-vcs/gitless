@@ -77,7 +77,9 @@ def page(fp, repo):
     cmd = shlex.split(pager)
     cmd.append(fp)
   else:
-    cmd = ['less', '-r', '-f', fp]
+    cmd = ['less' , '-r', '-f', fp]
+        if sys.platform != 'win32' else
+          ['more', '/C', fp]
   subprocess.call(cmd, stdin=sys.stdin, stdout=sys.stdout)
 
 
