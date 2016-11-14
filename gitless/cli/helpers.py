@@ -182,7 +182,7 @@ def _oei_validate(only, exclude, include, curr_b):
       except KeyError:
         err.append('File {0} doesn\'t exist'.format(fp))
         ret = False # set error flag, but keep assessing other files
-      else: # executed after "try", exeption will be ignored here
+      else: # executed after "try", exception will be ignored here
         if not check_fn(f):
           err.append(msg(fp)) # dynamic string formatting
           ret = False
