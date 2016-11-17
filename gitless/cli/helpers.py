@@ -68,18 +68,18 @@ def get_branch_or_use_upstream(branch_name, arg, repo):
 
 
 def page(fp, repo):
-  pager = ''
-  try:
-    pager = repo.config['core.pager']
-  except KeyError:
-    pass
-  if pager:
-    cmd = shlex.split(pager)
-    cmd.append(fp)
-  else:
-    cmd = ['less' , '-r', '-f', fp]
-        if sys.platform != 'win32' else
-          ['more', '/C', fp]
+  if sys.platform != 'win32': # e.g. Linux, BSD, Cygwin, Darwin
+    try:
+      pager = repo.config['core.pager']
+    except KeyError:
+      pager = '' # empty string will evaluate to False below
+    pager = pager or os.environ.get('PAGER', None) or 'less'
+    cmd = shlex.split(pager) # split into constituents
+    if os.path.basename(cmd[0]) == 'less':
+      cmd.extend(['-r', '-f']) # append arguments
+  else: # running on native Windows
+    cmd = ['more', '/C']
+  cmd.append(fp) # add file name to page
   subprocess.call(cmd, stdin=sys.stdin, stdout=sys.stdout)
 
 
