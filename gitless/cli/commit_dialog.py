@@ -86,7 +86,7 @@ def _extract_msg(repo):
   sep = pprint.SEP + '\n'
   msg = ''
   l = cf.readline()
-  while l != sep:
+  while l != sep and len(l) > 0:
     msg += l
     l = cf.readline()
   # We reached the separator, this marks the end of the commit msg
