@@ -231,7 +231,7 @@ class Repository(object):
 
     Args:
       dst_b: the destination branch.
-      move_over: if True, then uncommited changes made in the current branch are
+      move_over: if True, then uncommitted changes made in the current branch are
         moved to the destination branch (defaults to False).
     """
     if dst_b.is_current:
@@ -807,7 +807,7 @@ class Branch(object):
       git('update-index', '--no-assume-unchanged', path,
           _cwd=self.gl_repo.root)
     else:
-      raise GlError('File {0} in unkown status {1}'.format(path, git_st))
+      raise GlError('File {0} in unknown status {1}'.format(path, git_st))
 
   def untrack_file(self, path):
     """Stop tracking changes to path."""
@@ -837,7 +837,7 @@ class Branch(object):
       git('update-index', '--assume-unchanged', path,
           _cwd=self.gl_repo.root)
     else:
-      raise GlError('File {0} in unkown status {1}'.format(path, git_st))
+      raise GlError('File {0} in unknown status {1}'.format(path, git_st))
 
   def resolve_file(self, path):
     """Mark the given path as resolved."""

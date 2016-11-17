@@ -54,7 +54,7 @@ def show(files, repo):
   pprint.msg('the commit.', stream=cf.write)
   pprint.blank(stream=cf.write)
   pprint.msg(
-      'These are the files whose changes will be commited:', stream=cf.write)
+      'These are the files whose changes will be committed:', stream=cf.write)
   for f in files:
     pprint.item(f, stream=cf.write)
   pprint.sep(stream=cf.write)
