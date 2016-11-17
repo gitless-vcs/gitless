@@ -73,11 +73,11 @@ def page(fp, repo):
     pager = repo.config['core.pager']
   except KeyError:
     pass
-  if pager:
-    cmd = shlex.split(pager)
-    cmd.append(fp)
-  else:
-    cmd = ['less', '-r', '-f', fp]
+  pager = pager or os.environ.get('PAGER', None) or 'less'
+  cmd = shlex.split(pager)
+  if os.path.basename(cmd[0]) == 'less':
+    cmd.extend(['-r', '-f'])
+  cmd.append(fp)
   subprocess.call(cmd, stdin=sys.stdin, stdout=sys.stdout)
 
 
