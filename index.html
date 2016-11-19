@@ -215,7 +215,7 @@
       <p>
       In most cases there's already some existing repository you
       want to work on instead of starting with an empty repository. To make a
-      local clone of a remote repository you can pass the URL of the repository
+      local clone of a remote repository you can give the URL of the repository
       as input to the same <code>gl init</code> command:
       </p>
       <div class="code">
@@ -329,6 +329,15 @@ overwritten by checkout. Do you wish to continue? (y/N)
       the set of all tracked modified files but it can be customized with the
       <code>o/only</code>, <code>e/exclude</code>, and <code>i/include</code>
       flags.
+      </p>
+      <p>
+        To remove files simply do it like you would in
+        your operating system (e.g., using Unix's <code>rm</code> command). Gitless
+        will detect the change if the file was tracked, and it will appear as removed
+        in <code>status</code>. Gitless currently doesn't detect renames. If you rename a file,
+        Gitless will interpret this as a file with the old name being removed and a new one
+        (with the new name and content) being created. If you want the renamed file to be tracked
+        again you need to track it with <code>gl track</code>.
       </p>
 
  
