@@ -103,7 +103,7 @@ class Repository(object):
     self.git_repo = pygit2.Repository(path)
     self.remotes = RemoteCollection(self.git_repo.remotes, self)
     self.path = self.git_repo.path
-    self.root = self.path[:-6]  # strip trailing /.git/
+    self.root = self.path[:-6] if self.path[-5:-1] == '.git' else self.path # strip trailing /.git/
     self.config = self.git_repo.config
 
   @property
@@ -131,7 +131,7 @@ class Repository(object):
 
   def _fuse_commits_fp(self, b):
     return os.path.join(
-        self.path, 'GL_FUSE_CIS_{0}'.format(b.branch_name.replace('/', '_')))
+        self.path, 'GL_FUSE_CIS_{0}'.format(b.branch_name.replace('/', '_'))) # TODO is this safe?
 
   def _ref_exists(self, ref):
     try:
@@ -249,7 +249,7 @@ class Repository(object):
 
     git_repo = self.git_repo
     au_fp = lambda b: os.path.join(
-        self.path, 'GL_AU_{0}'.format(b.branch_name.replace('/', '_')))
+        self.path, 'GL_AU_{0}'.format(b.branch_name.replace('/', '_'))) # TODO is this safe?
     update_index = git.bake('update-index', _cwd=self.root)
 
     def save(b):
