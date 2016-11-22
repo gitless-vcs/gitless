@@ -147,7 +147,7 @@ def oei_fs(args, repo):
         f.fp for f in curr_b.status()
         if f.type == core.GL_STATUS_TRACKED and f.modified) # using generator expression
     ret -= exclude
-    ret &= include
+    ret |= include
 
   ret = sorted(list(ret))
   return ret
