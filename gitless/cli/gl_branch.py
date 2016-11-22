@@ -81,7 +81,7 @@ def _do_list(repo, list_remote, v=False):
   pprint.blank()
 
 
-  for b in (repo.lookup_branch(n) for n in repo.listall_branches()):
+  for b in (repo.lookup_branch(n) for n in sorted(repo.listall_branches())):
     current_str = '*' if b.is_current else ' '
     upstream_str = '(upstream is {0})'.format(b.upstream) if b.upstream else ''
     color = colored.green if b.is_current else colored.yellow
@@ -91,8 +91,8 @@ def _do_list(repo, list_remote, v=False):
       pprint.item('    ➜ head is {0}'.format(pprint.commit_str(b.head)))
 
   if list_remote:
-    for r in repo.remotes:
-      for b in (r.lookup_branch(n) for n in r.listall_branches()):
+    for r in sorted(repo.remotes, key=lambda r: r.name):
+      for b in (r.lookup_branch(n) for n in sorted(r.listall_branches())):
         pprint.item('  {0}'.format(colored.yellow(str(b))))
         if v:
           pprint.item('    ➜ head is {0}'.format(pprint.commit_str(b.head)))

@@ -286,10 +286,18 @@ class TestBranch(TestEndToEnd):
     self.assertRaises(
         ErrorReturnCode, gl.branch, '-su', 'non-existent/non-existent')
 
+  def test_list(self):
+    gl.branch(c=self.BRANCH_1)
+    gl.branch(c=self.BRANCH_2)
+    branch_out = utils.stdout(gl.branch(_tty_out=False))
+    self.assertTrue(
+        branch_out.find(self.BRANCH_1) < branch_out.find(self.BRANCH_2))
+
 
 class TestTag(TestEndToEnd):
 
   TAG_1 = 'tag1'
+  TAG_2 = 'tag2'
 
   def setUp(self):
     super(TestTag, self).setUp()
@@ -309,6 +317,13 @@ class TestTag(TestEndToEnd):
     gl.tag(d=self.TAG_1, _in='y')
     if self.TAG_1 in utils.stdout(gl.tag(_tty_out=False)):
       self.fail()
+
+  def test_list(self):
+    gl.tag(c=self.TAG_1)
+    gl.tag(c=self.TAG_2)
+    tag_out = utils.stdout(gl.tag(_tty_out=False))
+    self.assertTrue(
+        tag_out.find(self.TAG_1) < tag_out.find(self.TAG_2))
 
 
 class TestDiffFile(TestEndToEnd):

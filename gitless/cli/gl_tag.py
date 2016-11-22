@@ -56,13 +56,13 @@ def _do_list(repo, list_remote):
   pprint.blank()
 
   no_tags = True
-  for t in (repo.lookup_tag(n) for n in repo.listall_tags()):
+  for t in (repo.lookup_tag(n) for n in sorted(repo.listall_tags())):
     pprint.item('{0} ➜ tags {1}'.format(t, pprint.commit_str(t.commit)))
     no_tags = False
 
   if list_remote:
-    for r in repo.remotes:
-      for t in (r.lookup_tag(n) for n in r.listall_tags()):
+    for r in sorted(repo.remotes, key=lambda r: r.name):
+      for t in (r.lookup_tag(n) for n in sorted(r.listall_tags())):
         pprint.item('{0} ➜ tags {1}'.format(t, pprint.commit_str(t.commit)))
         no_tags = False
 
