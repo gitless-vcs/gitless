@@ -17,20 +17,24 @@ def parser(subparsers, _):
   desc = 'list, create, or delete tags'
   tag_parser = subparsers.add_parser(
       'tag', help=desc, description=desc.capitalize())
-  tag_parser.add_argument(
+
+  list_group = tag_parser.add_argument_group('list tags')
+  list_group.add_argument(
       '-r', '--remote',
       help='list remote tags in addition to local tags',
       action='store_true')
 
-  tag_parser.add_argument(
+  create_group = tag_parser.add_argument_group('create tags')
+  create_group.add_argument(
       '-c', '--create', nargs='+', help='create tag(s)', dest='create_t',
       metavar='tag')
-  tag_parser.add_argument(
+  create_group.add_argument(
       '-ci', '--commit',
       help='the commit to tag (only relevant if a new '
-      'tag is created; defaults to the HEAD commit)', default='HEAD',
-      dest='ci')
-  tag_parser.add_argument(
+      'tag is created; defaults to the HEAD commit)', dest='ci')
+
+  delete_group = tag_parser.add_argument_group('delete tags')
+  delete_group.add_argument(
       '-d', '--delete', nargs='+', help='delete tag(s)', dest='delete_t',
       metavar='tag')
 
@@ -38,9 +42,18 @@ def parser(subparsers, _):
 
 
 def main(args, repo):
+  is_list = bool(args.remote)
+  is_create = bool(args.create_t or args.ci)
+  is_delete = bool(args.delete_t)
+
+  if is_list + is_create + is_delete > 1:
+    pprint.err('Invalid flag combination')
+    pprint.err_exp('Can only do one of list, create, or delete tags at a time')
+    return False
+
   ret = True
   if args.create_t:
-    ret = _do_create(args.create_t, args.ci, repo)
+    ret = _do_create(args.create_t, args.ci or 'HEAD', repo)
   elif args.delete_t:
     ret = _do_delete(args.delete_t, repo)
   else:

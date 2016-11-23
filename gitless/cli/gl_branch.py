@@ -16,48 +16,64 @@ from . import helpers, pprint
 
 def parser(subparsers, _):
   """Adds the branch parser to the given subparsers object."""
-  desc = 'list, create, edit or delete branches'
+  desc = 'list, create, delete, or edit branches'
   branch_parser = subparsers.add_parser(
       'branch', help=desc, description=desc.capitalize())
-  branch_parser.add_argument(
+
+  list_group = branch_parser.add_argument_group('list branches')
+  list_group.add_argument(
       '-r', '--remote',
       help='list remote branches in addition to local branches',
       action='store_true')
+  list_group.add_argument(
+      '-v', '--verbose', help='be verbose, will output the head of each branch',
+      action='store_true')
 
-  branch_parser.add_argument(
+  create_group = branch_parser.add_argument_group('create branches')
+  create_group.add_argument(
       '-c', '--create', nargs='+', help='create branch(es)', dest='create_b',
       metavar='branch')
-  branch_parser.add_argument(
+  create_group.add_argument(
       '-dp', '--divergent-point',
       help='the commit from where to \'branch out\' (only relevant if a new '
-      'branch is created; defaults to HEAD)', default='HEAD',
-      dest='dp')
-  branch_parser.add_argument(
+      'branch is created; defaults to HEAD)', dest='dp')
+
+  delete_group = branch_parser.add_argument_group('delete branches')
+  delete_group.add_argument(
       '-d', '--delete', nargs='+', help='delete branch(es)', dest='delete_b',
       metavar='branch')
 
-  branch_parser.add_argument(
+  edit_group = branch_parser.add_argument_group('edit the current branch')
+  edit_group.add_argument(
       '-sh', '--set-head', help='set the head of the current branch',
       dest='new_head', metavar='commit_id')
-  branch_parser.add_argument(
+  edit_group.add_argument(
       '-su', '--set-upstream',
       help='set the upstream branch of the current branch',
       dest='upstream_b', metavar='branch')
-  branch_parser.add_argument(
+  edit_group.add_argument(
       '-uu', '--unset-upstream',
       help='unset the upstream branch of the current branch',
       action='store_true')
 
-  branch_parser.add_argument(
-      '-v', '--verbose', help='be verbose, will output the head of each branch',
-      action='store_true')
   branch_parser.set_defaults(func=main)
 
 
 def main(args, repo):
+  is_list = bool(args.verbose or args.remote)
+  is_create = bool(args.create_b or args.dp)
+  is_delete = bool(args.delete_b)
+  is_edit = bool(args.new_head or args.upstream_b or args.unset_upstream)
+
+  if is_list + is_create + is_delete + is_edit > 1:
+    pprint.err('Invalid flag combination')
+    pprint.err_exp(
+        'Can only do one of list, create, delete, or edit branches at a time')
+    return False
+
   ret = True
   if args.create_b:
-    ret = _do_create(args.create_b, args.dp, repo)
+    ret = _do_create(args.create_b, args.dp or 'HEAD', repo)
   elif args.delete_b:
     ret = _do_delete(args.delete_b, repo)
   elif args.upstream_b:
