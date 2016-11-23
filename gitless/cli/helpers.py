@@ -86,19 +86,23 @@ def page(fp, repo):
 class PathProcessor(argparse.Action):
 
   def __init__(self, option_strings, dest, repo=None, **kwargs):
-    self.root = repo.root if repo else ''
+    self.repo = repo
     super(PathProcessor, self).__init__(option_strings, dest, **kwargs)
 
   def __call__(self, parser, namespace, paths, option_string=None):
+    root = self.repo.root if self.repo else ''
+    repo_dir = self.repo.path[:-1] if self.repo else ''  # strip trailing /
     def process_paths():
       for path in paths:
         path = os.path.normpath(path)
         if os.path.isdir(path):
           for curr_dir, _, fps in os.walk(path):
-            for fp in fps:
-              yield os.path.relpath(os.path.join(curr_dir, fp), self.root)
+            if not os.path.abspath(curr_dir).startswith(repo_dir):
+              for fp in fps:
+                yield os.path.relpath(os.path.join(curr_dir, fp), root)
         else:
-          yield os.path.relpath(path, self.root)
+          if not os.path.abspath(path).startswith(repo_dir):
+            yield os.path.relpath(path, root)
 
     setattr(namespace, self.dest, process_paths())
 
