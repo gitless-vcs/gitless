@@ -7,6 +7,7 @@
 
 from __future__ import unicode_literals
 
+import sys
 import argparse
 import traceback
 import pygit2
@@ -64,6 +65,10 @@ def main():
       gl_switch, gl_init, gl_history]
   for sub_cmd in sub_cmds:
     sub_cmd.parser(subparsers, repo)
+
+  if len(sys.argv) == 1:
+    parser.print_help()
+    return SUCCESS
 
   args = parser.parse_args()
   try:
