@@ -378,11 +378,19 @@ List of branches:
       </div>
 
       <p>
-      Each branch has a head which is the last commit done on the branch. To
+      Each branch has a head, which is the last commit done on the branch. To
       change the head of a branch you use the <code>sh/set-head</code> flag.
-      This won't touch your working directory, if you additionaly want to
-      reset your working directory to match the new head you use
-      <code>gl checkout</code>.
+      This won't touch your working directory, if you
+      additionally want to reset your working directory to match the new head
+      you use <code>gl checkout</code>.
+      </p>
+      <p>
+      To specify the commit that is to become the new head of the branch
+      you can use its id, or you can specify it via an ancestry
+      reference with <code>~</code>: <code>HEAD~n</code> refers to
+      the nth commit before head.
+      The <code>sh</code> flag is useful to, for example, amend the last commit:
+      to do so, run <code>gl branch -sh HEAD~1</code>.
       </p>
       <p>
       Eventually branches will end up having divergent
