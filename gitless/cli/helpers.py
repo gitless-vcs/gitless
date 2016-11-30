@@ -85,8 +85,12 @@ def page(fp, repo):
 
 class PathProcessor(argparse.Action):
 
-  def __init__(self, option_strings, dest, repo=None, **kwargs):
+  def __init__(
+      self, option_strings, dest, repo=None, skip_dir_test=None,
+      skip_dir_cb=None, **kwargs):
     self.repo = repo
+    self.skip_dir_test = skip_dir_test
+    self.skip_dir_cb = skip_dir_cb
     super(PathProcessor, self).__init__(option_strings, dest, **kwargs)
 
   def __call__(self, parser, namespace, paths, option_string=None):
@@ -96,10 +100,18 @@ class PathProcessor(argparse.Action):
       for path in paths:
         path = os.path.normpath(path)
         if os.path.isdir(path):
-          for curr_dir, _, fps in os.walk(path):
-            if not os.path.abspath(curr_dir).startswith(repo_dir):
-              for fp in fps:
-                yield os.path.relpath(os.path.join(curr_dir, fp), root)
+          for curr_dir, dirs, fps in os.walk(path, topdown=True):
+            if os.path.abspath(curr_dir).startswith(repo_dir):
+              dirs[:] = []
+              continue
+            curr_dir_rel = os.path.relpath(curr_dir, root)
+            if self.skip_dir_test and self.skip_dir_test(curr_dir_rel):
+              if self.skip_dir_cb:
+                self.skip_dir_cb(curr_dir_rel)
+              dirs[:] = []
+              continue
+            for fp in fps:
+              yield os.path.join(curr_dir_rel, fp)
         else:
           if not os.path.abspath(path).startswith(repo_dir):
             yield os.path.relpath(path, root)

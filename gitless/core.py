@@ -780,6 +780,11 @@ class Branch(object):
       f_st = self.FileStatus(path, *self._st_map[git_st])
     return f_st, git_st, is_au
 
+  def path_is_ignored(self, path):
+    assert not os.path.isabs(path)
+
+    return self.gl_repo.git_repo.path_is_ignored(path)
+
 
   # File related methods
 
