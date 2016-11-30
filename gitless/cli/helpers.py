@@ -98,14 +98,15 @@ class PathProcessor(argparse.Action):
     repo_dir = self.repo.path[:-1] if self.repo else ''  # strip trailing /
     def process_paths():
       for path in paths:
-        path = os.path.normpath(path)
+        path = os.path.abspath(path)
         if os.path.isdir(path):
           for curr_dir, dirs, fps in os.walk(path, topdown=True):
-            if os.path.abspath(curr_dir).startswith(repo_dir):
+            if curr_dir.startswith(repo_dir):
               dirs[:] = []
               continue
             curr_dir_rel = os.path.relpath(curr_dir, root)
-            if self.skip_dir_test and self.skip_dir_test(curr_dir_rel):
+            if (curr_dir_rel != "." and self.skip_dir_test and
+                self.skip_dir_test(curr_dir_rel)):
               if self.skip_dir_cb:
                 self.skip_dir_cb(curr_dir_rel)
               dirs[:] = []
@@ -113,7 +114,7 @@ class PathProcessor(argparse.Action):
             for fp in fps:
               yield os.path.join(curr_dir_rel, fp)
         else:
-          if not os.path.abspath(path).startswith(repo_dir):
+          if not path.startswith(repo_dir):
             yield os.path.relpath(path, root)
 
     setattr(namespace, self.dest, process_paths())
