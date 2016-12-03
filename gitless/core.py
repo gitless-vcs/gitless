@@ -24,6 +24,8 @@ import shutil
 import pygit2
 from sh import git, ErrorReturnCode
 
+git = git.bake('--no-pager')
+
 
 ENCODING = getpreferredencoding() or 'utf-8'
 
@@ -1248,8 +1250,7 @@ class Tag(object):
 
 def _stash(pattern):
   """Returns the id and msg of the stash that matches the given pattern."""
-  out = stdout(
-      git.stash.list(grep=pattern, format='|*|%gd|*|%B|*|', _tty_out=False))
+  out = stdout(git.stash.list(grep=pattern, format='|*|%gd|*|%B|*|'))
   if not out:
     return None, None
 
