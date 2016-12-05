@@ -88,7 +88,13 @@ def page(fp, repo):
     cmd.extend(['-r', '-f']) # append arguments
 
   cmd.append(fp) # add file name to page command
-  subprocess.call(cmd, stdin=sys.stdin, stdout=sys.stdout)
+  try:
+    ret = subprocess.call(cmd, stdin=sys.stdin, stdout=sys.stdout)
+    if ret != 0:
+      pprint.err('Call to pager {0} failed'.format(pager))
+  except OSError:
+    pprint.err('Couldn\'t launch pager {0}'.format(pager))
+    pprint.err_exp('change the value of git\'s core.pager setting')
 
 
 class PathProcessor(argparse.Action):
