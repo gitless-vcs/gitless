@@ -68,17 +68,18 @@ def get_branch_or_use_upstream(branch_name, arg, repo):
 
 
 def page(fp, repo):
-  if sys.platform != 'win32': # e.g. Linux, BSD, Cygwin, Darwin
-    try:
-      pager = repo.config['core.pager']
-    except KeyError:
-      pager = '' # empty string will evaluate to False below
-    pager = pager or os.environ.get('PAGER', None) or 'less'
-    cmd = shlex.split(pager) # split into constituents
-    if os.path.basename(cmd[0]) == 'less':
-      cmd.extend(['-r', '-f']) # append arguments
-  else: # running on native Windows
-    cmd = ['more', '/C']
+  # On Windows, we need to call 'more' through cmd.exe (with 'cmd'). The /C is
+  # so that the command window gets closed after 'more' finishes
+  default_pager = 'less' if sys.platform != 'win32' else 'cmd /C more'
+  try:
+    pager = repo.config['core.pager']
+  except KeyError:
+    pager = '' # empty string will evaluate to False below
+  pager = pager or os.environ.get('PAGER', None) or default_pager
+  cmd = shlex.split(pager) # split into constituents
+  if os.path.basename(cmd[0]) == 'less':
+    cmd.extend(['-r', '-f']) # append arguments
+
   cmd.append(fp) # add file name to page command
   subprocess.call(cmd, stdin=sys.stdin, stdout=sys.stdout)
 
@@ -163,6 +164,11 @@ def oei_fs(args, repo):
     ret = frozenset(
         f.fp for f in curr_b.status()
         if f.type == core.GL_STATUS_TRACKED and f.modified) # using generator expression
+    # We get the files from status with forward slashes. On Windows, these
+    # won't match the paths provided by the user, which are normalized by
+    # PathProcessor
+    if sys.platform == 'win32':
+      ret = frozenset(p.replace('/', '\\') for p in ret)
     ret -= exclude
     ret |= include
 

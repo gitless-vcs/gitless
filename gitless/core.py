@@ -22,7 +22,14 @@ import re
 import shutil
 
 import pygit2
-from sh import git, ErrorReturnCode
+
+
+import sys
+if sys.platform != 'win32':
+  from sh import git, ErrorReturnCode
+else:
+  from pbs import Command, ErrorReturnCode
+  git = Command('git')
 
 git = git.bake('--no-pager')
 
@@ -769,8 +776,9 @@ class Branch(object):
   def _status_file(self, path):
     assert not os.path.isabs(path)
 
-    git_st = self.gl_repo.git_repo.status_file(path)
+    git_path = path if sys.platform != 'win32' else path.replace('\\', '/')
 
+    git_st = self.gl_repo.git_repo.status_file(git_path)
     root = self.gl_repo.root
     cmd_out = stdout(git('ls-files', '-v', '--full-name', path, _cwd=root))
     is_au = cmd_out and cmd_out[0] == 'h'
@@ -785,7 +793,8 @@ class Branch(object):
   def path_is_ignored(self, path):
     assert not os.path.isabs(path)
 
-    return self.gl_repo.git_repo.path_is_ignored(path)
+    git_path = path if sys.platform != 'win32' else path.replace('\\', '/')
+    return self.gl_repo.git_repo.path_is_ignored(git_path)
 
 
   # File related methods
@@ -809,7 +818,8 @@ class Branch(object):
     #   (ii) an assumed unchanged file => unmark it.
     if git_st == pygit2.GIT_STATUS_WT_NEW:  # Case (i)
       with self._index as index:
-        index.add(path)
+        git_path = path if sys.platform != 'win32' else path.replace('\\', '/')
+        index.add(git_path)
     elif is_au:  # Case (ii)
       git('update-index', '--no-assume-unchanged', path,
           _cwd=self.gl_repo.root)
@@ -834,12 +844,13 @@ class Branch(object):
     # If we reached this point we know that the file to untrack is a tracked
     # file. This means that in the Git world, the file could be either:
     #   (i)  a new file for Git that is staged (the user executed `gl track` on
-    #        an uncomitted file) => reset changes;
+    #        an uncommitted file) => reset changes;
     #   (ii) the file is a previously committed file => mark it as assumed
     #        unchanged.
     if git_st == pygit2.GIT_STATUS_INDEX_NEW:  # Case (i)
       with self._index as index:
-        index.remove(path)
+        git_path = path if sys.platform != 'win32' else path.replace('\\', '/')
+        index.remove(git_path)
     elif not is_au:  # Case (ii)
       git('update-index', '--assume-unchanged', path,
           _cwd=self.gl_repo.root)
@@ -855,39 +866,42 @@ class Branch(object):
       raise ValueError('File {0} has no conflicts'.format(path))
 
     with self._index as index:
-      index.add(path)
+      git_path = path if sys.platform != 'win32' else path.replace('\\', '/')
+      index.add(git_path)
 
   def checkout_file(self, path, commit):
     """Checkouts the given path at the given commit."""
     assert not os.path.isabs(path)
 
-    data = self.gl_repo.git_repo[commit.tree[path].id].data
+    git_path = path if sys.platform != 'win32' else path.replace('\\', '/')
+    data = self.gl_repo.git_repo[commit.tree[git_path].id].data
     with io.open(os.path.join(self.gl_repo.root, path), mode='wb') as dst:
       dst.write(data)
 
     # So as to not get confused with the status of the file we also add it
     with self._index as index:
-      index.add(path)
+      index.add(git_path)
 
   def diff_file(self, path):
     """Diff the working version of path with its committed version."""
     assert not os.path.isabs(path)
 
     git_repo = self.gl_repo.git_repo
+    git_path = path if sys.platform != 'win32' else path.replace('\\', '/')
     try:
-      blob_at_head = git_repo[git_repo.head.peel().tree[path].id]
+      blob_at_head = git_repo[git_repo.head.peel().tree[git_path].id]
     except KeyError:  # no blob at head
-      wt_blob = git_repo[git_repo.create_blob_fromworkdir(path)]
+      wt_blob = git_repo[git_repo.create_blob_fromworkdir(git_path)]
       nil_blob = git_repo[git_repo.create_blob('')]
-      return nil_blob.diff(wt_blob, 0, path, path)
+      return nil_blob.diff(wt_blob, 0, git_path, git_path)
 
     try:
-      wt_blob = git_repo[git_repo.create_blob_fromworkdir(path)]
+      wt_blob = git_repo[git_repo.create_blob_fromworkdir(git_path)]
     except KeyError:  # no blob at wd (the file was deleted)
       nil_blob = git_repo[git_repo.create_blob('')]
-      return blob_at_head.diff(nil_blob, 0, path, path)
+      return blob_at_head.diff(nil_blob, 0, git_path, git_path)
 
-    return blob_at_head.diff(wt_blob, 0, path, path)
+    return blob_at_head.diff(wt_blob, 0, git_path, git_path)
 
 
   # Merge related methods
@@ -1148,17 +1162,19 @@ class Branch(object):
         """Add/remove files to the index."""
         for f in files:
           assert not os.path.isabs(f)
+          git_f = f if sys.platform != 'win32' else f.replace('\\', '/')
           if not os.path.exists(os.path.join(self.gl_repo.root, f)):
-            index.remove(f)
+            index.remove(git_f)
           elif f not in partials:
-            index.add(f)
+            index.add(git_f)
 
       # Update index to how it should look like after the commit
       partial_entries = {}
       with index:
         update()
         for f in partials:
-          partial_entries[f] = index._git_index[f]
+          git_f = f if sys.platform != 'win32' else f.replace('\\', '/')
+          partial_entries[f] = index._git_index[git_f]
 
       # To create the commit tree with only the changes to the given files we:
       #   (i)   reset the index to HEAD,

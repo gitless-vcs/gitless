@@ -8,7 +8,13 @@
 from __future__ import unicode_literals
 
 import subprocess
-from sh import git
+
+import sys
+if sys.platform != 'win32':
+  from sh import git
+else:
+  from pbs import Command
+  git = Command('git')
 
 from gitless import core
 

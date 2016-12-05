@@ -12,7 +12,14 @@ import os
 import re
 import time
 
-from sh import ErrorReturnCode, gl, git
+import sys
+if sys.platform != 'win32':
+  from sh import ErrorReturnCode, gl, git
+else:
+  from pbs import ErrorReturnCode, Command
+  gl = Command('gl')
+  git = Command('git')
+
 
 from gitless.tests import utils
 
@@ -32,7 +39,12 @@ class TestEndToEnd(utils.TestBase):
     git.config('color.ui', False)
     # Disable paging so that we don't have to use sh's _tty_out option, which is
     # not available on pbs
-    git.config('core.pager', 'cat')
+    if sys.platform != 'win32':
+      git.config('core.pager', 'cat')
+    else:
+      # On Windows, we need to call 'type' through cmd.exe (with 'cmd'). The /C
+      # is so that the command window gets closed after 'type' finishes
+      git.config('core.pager', 'cmd /C type')
     utils.set_test_config()
 
 
@@ -228,9 +240,8 @@ class TestCommit(TestEndToEnd):
 class TestStatus(TestEndToEnd):
 
   DIR = 'dir'
-  TRACKED_DIR_FP = 'dir/file1'
-  TRACKED_DIR_FP = 'dir/file1'
-  UNTRACKED_DIR_FP = 'dir/file2'
+  TRACKED_DIR_FP = os.path.join('dir', 'file1')
+  UNTRACKED_DIR_FP = os.path.join('dir', 'file2')
 
   def setUp(self):
     super(TestStatus, self).setUp()
@@ -334,7 +345,7 @@ class TestTag(TestEndToEnd):
 class TestDiffFile(TestEndToEnd):
 
   TRACKED_FP = 't_fp'
-  DIR_TRACKED_FP = 'dir/t_fp'
+  DIR_TRACKED_FP = os.path.join('dir', 't_fp')
   UNTRACKED_FP = 'u_fp'
   DIR = 'dir'
 
@@ -386,6 +397,9 @@ class TestDiffFile(TestEndToEnd):
       self.fail()
 
   def test_diff_non_ascii(self):
+    if sys.platform == 'win32':
+      # Skip this test on Windows until we fix Unicode support
+      return
     contents = '’◕‿◕’©Ä☺’ಠ_ಠ’'
     utils.write_file(self.TRACKED_FP, contents=contents)
     out1 = utils.stdout(gl.diff())
@@ -413,12 +427,12 @@ class TestOp(TestEndToEnd):
       utils.append_to_file(fp, contents='contents {0}\n'.format(0))
       out = utils.stdout(gl.commit(m='ci 0 in {0}'.format(branch_name), inc=fp))
       self.commits[branch_name].append(
-          re.search(r'Commit Id: (.*)', out, re.UNICODE).group(1))
+          re.search(r'Commit Id: (\S*)', out, re.UNICODE).group(1))
       for i in range(1, self.COMMITS_NUMBER):
         utils.append_to_file(fp, contents='contents {0}\n'.format(i))
         out = utils.stdout(gl.commit(m='ci {0} in {1}'.format(i, branch_name)))
         self.commits[branch_name].append(
-            re.search(r'Commit Id: (.*)', out, re.UNICODE).group(1))
+            re.search(r'Commit Id: (\S*)', out, re.UNICODE).group(1))
 
     gl.branch(c=self.OTHER)
     create_commits('master', self.MASTER_FILE)
@@ -431,8 +445,8 @@ class TestFuse(TestOp):
 
   def __assert_history(self, expected):
     out = utils.stdout(gl.history())
-    cids = list(reversed(re.findall(r'ci (.*) in (.*)', out, re.UNICODE)))
-    self.assertEqual(
+    cids = list(reversed(re.findall(r'ci (.*) in (\S*)', out, re.UNICODE)))
+    self.assertItemsEqual(
         cids, expected, 'cids is ' + text(cids) + ' exp ' + text(expected))
 
     st_out = utils.stdout(gl.status())

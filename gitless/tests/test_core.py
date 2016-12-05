@@ -12,7 +12,12 @@ import os
 import shutil
 import tempfile
 
-from sh import git
+import sys
+if sys.platform != 'win32':
+  from sh import git
+else:
+  from pbs import Command
+  git = Command('git')
 
 from gitless import core
 import gitless.tests.utils as utils_lib
@@ -662,6 +667,9 @@ class TestFileDiff(TestFile):
     self.assertEqual('new line', hunk.lines[1].content)
 
   def test_diff_non_ascii(self):
+    if sys.platform == 'win32':
+      # Skip this test on Windows until we fix Unicode support
+      return
     fp = 'new'
     new_fp_contents = '’◕‿◕’©Ä☺’ಠ_ಠ’\n'
     utils_lib.write_file(fp, contents=new_fp_contents)
@@ -884,7 +892,7 @@ class TestRemote(TestCore):
   def tearDown(self):
     """Removes the temporary dir."""
     super(TestRemote, self).tearDown()
-    shutil.rmtree(self.remote_path)
+    utils_lib.rmtree(self.remote_path)
 
 
 class TestRemoteCreate(TestRemote):

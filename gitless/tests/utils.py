@@ -13,11 +13,16 @@ import logging
 import os
 import re
 import shutil
+import stat
 import sys
 import tempfile
 import unittest
 
-from sh import git, ErrorReturnCode
+if sys.platform != 'win32':
+  from sh import git, ErrorReturnCode
+else:
+  from pbs import ErrorReturnCode, Command
+  git = Command('git')
 
 
 IS_PY2 = sys.version_info[0] == 2
@@ -35,8 +40,7 @@ class TestBase(unittest.TestCase):
 
   def tearDown(self):
     """Removes the temporary dir."""
-    shutil.rmtree(self.path)
-    logging.debug('Removed dir {0}'.format(self.path))
+    rmtree(self.path)
 
   # Python 2/3 compatibility
   def assertItemsEqual(self, actual, expected, msg=None):
@@ -44,6 +48,8 @@ class TestBase(unittest.TestCase):
       return super(TestBase, self).assertItemsEqual(actual, expected, msg=msg)
     except AttributeError:
       try:
+        # Checks that actual and expected have the same elements in the same
+        # number, regardless of their order
         return super(TestBase, self).assertCountEqual(actual, expected, msg=msg)
       except AttributeError:
         return self.assertEqual(sorted(actual), sorted(expected), msg=msg)
@@ -56,6 +62,24 @@ class TestBase(unittest.TestCase):
       msg = stderr(e) if isinstance(e, ErrorReturnCode) else str(e)
       if not re.search(r, msg):
         self.fail('No "{0}" found in "{1}"'.format(r, msg))
+
+
+def rmtree(path):
+  # On Windows, running shutil.rmtree on a folder that contains read-only
+  # files throws errors. To workaround this, if removing a path fails, we make
+  # the path writable and then try again
+  def onerror(func, path, unused_exc_info):  # error handler for rmtree
+    if not os.access(path, os.W_OK):
+      os.chmod(path, stat.S_IWUSR)
+      func(path)
+    else:
+      # Swallow errors for now (on Windows there seems to be something weird
+      # going on and we can't remove the temp directory even after all files
+      # in it have been successfully removed)
+      pass
+
+  shutil.rmtree(path, onerror=onerror)
+  logging.debug('Removed dir {0}'.format(path))
 
 
 def write_file(fp, contents=''):

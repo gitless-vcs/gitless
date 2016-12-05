@@ -11,7 +11,11 @@ import sys
 import argparse
 import traceback
 import pygit2
-from sh import ErrorReturnCode
+
+if sys.platform != 'win32':
+  from sh import ErrorReturnCode
+else:
+  from pbs import ErrorReturnCode
 
 from clint.textui import colored
 
