@@ -289,14 +289,23 @@ def _format_line(diff_line, padding, bold_delim=None):
   """Format a standard diff line.
 
   Returns:
-    a colored version of the diff line using ANSI control characters.
+    a padded and colored version of the diff line with line numbers
   """
   # Color constants
-  GREEN = '\033[32m'
-  GREEN_BOLD = '\033[1;32m'
-  RED = '\033[31m'
-  RED_BOLD = '\033[1;31m'
-  CLEAR = '\033[0m'
+  # We only output colored lines if the coloring is enabled and we are not being
+  # piped or redirected
+  if colored.DISABLE_COLOR or not sys.stdout.isatty():
+    GREEN = ''
+    GREEN_BOLD = ''
+    RED = ''
+    RED_BOLD = ''
+    CLEAR = ''
+  else:
+    GREEN = '\033[32m'
+    GREEN_BOLD = '\033[1;32m'
+    RED = '\033[31m'
+    RED_BOLD = '\033[1;31m'
+    CLEAR = '\033[0m'
 
   formatted = ''
   st = diff_line.origin
