@@ -12,6 +12,7 @@ import os
 import subprocess
 import sys
 import shlex
+import shutil
 
 from gitless import core
 
@@ -68,6 +69,12 @@ def get_branch_or_use_upstream(branch_name, arg, repo):
 
 
 def page(fp, repo):
+  if not sys.stdout.isatty():  # we are being piped or redirected
+    # memory-friendly way to output contents of file to stdout
+    with open(fp, 'r') as f:
+      shutil.copyfileobj(f, sys.stdout)
+    return
+
   # On Windows, we need to call 'more' through cmd.exe (with 'cmd'). The /C is
   # so that the command window gets closed after 'more' finishes
   default_pager = 'less' if sys.platform != 'win32' else 'cmd /C more'
