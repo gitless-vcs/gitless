@@ -70,6 +70,9 @@ def get_branch_or_use_upstream(branch_name, arg, repo):
 
 def page(fp, repo):
   if not sys.stdout.isatty():  # we are being piped or redirected
+    # Prevent Python from throwing exceptions on SIGPIPE
+    from signal import signal, SIGPIPE, SIG_DFL
+    signal(SIGPIPE, SIG_DFL)
     # memory-friendly way to output contents of file to stdout
     with open(fp, 'r') as f:
       shutil.copyfileobj(f, sys.stdout)
