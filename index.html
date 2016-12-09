@@ -422,7 +422,7 @@ List of branches:
       point is the divergent point (the point where the source branch diverged
       from the current).
       For example, the following figure depicts a situation in which there are
-      two branches, <code>master</code> (the current branch) and
+      two branches: <code>master</code> (the current branch) and
       <code>develop</code>. The last commit these two branches have in common is
       <code>A</code>. This commit is the "divergent point" (because
       it is the point at which <code>master</code> and <code>develop</code>
@@ -525,13 +525,23 @@ successfully</span>
       To send changes upstream you use
       <code><a id="gl-publish">gl publish</a></code>. The publish command will
       default to updating the upstream branch of the current branch if none is
-      given as input. What if you want to create or delete a remote branch? You
-      can do so with the <code>gl branch</code> command. If you do
+      given as input.
+      </p>
+      <p>
+      <em>Creating, Deleting, or Listing Remote Branches</em>
+      To create, delete, or list remote branches you use the same <code>gl branch</code>
+      command that you use for local branches. If you do
       <code>gl branch -c experiment/develop</code> this will create a branch
-      <code>develop</code> that lives in the remote experiment
-      (same for delete). To list remote branches use the
-      <code>r/remote</code> flag of <code>gl branch</code>. Creating or deleting
-      remote tags works the same way as with remote branches. If you do
+      <code>develop</code> that lives in the remote <code>experiment</code>.
+      Recall that, by default, the head of this new branch will be equal to the head of
+      the current branch, so all commits that are not present in the remote
+      will be uploaded. To list remote branches use the
+      <code>r/remote</code> flag of <code>gl branch</code>.
+      </p>
+      <p>
+      <em>Creating, Deleting, or Listing Remote Tags</em>
+      To create or delete remote tags you use the <code>gl tag</code> command.
+      If you do
       <code>gl tag -c experiment/v1.0</code> this will create a new tag
       <code>v1.0</code> that lives in the remote experiment. You can also list
       remote tags with the <code>r/remote</code> flag of <code>gl tag</code>.
