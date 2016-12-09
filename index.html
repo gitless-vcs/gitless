@@ -378,8 +378,14 @@ List of branches:
       </div>
 
       <p>
-      Each branch has a head, which is the last commit done on the branch. To
-      change the head of a branch you use the <code>sh/set-head</code> flag.
+      Each branch has a head, which is the last commit done on the branch.
+      By default, the head of a new branch is going to be equal to the
+      head of the current branch. If you want a different commit to be the
+      head of the new branch you can use the <code>dp/divergent-point</code>
+      flag when creating the new branch.
+      </p>
+      <p>
+      To change the head of the current branch you use the <code>sh/set-head</code> flag.
       This won't touch your working directory, if you
       additionally want to reset your working directory to match the new head
       you use <code>gl checkout</code>.
