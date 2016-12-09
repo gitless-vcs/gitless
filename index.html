@@ -385,18 +385,17 @@ List of branches:
       <code>dp/divergent-point</code> flag.
       </p>
       <p>
-      To change the head of the current branch you use the <code>sh/set-head</code> flag.
-      This won't touch your working directory, if you
-      additionally want to reset your working directory to match the new head
-      you use <code>gl checkout</code>.
-      </p>
-      <p>
-      To specify the commit that is to become the new head of the branch
-      you can use its id, or you can specify it via an ancestry
+      To specify a commit you can use its id, or you can specify it via an ancestry
       reference with <code>~</code>: <code>HEAD~n</code> refers to
       the nth commit before head.
+      </p>
+      <p>
+      To change the head of the current branch you use the <code>sh/set-head</code> flag.
       The <code>sh</code> flag is useful to, for example, amend the last commit:
       to do so, run <code>gl branch -sh HEAD~1</code>.
+      Changing the head of the current branch won't touch your working directory, if you
+      additionally want to reset your working directory to match the new head
+      you use <code>gl checkout</code>.
       </p>
       <p>
       Eventually branches will end up having divergent
