@@ -34,7 +34,7 @@ ERRORS_FOUND = 1
 INTERNAL_ERROR = 3
 NOT_IN_GL_REPO = 4
 
-VERSION = '0.8.4'
+VERSION = '0.8.5'
 URL = 'http://gitless.com'
 
 

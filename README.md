@@ -27,18 +27,11 @@ way, you can keep using Git, and switch between Git and Gitless seamlessly.
 We currently require Git (1.7.12+) to be installed (but this requirement is
 going to disappear soon once we finish with our migration to pygit2).
 
-Note to Windows users: we currently have no binary release for Windows. If you
-are having trouble getting the latest version to work (we now depend
-on [pygit2](https://github.com/libgit2/pygit2) in addition to `git`), you can
-try v0.6.2 instead (which depends only
-on `git`) and people have managed to get it working.
-
 
 ### Binary releases
 
 Binary releases for Mac OS and Linux are available from the
-[Gitless's website](http://gitless.com "Gitless's website"). This is the easiest
-way to get Gitless.
+[Gitless's website](http://gitless.com "Gitless's website").
 
 If you've downloaded a binary release of Gitless everything is contained in the
 gl binary, so to install simply do:
@@ -82,11 +75,14 @@ Then, just do:
 
 ### Installing via Homebrew
 
-If you are using [Homebrew](http://brew.sh/ "Homebrew homepage"), a package manager for Mac OS, then you can simply install Gitless with:
+If you are using [Homebrew](http://brew.sh/ "Homebrew homepage"), a package
+manager for Mac OS, then you can simply install Gitless with:
+
 ```
 brew update
 brew install gitless
 ```
+
 Documentation
 -------------
 
@@ -109,10 +105,6 @@ feedback/questions/suggestions or shoot us an email
 
 
 If you're planning on submitting code here are some useful things to know:
-
-- We only have two branches, `master` and `develop`. We code in `develop` and
-merge the changes onto `master` when the changes are stable and we're ready to
-cut a new release. So you'll find on `develop` the latest changes
 
 - We follow (to some extent) the [Google Python Style Guide](
     https://google.github.io/styleguide/pyguide.html
