@@ -51,12 +51,19 @@ h4 {
   position: relative;
   margin-top: 40px;
   margin-bottom: 30px;
-  font-size: 2.9em;
   font-family: 'Droid Sans', Arial, Helvetica, sans-serif;
   letter-spacing: normal;
 }
 
-.header-gl { font-weight: bold; }
+.header-gl {
+  font-size: 2.9em;
+  font-weight: bold;
+}
+
+#header p {
+  color: gray;
+  margin-left: 4px;
+}
 
 .code {
   border: 1px solid rgba(0,0,0,0.8);;
@@ -114,8 +121,6 @@ li { margin-bottom: 5px; }
 #sidebar {
   float: right;
   position: relative;
-  padding-top: 20px;
-  margin-top: 20px;
 }
 
 #sidebar .top { margin-top: .69em; }
@@ -151,8 +156,6 @@ li { margin-bottom: 5px; }
 #main {
   float: left;
   position: relative;
-  padding-top: 20px;
-  margin-top: 20px;
 }
 
 #main p { width: 42em; }
