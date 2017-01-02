@@ -353,7 +353,7 @@ class TestDiffFile(TestEndToEnd):
     super(TestDiffFile, self).setUp()
     utils.write_file(self.TRACKED_FP)
     utils.write_file(self.DIR_TRACKED_FP)
-    gl.commit('-o', self.TRACKED_FP, self.DIR_TRACKED_FP, m='commit')
+    gl.commit(self.TRACKED_FP, self.DIR_TRACKED_FP, m='commit')
     utils.write_file(self.UNTRACKED_FP)
 
   def test_empty_diff(self):
@@ -472,7 +472,7 @@ class TestFuse(TestOp):
         self.__build(self.OTHER, cids=[0]) + self.__build('master'))
 
   def test_only_some(self):
-    gl.fuse(self.OTHER, '-o', self.commits[self.OTHER][:2])
+    gl.fuse(self.OTHER, self.commits[self.OTHER][:2])
     self.__assert_history(
         self.__build(self.OTHER, [0, 1]) + self.__build('master'))
 
