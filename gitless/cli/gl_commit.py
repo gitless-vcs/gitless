@@ -71,7 +71,7 @@ def main(args, repo):
 
   _auto_track(commit_files, curr_b)
   ci = curr_b.create_commit(commit_files, msg, partials=partials)
-  pprint.ok('Commit succeeded')
+  pprint.ok('Commit on branch {0} succeeded'.format(repo.current_branch))
 
   pprint.blank()
   pprint.commit(ci)
