@@ -30,6 +30,7 @@ def main(args, repo):
   if not b:
     pprint.err('Branch {0} doesn\'t exist'.format(args.branch))
     pprint.err_exp('to list existing branches do gl branch')
+    pprint.err_exp('to create a new branch do gl branch -c feature/foo')
     return False
 
   repo.switch_current_branch(b, move_over=args.move_over)
