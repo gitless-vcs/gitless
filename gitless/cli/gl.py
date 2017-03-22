@@ -50,11 +50,28 @@ except (core.NotInRepoError, KeyError):
   pass
 
 
+def print_help(parser):
+  """print help for humans"""
+  print(parser.description)
+  print('\ncommands:\n')
+
+  # https://stackoverflow.com/questions/20094215/argparse-subparser-monolithic-help-output
+  # retrieve subparsers from parser
+  subparsers_actions = [
+      action for action in parser._actions 
+      if isinstance(action, argparse._SubParsersAction)]
+  # there will probably only be one subparser_action,
+  # but better save than sorry
+  for subparsers_action in subparsers_actions:
+      # get all subparsers and print help
+      for choice in subparsers_action._choices_actions:
+          print('    {:<19} {}'.format(choice.dest, choice.help))
+
 def main():
   parser = argparse.ArgumentParser(
       description=(
-          'Gitless: a version control system built on top of Git. More info, '
-          'downloads and documentation available at {0}'.format(URL)),
+          'Gitless: a version control system built on top of Git.\nMore info, '
+          'downloads and documentation at {0}'.format(URL)),
       formatter_class=argparse.RawDescriptionHelpFormatter)
   parser.add_argument(
       '--version', action='version', version=(
@@ -71,7 +88,7 @@ def main():
     sub_cmd.parser(subparsers, repo)
 
   if len(sys.argv) == 1:
-    parser.print_help()
+    print_help(parser)
     return SUCCESS
 
   args = parser.parse_args()
