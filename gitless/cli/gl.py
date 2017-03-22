@@ -61,7 +61,7 @@ def print_help(parser):
       action for action in parser._actions 
       if isinstance(action, argparse._SubParsersAction)]
   # there will probably only be one subparser_action,
-  # but better save than sorry
+  # but better safe than sorry
   for subparsers_action in subparsers_actions:
       # get all subparsers and print help
       for choice in subparsers_action._choices_actions:
