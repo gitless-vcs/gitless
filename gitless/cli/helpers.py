@@ -151,8 +151,8 @@ class CommitIdProcessor(argparse.Action):
 
 def oei_flags(subparsers, repo):
   subparsers.add_argument(
-      '-o', '--only', nargs='+',
-      help='use only files given (files must be tracked modified or untracked)',
+      'only', nargs='*',
+      help='use only files given (tracked modified or untracked)',
       action=PathProcessor, repo=repo, metavar='file')
   subparsers.add_argument(
       '-e', '--exclude', nargs='+',
@@ -204,7 +204,7 @@ def _oei_validate(only, exclude, include, curr_b):
   """
   if only and (exclude or include):
     pprint.err(
-        'You provided a list of filenames to be committed only (-o) but also '
+        'You provided a list of filenames to be committed but also '
         'provided a list of files to be excluded (-e) or included (-i)')
     return False
 

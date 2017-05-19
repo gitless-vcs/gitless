@@ -181,39 +181,39 @@ class TestCommit(TestEndToEnd):
     self.__assert_commit(self.TRACKED_FP, self.DIR_TRACKED_FP)
 
   def test_commit_only(self):
-    gl.commit(o=self.TRACKED_FP, m='msg')
+    gl.commit(self.TRACKED_FP, m="msg")
     self.__assert_commit(self.TRACKED_FP)
 
   def test_commit_only_relative(self):
     os.chdir(self.DIR)
-    self.assertRaises(ErrorReturnCode, gl.commit, o=self.TRACKED_FP, m='msg')
-    gl.commit(o='../' + self.TRACKED_FP, m='msg')
+    self.assertRaises(ErrorReturnCode, gl.commit, self.TRACKED_FP, "-m='msg'")
+    gl.commit('../' + self.TRACKED_FP, m='msg')
     self.__assert_commit(self.TRACKED_FP)
 
   def test_commit_only_untrack(self):
-    gl.commit(o=self.UNTRACKED_FP, m='msg')
+    gl.commit("-m='msg'", self.UNTRACKED_FP)
     self.__assert_commit(self.UNTRACKED_FP)
 
   def test_commit_only_untrack_relative(self):
     os.chdir(self.DIR)
-    self.assertRaises(ErrorReturnCode, gl.commit, o=self.UNTRACKED_FP, m='msg')
-    gl.commit(o='../' + self.UNTRACKED_FP, m='msg')
+    self.assertRaises(ErrorReturnCode, gl.commit, self.UNTRACKED_FP, m='msg')
+    gl.commit('../' + self.UNTRACKED_FP, m='msg')
     self.__assert_commit(self.UNTRACKED_FP)
 
   def test_commit_include(self):
-    gl.commit(m='msg', include=self.UNTRACKED_FP)
+    gl.commit("-m='msg'", include=self.UNTRACKED_FP)
     self.__assert_commit(
         self.TRACKED_FP, self.DIR_TRACKED_FP, self.UNTRACKED_FP)
 
   def test_commit_exclude_include(self):
-    gl.commit(m='msg', include=self.UNTRACKED_FP, exclude=self.TRACKED_FP)
+    gl.commit("-m='msg'", include=self.UNTRACKED_FP, exclude=self.TRACKED_FP)
     self.__assert_commit(self.UNTRACKED_FP, self.DIR_TRACKED_FP)
 
   def test_commit_no_files(self):
     self.assertRaises(
         ErrorReturnCode, gl.commit, '--exclude',
         self.TRACKED_FP, self.DIR_TRACKED_FP, m='msg')
-    self.assertRaises(ErrorReturnCode, gl.commit, o='non-existent', m='msg')
+    self.assertRaises(ErrorReturnCode, gl.commit, 'non-existent', m='msg')
     self.assertRaises(
         ErrorReturnCode, gl.commit, m='msg', exclude='non-existent')
     self.assertRaises(
@@ -222,7 +222,7 @@ class TestCommit(TestEndToEnd):
   def test_commit_dir(self):
     fp = 'dir/f'
     utils.write_file(fp)
-    gl.commit(o=fp, m='msg')
+    gl.commit(fp, m='msg')
     self.__assert_commit('dir/f')
 
   def __assert_commit(self, *expected_committed):
@@ -247,7 +247,7 @@ class TestStatus(TestEndToEnd):
     super(TestStatus, self).setUp()
     utils.write_file(self.TRACKED_DIR_FP)
     utils.write_file(self.UNTRACKED_DIR_FP)
-    gl.commit(o=self.TRACKED_DIR_FP, m='commit')
+    gl.commit(self.TRACKED_DIR_FP, m='commit')
 
   def test_status_relative(self):
     utils.write_file(self.TRACKED_DIR_FP, contents='some modifications')
@@ -276,7 +276,7 @@ class TestBranch(TestEndToEnd):
   def setUp(self):
     super(TestBranch, self).setUp()
     utils.write_file('f')
-    gl.commit(o='f', m='commit')
+    gl.commit('f', m='commit')
 
   def test_create(self):
     gl.branch(c=self.BRANCH_1)
@@ -318,7 +318,7 @@ class TestTag(TestEndToEnd):
   def setUp(self):
     super(TestTag, self).setUp()
     utils.write_file('f')
-    gl.commit(o='f', m='commit')
+    gl.commit('f', m='commit')
 
   def test_create(self):
     gl.tag(c=self.TAG_1)
@@ -353,7 +353,7 @@ class TestDiffFile(TestEndToEnd):
     super(TestDiffFile, self).setUp()
     utils.write_file(self.TRACKED_FP)
     utils.write_file(self.DIR_TRACKED_FP)
-    gl.commit('-o', self.TRACKED_FP, self.DIR_TRACKED_FP, m='commit')
+    gl.commit(self.TRACKED_FP, self.DIR_TRACKED_FP, m='commit')
     utils.write_file(self.UNTRACKED_FP)
 
   def test_empty_diff(self):
@@ -361,7 +361,7 @@ class TestDiffFile(TestEndToEnd):
       self.fail()
 
   def test_diff_nonexistent_fp(self):
-    err = utils.stderr(gl.diff(o='file', _ok_code=[1]))
+    err = utils.stderr(gl.diff('file', _ok_code=[1]))
     if 'doesn\'t exist' not in err:
       self.fail()
 
@@ -370,7 +370,7 @@ class TestDiffFile(TestEndToEnd):
     out1 = utils.stdout(gl.diff())
     if '+contents' not in out1:
       self.fail()
-    out2 = utils.stdout(gl.diff(o=self.TRACKED_FP))
+    out2 = utils.stdout(gl.diff(self.TRACKED_FP))
     if '+contents' not in out2:
       self.fail()
     self.assertEqual(out1, out2)
@@ -385,14 +385,14 @@ class TestDiffFile(TestEndToEnd):
     if '+contents_dir_tracked' not in out1:
       self.fail()
     rel_dir_tracked_fp = os.path.relpath(self.DIR_TRACKED_FP, self.DIR)
-    out2 = utils.stdout(gl.diff(o=rel_dir_tracked_fp))
+    out2 = utils.stdout(gl.diff(rel_dir_tracked_fp))
     if '+contents_dir_tracked' not in out2:
       self.fail()
 
   def test_diff_dir(self):
     fp = 'dir/dir/f'
     utils.write_file(fp, contents='contents')
-    out = utils.stdout(gl.diff(o=fp))
+    out = utils.stdout(gl.diff(fp))
     if '+contents' not in out:
       self.fail()
 
@@ -405,7 +405,7 @@ class TestDiffFile(TestEndToEnd):
     out1 = utils.stdout(gl.diff())
     if '+' + contents not in out1:
       self.fail('out is ' + out1)
-    out2 = utils.stdout(gl.diff(o=self.TRACKED_FP))
+    out2 = utils.stdout(gl.diff(self.TRACKED_FP))
     if '+' + contents not in out2:
       self.fail('out is ' + out2)
     self.assertEqual(out1, out2)
@@ -722,7 +722,7 @@ class TestPerformance(TestEndToEnd):
   def test_branch_switch_performance(self):
     MAX_TOLERANCE = 100
 
-    gl.commit(o='f1', m='commit')
+    gl.commit('f1', m='commit')
 
     t = time.time()
     gl.branch(c='develop')
