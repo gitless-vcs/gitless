@@ -181,7 +181,7 @@ class TestCommit(TestEndToEnd):
     self.__assert_commit(self.TRACKED_FP, self.DIR_TRACKED_FP)
 
   def test_commit_only(self):
-    gl.commit(o=self.TRACKED_FP, m='msg')
+    gl.commit(self.TRACKED_FP, '-m="msg"')
     self.__assert_commit(self.TRACKED_FP)
 
   def test_commit_only_relative(self):
