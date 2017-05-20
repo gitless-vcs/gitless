@@ -1,0 +1,59 @@
+# Based on pygit2's appveyor config
+environment:
+  matrix:
+  - GENERATOR: 'Visual Studio 10'
+    PYTHON: 'C:\Python27\python.exe'
+  - GENERATOR: 'Visual Studio 10 Win64'
+    PYTHON: 'C:\Python27-x64\python.exe'
+  - GENERATOR: 'Visual Studio 10'
+    PYTHON: 'C:\Python33\python.exe'
+  - GENERATOR: 'Visual Studio 10 Win64'
+    PYTHON: 'C:\Python33-x64\python.exe'
+  - GENERATOR: 'Visual Studio 10'
+    PYTHON: 'C:\Python34\python.exe'
+  - GENERATOR: 'Visual Studio 10 Win64'
+    PYTHON: 'C:\Python34-x64\python.exe'
+  - GENERATOR: 'Visual Studio 14'
+    PYTHON: 'C:\Python35\python.exe'
+  - GENERATOR: 'Visual Studio 14 Win64'
+    PYTHON: 'C:\Python35-x64\python.exe'
+  - GENERATOR: 'Visual Studio 14'
+    PYTHON: 'C:\Python36\python.exe'
+  - GENERATOR: 'Visual Studio 14 Win64'
+    PYTHON: 'C:\Python36-x64\python.exe'
+
+init:
+  - cmd: '%PYTHON% -m pip install -U nose wheel'
+
+build_script:
+  - cmd: |
+      set LIBGIT2=%APPVEYOR_BUILD_FOLDER%\build\libgit2
+      git clone --depth=1 -b maint/v0.25 https://github.com/libgit2/libgit2.git libgit2
+      mkdir build
+      
+      cd build
+      cmake -DSTDCALL=OFF -DBUILD_CLAR=OFF -DCMAKE_INSTALL_PREFIX="%LIBGIT2%" ../libgit2 -G "%GENERATOR%"
+      cmake --build . --config Release --target install
+      cd ..
+      
+      IF "%GENERATOR%"=="Visual Studio 10 Win64" ( call "C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.cmd" )
+      
+      "%PYTHON%" setup.py bdist_wheel 
+
+before_test:
+  - cmd: git config --global user.name "appveyor-test"
+  - cmd: git config --global user.email "appveyor@test.com"
+
+test_script:
+  - ps: |
+      cp build\Release\git2.dll .
+      &$env:PYTHON setup.py nosetests --logging-level=WARN --with-xunit 
+      if ($LastExitCode -ne 0) { $host.SetShouldExit($LastExitCode) }
+      # upload results to AppVeyor
+      $wc = New-Object 'System.Net.WebClient'
+      $wc.UploadFile("https://ci.appveyor.com/api/testresults/junit/$($env:APPVEYOR_JOB_ID)", (Resolve-Path .\nosetests.xml))
+
+branches:
+  only:
+    - master
+    - develop
