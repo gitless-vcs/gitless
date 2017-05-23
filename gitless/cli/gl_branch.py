@@ -158,8 +158,8 @@ def _do_delete(delete_b, repo):
       branch_str = 'Branch {0} will be removed'.format(b.branch_name)
       remote_str = ''
       if isinstance(b, core.RemoteBranch):
-        remote_str = 'from remote repository {0}'.format(b.remote_name)
-      if not pprint.conf_dialog('{0} {1}'.format(branch_str, remote_str)):
+        remote_str = ' from remote repository {0}'.format(b.remote_name)
+      if not pprint.conf_dialog('{0}{1}'.format(branch_str, remote_str)):
         pprint.msg('Aborted: removal of branch {0}'.format(b))
         continue
 
