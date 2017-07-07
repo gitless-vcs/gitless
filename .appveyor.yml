@@ -25,6 +25,8 @@ environment:
 init:
   - cmd: '%PYTHON% -m pip install -U nose wheel pygit2'
 
+build: off
+
 before_test:
   - cmd: git config --global user.name "appveyor-test"
   - cmd: git config --global user.email "appveyor@test.com"
