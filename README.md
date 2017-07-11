@@ -4,8 +4,7 @@ Gitless
 [![PyPI version](https://badge.fury.io/py/gitless.svg)](
     http://badge.fury.io/py/gitless)
 [![homebrew](https://img.shields.io/homebrew/v/gitless.svg)](http://braumeister.org/formula/gitless)    
-[![Build Status](https://travis-ci.org/sdg-mit/gitless.svg?branch=develop)](
-    https://travis-ci.org/sdg-mit/gitless)
+[![Build Status](https://travis-ci.org/sdg-mit/gitless.svg?branch=master)](https://travis-ci.org/sdg-mit/gitless)
 
 [Gitless](http://gitless.com "Gitless's website") is an experimental version
 control system built on top of Git. Many
