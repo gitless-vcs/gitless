@@ -33,7 +33,10 @@ before_test:
 
 test_script:
   - ps: |
+      # e2e tests require `gl` binary
       &$env:PYTHON -m pip install .
+      # 'gl' is installed in Python Scripts directory
+      $env:PATH += ";$(Split-Path $env:PYTHON)\Scripts"
       &$env:PYTHON setup.py nosetests --logging-level=WARN --with-xunit 
       if ($LastExitCode -ne 0) { $host.SetShouldExit($LastExitCode) }
       # upload results to AppVeyor
