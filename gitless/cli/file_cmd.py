@@ -7,6 +7,8 @@
 
 from __future__ import unicode_literals
 
+from gitless import core
+
 from . import helpers, pprint
 
 
@@ -35,11 +37,16 @@ def main(subcmd):
 
     for fp in args.files:
       try:
+        empty_dir = fp.endswith(core.GL_KEEP_FILENAME)
         getattr(curr_b, subcmd + '_file')(fp)
+        if empty_dir:
+          fp = fp.replace(core.GL_KEEP_FILENAME, '')
         pprint.ok(
-            'File {0} is now a{1} {2}{3}d file'.format(
+            '{0} {1} is now a{2} {3}{4}d {5}'.format(
+              'Empty directory' if empty_dir else 'File',
               fp, 'n' if subcmd.startswith(VOWELS) else '', subcmd,
-              '' if subcmd.endswith('e') else 'e'))
+              '' if subcmd.endswith('e') else 'e',
+              'directory' if empty_dir else 'file'))
       except KeyError:
         pprint.err('Can\'t {0} non-existent file {1}'.format(subcmd, fp))
         success = False

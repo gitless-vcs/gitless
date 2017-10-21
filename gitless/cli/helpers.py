@@ -129,6 +129,9 @@ class PathProcessor(argparse.Action):
                 self.skip_dir_cb(curr_dir_rel)
               dirs[:] = []
               continue
+            if not fps:
+              open(os.path.join(curr_dir, core.GL_KEEP_FILENAME), 'a').close()
+              fps.append(core.GL_KEEP_FILENAME)
             for fp in fps:
               yield os.path.join(curr_dir_rel, fp)
         else:

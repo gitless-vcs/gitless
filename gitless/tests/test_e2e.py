@@ -683,6 +683,20 @@ class TestMerge(TestOp):
     self.assertTrue('contents 2' in contents)
 
 
+class TestEmptyDir(TestEndToEnd):
+
+  def test_track_empty_dir(self):
+    dir_to_track = 'wanted_empty_dir'
+    dir_to_track_path = os.path.join(self.path, dir_to_track)
+    os.mkdir(dir_to_track_path)
+    expected_out = 'Empty directory {0} is now a tracked directory'.format(
+      os.path.join(dir_to_track, ''))
+
+    out = utils.stdout(gl.track(dir_to_track_path))
+
+    self.assertIn(expected_out, out, 'Empty dir wasn\'t tracked')
+
+
 class TestPerformance(TestEndToEnd):
 
   FPS_QTY = 10000

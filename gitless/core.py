@@ -54,6 +54,8 @@ GL_STATUS_UNTRACKED = 1
 GL_STATUS_TRACKED = 2
 GL_STATUS_IGNORED = 3
 
+GL_KEEP_FILENAME = '.glkeep'
+
 
 def init_repository(url=None):
   """Creates a new Gitless's repository in the cwd.
