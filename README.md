@@ -113,4 +113,9 @@ Gitless's code so that your edits are consistent with the codebase
 
 - Finally, if you don't want [Travis](
     https://travis-ci.org/sdg-mit/gitless "Travis") to
-be mad at you, check that tests pass in Python 2.7 and 3.2+
+be mad at you, check that tests pass in Python 2.7 and 3.2+. Tests can be run with
+  ```
+  pip install nose
+  nosetests # run tests other than end-to-end tests
+  nosetests ./gitless/tests/test_e2e.py # run end-to-end tests
+  ```
