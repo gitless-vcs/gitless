@@ -23,7 +23,7 @@ environment:
     PYTHON: 'C:\Python36-x64\python.exe'
 
 init:
-  - cmd: '%PYTHON% -m pip install -U nose wheel pygit2'
+  - cmd: '%PYTHON% -m pip install -U nose wheel pygit2==0.26.1'
 
 build: off
 
