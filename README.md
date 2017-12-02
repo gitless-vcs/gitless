@@ -82,6 +82,12 @@ brew update
 brew install gitless
 ```
 
+### Windows Compatibility
+
+For now, Windows support is unavailable for Python3+ due to pbs dependency
+(which is not Python3 compatible). See
+[#146](https://github.com/sdg-mit/gitless/issues/146) for more info.
+
 Documentation
 -------------
 
