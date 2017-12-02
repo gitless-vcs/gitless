@@ -685,16 +685,59 @@ class TestMerge(TestOp):
 
 class TestEmptyDir(TestEndToEnd):
 
-  def test_track_empty_dir(self):
-    dir_to_track = 'wanted_empty_dir'
-    dir_to_track_path = os.path.join(self.path, dir_to_track)
-    os.mkdir(dir_to_track_path)
-    expected_out = 'Empty directory {0} is now a tracked directory'.format(
-      os.path.join(dir_to_track, ''))
+  def test_empty_dir_status(self):
+    untracked_empty_dir = self._mk_empty_dir('untracked_empty_dir')
 
-    out = utils.stdout(gl.track(dir_to_track_path))
+    out = utils.stdout(gl.status())
+
+    self.assertIn(untracked_empty_dir, out, 'Empty dir didn\'t appear in status')
+
+  def test_ignored_empty_dir_status(self):
+    ignored_empty_dir = self._mk_empty_dir('ignored_empty_dir')
+    utils.write_file(os.path.join(self.path, '.gitignore'), ignored_empty_dir)
+
+    out = utils.stdout(gl.status())
+
+    self.assertFalse(ignored_empty_dir in out,
+        'Ignored empty dir was listed in status')
+
+  def test_track_empty_dir(self):
+    dir_to_track = self._mk_empty_dir('wanted_empty_dir')
+    expected_out = 'Empty directory {0} is now a tracked directory'.format(
+      self._dir_path(dir_to_track))
+
+    out = utils.stdout(gl.track(dir_to_track))
 
     self.assertIn(expected_out, out, 'Empty dir wasn\'t tracked')
+
+  def test_tracked_empty_dir_status(self):
+    tracked_empty_dir = self._mk_empty_dir('tracked_empty_dir')
+    gl.track(tracked_empty_dir)
+    expected_out = '{0} (new directory)'.format(
+        self._dir_path(tracked_empty_dir))
+
+    out = utils.stdout(gl.status())
+
+    self.assertIn(expected_out, out, 'Didn\'t report newly tracked dir')
+
+  def test_untracked_empty_dir_status(self):
+    untracked_empty_dir = self._mk_empty_dir('untracked_empty_dir')
+    gl.track(untracked_empty_dir)
+    gl.commit(m = 'Add empty dir')
+    gl.untrack(untracked_empty_dir)
+    expected_out = '{0} (exists at head)'.format(
+        self._dir_path(untracked_empty_dir))
+
+    out = utils.stdout(gl.status())
+
+    self.assertIn(expected_out, out, 'Didn\'t report untracked dir')
+
+  def _mk_empty_dir(self, name):
+    os.mkdir(os.path.join(self.path, name))
+    return name
+
+  def _dir_path(self, path):
+    return os.path.join(path, '')
 
 
 class TestPerformance(TestEndToEnd):

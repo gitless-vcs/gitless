@@ -84,8 +84,10 @@ def _print_tracked_mod_files(tracked_mod_list, relative_paths, repo):
   for f in tracked_mod_list:
     exp = ''
     color = colored.yellow
+    is_keep_file = f.fp.endswith(core.GL_KEEP_FILENAME)
     if not f.exists_at_head:
-      exp = ' (new file)'
+      kind = 'directory' if is_keep_file else 'file'
+      exp = ' (new {0})'.format(kind)
       color = colored.green
     elif not f.exists_in_wd:
       exp = ' (deleted)'
@@ -97,6 +99,8 @@ def _print_tracked_mod_files(tracked_mod_list, relative_paths, repo):
     fp = os.path.relpath(os.path.join(root, f.fp)) if relative_paths else f.fp
     if fp == '.':
       continue
+    if is_keep_file:
+      fp = fp.replace(core.GL_KEEP_FILENAME, '')
 
     pprint.item(color(fp), opt_text=exp)
 
@@ -128,6 +132,8 @@ def _print_untracked_files(untracked_list, relative_paths, repo):
     fp = os.path.relpath(os.path.join(root, f.fp)) if relative_paths else f.fp
     if fp == '.':
       continue
+    if fp.endswith(core.GL_KEEP_FILENAME):
+      fp = fp.replace(core.GL_KEEP_FILENAME, '')
 
     pprint.item(color(fp), opt_text=exp)
 

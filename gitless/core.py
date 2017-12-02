@@ -771,6 +771,14 @@ class Branch(object):
         yield self.FileStatus(
             fp, GL_STATUS_UNTRACKED, True, exists_in_wd, True, False)
 
+    # find untracked empty dirs
+    for dirpath, dirs, files in os.walk('.', topdown=True):
+      dirs[:] = [d for d in dirs if d not in ['.git'] and not
+          self.path_is_ignored(d)]
+      if not dirs and not files:
+        yield self.FileStatus(dirpath, GL_STATUS_UNTRACKED, False, True, False,
+            False)
+
   def status_file(self, path):
     """Return the status (see FileStatus) of the given path."""
     return self._status_file(path)[0]
