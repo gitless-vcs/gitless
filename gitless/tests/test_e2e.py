@@ -20,6 +20,7 @@ else:
   gl = Command('gl')
   git = Command('git')
 
+from gitless import core
 
 from gitless.tests import utils
 
@@ -729,6 +730,25 @@ class TestEmptyDir(TestEndToEnd):
     out = utils.stdout(gl.status())
 
     self.assertIn(expected_out, out, 'Didn\'t report newly tracked dir')
+
+  def test_commit_empty_dir(self):
+    empty_dir = self._mk_empty_dir('wanted_empty_dir')
+    gl.track(empty_dir)
+    pipe = 'std.out'
+    gl.commit(_out = pipe, _bg = True)
+
+    f = open(pipe)
+    out = previous_out = ''
+    while(os.path.getsize(pipe) == 0 or out != previous_out):
+      time.sleep(0.1)
+      previous_out = out
+      f.seek(0)
+      out = f.read()
+    f.close()
+
+    self.assertIn(self._dir_path(empty_dir), out)
+    self.assertFalse(core.GL_KEEP_FILENAME in out,
+        'Output included gitless keep file name')
 
   def test_untracked_empty_dir_status(self):
     untracked_empty_dir = self._mk_empty_dir('untracked_empty_dir')

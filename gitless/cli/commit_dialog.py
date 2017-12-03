@@ -14,6 +14,7 @@ import subprocess
 import sys
 import shlex
 
+from gitless import core
 
 from . import pprint
 
@@ -56,6 +57,8 @@ def show(files, repo):
   pprint.msg(
       'These are the files whose changes will be committed:', stream=cf.write)
   for f in files:
+    if f.endswith(core.GL_KEEP_FILENAME):
+      f = f.replace(core.GL_KEEP_FILENAME, '')
     pprint.item(f, stream=cf.write)
   pprint.sep(stream=cf.write)
   cf.close()
