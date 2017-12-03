@@ -99,8 +99,7 @@ def _print_tracked_mod_files(tracked_mod_list, relative_paths, repo):
     fp = os.path.relpath(os.path.join(root, f.fp)) if relative_paths else f.fp
     if fp == '.':
       continue
-    if is_keep_file:
-      fp = fp.replace(core.GL_KEEP_FILENAME, '')
+    fp = helpers.remove_keep_file_name(fp)
 
     pprint.item(color(fp), opt_text=exp)
 
@@ -132,8 +131,7 @@ def _print_untracked_files(untracked_list, relative_paths, repo):
     fp = os.path.relpath(os.path.join(root, f.fp)) if relative_paths else f.fp
     if fp == '.':
       continue
-    if fp.endswith(core.GL_KEEP_FILENAME):
-      fp = fp.replace(core.GL_KEEP_FILENAME, '')
+    fp = helpers.remove_keep_file_name(fp)
 
     pprint.item(color(fp), opt_text=exp)
 

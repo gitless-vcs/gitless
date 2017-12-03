@@ -251,3 +251,9 @@ def _oei_validate(only, exclude, include, curr_b):
   for e in err:
     pprint.err(e)
   return False
+
+
+def remove_keep_file_name(fp):
+  if(fp.endswith(core.GL_KEEP_FILENAME)):
+    return fp.replace(core.GL_KEEP_FILENAME, '')
+  return fp

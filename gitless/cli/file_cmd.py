@@ -39,8 +39,7 @@ def main(subcmd):
       try:
         empty_dir = fp.endswith(core.GL_KEEP_FILENAME)
         getattr(curr_b, subcmd + '_file')(fp)
-        if empty_dir:
-          fp = fp.replace(core.GL_KEEP_FILENAME, '')
+        fp = helpers.remove_keep_file_name(fp)
         pprint.ok(
             '{0} {1} is now a{2} {3}{4}d {5}'.format(
               'Empty directory' if empty_dir else 'File',
