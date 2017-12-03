@@ -710,6 +710,16 @@ class TestEmptyDir(TestEndToEnd):
 
     self.assertIn(expected_out, out, 'Empty dir wasn\'t tracked')
 
+  def test_track_parent_empty_dir(self):
+    parent_empty_dir = self._mk_empty_dir('parent_empty_dir')
+    child_dir = self._mk_empty_dir(os.path.join(parent_empty_dir, 'child_dir'))
+    unexpected_out = 'Empty directory {0} is now a tracked directory'.format(
+        os.path.join(child_dir, ''))
+
+    out = utils.stdout(gl.track(parent_empty_dir))
+
+    self.assertFalse(unexpected_out in out, 'Tracked empty dir child')
+
   def test_tracked_empty_dir_status(self):
     tracked_empty_dir = self._mk_empty_dir('tracked_empty_dir')
     gl.track(tracked_empty_dir)
