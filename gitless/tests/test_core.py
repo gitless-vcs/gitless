@@ -890,7 +890,7 @@ class TestRemote(TestCore):
     remote_repo = core.init_repository()
     remote_repo.create_branch(
         REMOTE_BRANCH, remote_repo.revparse_single('HEAD'))
-    git.submodule('add', self.submodule_repo_path)
+    git.submodule('add', '-f', self.submodule_repo_path)
     git.commit('-m add submodule')
 
     # Go back to the original repo
