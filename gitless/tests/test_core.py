@@ -878,12 +878,20 @@ class TestRemote(TestCore):
     """Creates temporary local Git repo to use as the remote."""
     super(TestRemote, self).setUp()
 
+    # Create a repo for including in remote as a submodule
+    self.submodule_repo_path = tempfile.mkdtemp(prefix='gl-remote-test-submodule')
+    os.chdir(self.submodule_repo_path)
+    submodule_repo = core.init_repository()
+    git.commit(allow_empty=True, m='Initialize submodule repository')
+
     # Create a repo to use as the remote
     self.remote_path = tempfile.mkdtemp(prefix='gl-remote-test')
     os.chdir(self.remote_path)
     remote_repo = core.init_repository()
     remote_repo.create_branch(
         REMOTE_BRANCH, remote_repo.revparse_single('HEAD'))
+    git.submodule('add', self.submodule_repo_path)
+    git.commit('-m add submodule')
 
     # Go back to the original repo
     os.chdir(self.path)
@@ -893,6 +901,18 @@ class TestRemote(TestCore):
     """Removes the temporary dir."""
     super(TestRemote, self).tearDown()
     utils_lib.rmtree(self.remote_path)
+
+
+class TestInitFromRemote(TestRemote):
+
+  def test_clone_from_remote(self):
+    new_repo_path = tempfile.mkdtemp(prefix='gl-init-from-remote-test')
+    os.chdir(new_repo_path)
+    new_repo = core.init_repository(url=self.remote_path)
+    submodule_dir = os.path.basename(self.submodule_repo_path)
+
+    self.assertFalse(len(os.listdir(submodule_dir)) == 0,
+        'Submodules were not initialized')
 
 
 class TestRemoteCreate(TestRemote):
