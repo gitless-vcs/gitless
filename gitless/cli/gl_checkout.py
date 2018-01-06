@@ -23,7 +23,7 @@ def parser(subparsers, repo):
       dest='cp', default='HEAD')
   checkout_parser.add_argument(
       'files', nargs='+', help='the file(s) to checkout',
-      action=helpers.PathProcessor, repo=repo)
+      action=helpers.PathProcessor, repo=repo, recursive=False)
   checkout_parser.set_defaults(func=main)
 
 
@@ -51,6 +51,13 @@ def main(args, repo):
       pprint.ok(
           'File {0} checked out successfully to its state at {1}'.format(
               fp, cp))
+    except core.PathIsDirectoryError:
+      commit = repo.revparse_single(cp)
+      for fp in curr_b.get_paths(fp, commit):
+        curr_b.checkout_file(fp, commit)
+        pprint.ok(
+            'File {0} checked out successfully to its state at {1}'.format(
+                fp, cp))
     except KeyError:
       pprint.err('Checkout aborted')
       pprint.err('There\'s no file {0} at {1}'.format(fp, cp))

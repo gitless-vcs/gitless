@@ -58,7 +58,7 @@ def print_help(parser):
   # https://stackoverflow.com/questions/20094215/argparse-subparser-monolithic-help-output
   # retrieve subparsers from parser
   subparsers_actions = [
-      action for action in parser._actions 
+      action for action in parser._actions
       if isinstance(action, argparse._SubParsersAction)]
   # there will probably only be one subparser_action,
   # but better safe than sorry

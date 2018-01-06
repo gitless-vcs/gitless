@@ -105,10 +105,11 @@ class PathProcessor(argparse.Action):
 
   def __init__(
       self, option_strings, dest, repo=None, skip_dir_test=None,
-      skip_dir_cb=None, **kwargs):
+      skip_dir_cb=None, recursive=True, **kwargs):
     self.repo = repo
     self.skip_dir_test = skip_dir_test
     self.skip_dir_cb = skip_dir_cb
+    self.recursive = recursive
     super(PathProcessor, self).__init__(option_strings, dest, **kwargs)
 
   def __call__(self, parser, namespace, paths, option_string=None):
@@ -117,7 +118,7 @@ class PathProcessor(argparse.Action):
     def process_paths():
       for path in paths:
         path = os.path.abspath(path)
-        if os.path.isdir(path):
+        if self.recursive and os.path.isdir(path):
           for curr_dir, dirs, fps in os.walk(path, topdown=True):
             if curr_dir.startswith(repo_dir):
               dirs[:] = []
@@ -134,6 +135,8 @@ class PathProcessor(argparse.Action):
         else:
           if not path.startswith(repo_dir):
             yield os.path.relpath(path, root)
+          else:
+            yield path
 
     setattr(namespace, self.dest, process_paths())
 

@@ -8,6 +8,7 @@
 from __future__ import unicode_literals
 
 import collections
+import errno
 import io
 try:
   from itertools import izip as zip
@@ -46,6 +47,8 @@ class NotInRepoError(GlError): pass
 class BranchIsCurrentError(GlError): pass
 
 class ApplyFailedError(GlError): pass
+
+class PathIsDirectoryError(ValueError): pass
 
 
 # File status
@@ -165,7 +168,7 @@ class Repository(object):
     return self.git_repo.lookup_reference(ref).target
 
 
-  # Tag related methods
+  # Tag-related methods
 
   def create_tag(self, name, commit):
     tagger = self.git_repo.default_signature
@@ -200,7 +203,7 @@ class Repository(object):
         yield ref[10:]
 
 
-  # Branch related methods
+  # Branch-related methods
 
   @property
   def current_branch(self):
@@ -450,7 +453,7 @@ class Remote(object):
     self.url = self.git_remote.url
 
 
-  # Branch related methods
+  # Branch-related methods
 
   def create_branch(self, name, head):
     if self.lookup_branch(name):
@@ -489,7 +492,7 @@ class Remote(object):
     return RemoteBranch(git_branch, self.gl_repo)
 
 
-  # Tag related methods
+  # Tag-related methods
 
   def create_tag(self, name, commit):
     if self.lookup_tag(name):
@@ -774,11 +777,9 @@ class Branch(object):
     return self._status_file(path)[0]
 
   def _status_file(self, path):
-    assert not os.path.isabs(path)
+    _check_path_is_repo_relative(path)
 
-    git_path = path if sys.platform != 'win32' else path.replace('\\', '/')
-
-    git_st = self.gl_repo.git_repo.status_file(git_path)
+    git_st = self.gl_repo.git_repo.status_file(_get_git_path(path))
     root = self.gl_repo.root
     cmd_out = stdout(git('ls-files', '-v', '--full-name', path, _cwd=root))
     is_au = cmd_out and cmd_out[0] == 'h'
@@ -791,17 +792,17 @@ class Branch(object):
     return f_st, git_st, is_au
 
   def path_is_ignored(self, path):
-    assert not os.path.isabs(path)
+    _check_path_is_repo_relative(path)
 
-    git_path = path if sys.platform != 'win32' else path.replace('\\', '/')
+    git_path = _get_git_path(path)
     return self.gl_repo.git_repo.path_is_ignored(git_path)
 
 
-  # File related methods
+  # File-related methods
 
   def track_file(self, path):
     """Start tracking changes to path."""
-    assert not os.path.isabs(path)
+    _check_path_is_repo_relative(path)
 
     gl_st, git_st, is_au = self._status_file(path)
 
@@ -818,7 +819,7 @@ class Branch(object):
     #   (ii) an assumed unchanged file => unmark it.
     if git_st == pygit2.GIT_STATUS_WT_NEW:  # Case (i)
       with self._index as index:
-        git_path = path if sys.platform != 'win32' else path.replace('\\', '/')
+        git_path = _get_git_path(path)
         index.add(git_path)
     elif is_au:  # Case (ii)
       git('update-index', '--no-assume-unchanged', path,
@@ -828,7 +829,7 @@ class Branch(object):
 
   def untrack_file(self, path):
     """Stop tracking changes to path."""
-    assert not os.path.isabs(path)
+    _check_path_is_repo_relative(path)
 
     gl_st, git_st, is_au = self._status_file(path)
 
@@ -849,7 +850,7 @@ class Branch(object):
     #        unchanged.
     if git_st == pygit2.GIT_STATUS_INDEX_NEW:  # Case (i)
       with self._index as index:
-        git_path = path if sys.platform != 'win32' else path.replace('\\', '/')
+        git_path = _get_git_path(path)
         index.remove(git_path)
     elif not is_au:  # Case (ii)
       git('update-index', '--assume-unchanged', path,
@@ -859,35 +860,66 @@ class Branch(object):
 
   def resolve_file(self, path):
     """Mark the given path as resolved."""
-    assert not os.path.isabs(path)
+    _check_path_is_repo_relative(path)
 
     gl_st, _, _ = self._status_file(path)
     if not gl_st.in_conflict:
       raise ValueError('File {0} has no conflicts'.format(path))
 
     with self._index as index:
-      git_path = path if sys.platform != 'win32' else path.replace('\\', '/')
+      git_path = _get_git_path(path)
       index.add(git_path)
 
   def checkout_file(self, path, commit):
     """Checkouts the given path at the given commit."""
-    assert not os.path.isabs(path)
+    _check_path_is_repo_relative(path)
 
-    git_path = path if sys.platform != 'win32' else path.replace('\\', '/')
-    data = self.gl_repo.git_repo[commit.tree[git_path].id].data
-    with io.open(os.path.join(self.gl_repo.root, path), mode='wb') as dst:
-      dst.write(data)
+    git_path = _get_git_path(path)
+    o = self.gl_repo.git_repo[commit.tree[git_path].id]
+    assert o.type != pygit2.GIT_OBJ_COMMIT
+    assert o.type != pygit2.GIT_OBJ_TAG
 
-    # So as to not get confused with the status of the file we also add it
-    with self._index as index:
-      index.add(git_path)
+    if o.type == pygit2.GIT_OBJ_BLOB:
+      full_path = os.path.join(self.gl_repo.root, path)
+      dirname = os.path.dirname(full_path)
+      if not os.path.exists(dirname):
+        try:
+          os.makedirs(dirname)
+        except OSError as exc: # guard against race condition
+          if exc.errno != errno.EEXIST:
+            raise
+      with io.open(full_path, mode='wb') as dst:
+        dst.write(o.data)
+
+    elif o.type == pygit2.GIT_OBJ_TREE:
+        raise PathIsDirectoryError(
+          'Path {0} at {1} is a directory and not a file'.format(
+              path, commit.id))
+    else:
+        raise Exception('Unexpected object type {0}'.format(o.type))
+
+  def get_paths(self, path, commit):
+    """Return a generator of all filepaths under path at commit."""
+    _check_path_is_repo_relative(path)
+
+    git_path = _get_git_path(path)
+    tree = self.gl_repo.git_repo[commit.tree[git_path].id]
+    assert tree.type == pygit2.GIT_OBJ_TREE
+
+    for tree_entry in tree:
+      tree_entry_path = os.path.join(path, tree_entry.name)
+      if tree_entry.type == 'tree':
+        for fp in self.get_paths(tree_entry_path, commit):
+          yield fp
+      else:
+        yield tree_entry_path
 
   def diff_file(self, path):
     """Diff the working version of path with its committed version."""
-    assert not os.path.isabs(path)
+    _check_path_is_repo_relative(path)
 
     git_repo = self.gl_repo.git_repo
-    git_path = path if sys.platform != 'win32' else path.replace('\\', '/')
+    git_path = _get_git_path(path)
     try:
       blob_at_head = git_repo[git_repo.head.peel().tree[git_path].id]
     except KeyError:  # no blob at head
@@ -904,7 +936,7 @@ class Branch(object):
     return blob_at_head.diff(wt_blob, 0, git_path, git_path)
 
 
-  # Merge related methods
+  # Merge-related methods
 
   def merge(self, src, op_cb=None):
     """Merges the divergent changes of the src branch onto this one."""
@@ -949,7 +981,7 @@ class Branch(object):
     git.merge(abort=True)
 
 
-  # Fuse related methods
+  # Fuse-related methods
 
   @property
   def _fuse_commits_fp(self):
@@ -1162,7 +1194,7 @@ class Branch(object):
         """Add/remove files to the index."""
         for f in files:
           assert not os.path.isabs(f)
-          git_f = f if sys.platform != 'win32' else f.replace('\\', '/')
+          git_f = _get_git_path(f)
           if not os.path.exists(os.path.join(self.gl_repo.root, f)):
             index.remove(git_f)
           elif f not in partials:
@@ -1173,7 +1205,7 @@ class Branch(object):
       with index:
         update()
         for f in partials:
-          git_f = f if sys.platform != 'win32' else f.replace('\\', '/')
+          git_f = _get_git_path(f)
           partial_entries[f] = index._git_index[git_f]
 
       # To create the commit tree with only the changes to the given files we:
@@ -1302,3 +1334,11 @@ def walker(git_repo, target, reverse):
   if reverse:
     flags = flags | pygit2.GIT_SORT_REVERSE
   return git_repo.walk(target, flags)
+
+def _get_git_path(path):
+  return path if sys.platform != 'win32' else path.replace('\\', '/')
+
+def _check_path_is_repo_relative(path):
+  if os.path.isabs(path):
+    raise ValueError(
+      "path {0} is absolute but should be relative to the repo root".format(path))
