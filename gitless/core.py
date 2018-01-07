@@ -891,6 +891,15 @@ class Branch(object):
       with io.open(full_path, mode='wb') as dst:
         dst.write(o.data)
 
+      # So as to not get confused with the status of the file we also add it.
+      # This prevents getting into a situation in which the staged version is
+      # different from the working version. In such a case, the file would
+      # appear as modified to Gitless when it shouldn't. This is also consistent
+      # with the behavior of `git checkout <commit> <file>` that also adds the
+      # file to the staging area.
+      with self._index as index:
+        index.add(git_path)
+
     elif o.type == pygit2.GIT_OBJ_TREE:
         raise PathIsDirectoryError(
           'Path {0} at {1} is a directory and not a file'.format(
