@@ -61,8 +61,6 @@ def get_branch_or_use_upstream(branch_name, arg, repo):
           'branch set'.format(arg))
 
     ret = current_b.upstream
-    pprint.warn(
-        'No {0} branch specified, using upstream branch {1}'.format(arg, ret))
   else:
     ret = get_branch(branch_name, repo)
   return ret
