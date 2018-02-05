@@ -72,11 +72,11 @@ setup(
     url='http://gitless.com',
     packages=['gitless', 'gitless.cli'],
     install_requires=reqs,
-    license='GPLv2',
+    license='MIT',
     classifiers=(
         'Development Status :: 2 - Pre-Alpha',
         'Intended Audience :: Developers',
-        'License :: OSI Approved :: GNU General Public License v2 (GPLv2)',
+        'License :: OSI Approved :: MIT License',
         'Natural Language :: English',
         'Programming Language :: Python',
         'Programming Language :: Python :: 2',

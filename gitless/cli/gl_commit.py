@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-# Gitless - a version control system built on top of Git.
-# Licensed under GNU GPL v2.
+# Gitless - a version control system built on top of Git
+# Licensed under MIT
 
 """gl commit - Record changes in the local repository."""
 
