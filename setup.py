@@ -36,10 +36,10 @@ if sys.argv[-1] == 'gl-build':
   sys.exit()
 
 
-reqs = ['pygit2>=0.24.0', 'clint>=0.3.6']
+reqs = ['pygit2==0.24.0', 'clint==0.3.6']
 
 if sys.platform != 'win32':
-  reqs.append('sh>=1.11')
+  reqs.append('sh==1.11')
 else:
   reqs.append('pbs>=0.11')
 
