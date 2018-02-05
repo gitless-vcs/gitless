@@ -43,10 +43,6 @@ if sys.platform != 'win32':
 else:
   reqs.append('pbs>=0.11')
 
-if sys.version_info < (2, 7) or (
-    sys.version_info < (3, 3) and sys.version_info > (3, 0)):
-  reqs.append('argparse')
-
 
 ld = """
 Gitless is an experimental version control system built on top of Git.
@@ -80,12 +76,7 @@ setup(
         'Natural Language :: English',
         'Programming Language :: Python',
         'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.6',
-        'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.2',
-        'Programming Language :: Python :: 3.3',
-        'Programming Language :: Python :: 3.4',
         'Topic :: Software Development :: Version Control'),
     entry_points={
         'console_scripts': [
