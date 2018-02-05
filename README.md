@@ -1,10 +1,10 @@
 Gitless
 =======
 
-[![PyPI version](https://badge.fury.io/py/gitless.svg)](
+[![PyPI version](https://badge.fury.io/py/gitless.png)](
     http://badge.fury.io/py/gitless "PyPI version")
 [![Homebrew Formula](https://img.shields.io/homebrew/v/gitless.svg)](http://braumeister.org/formula/gitless "Homebrew Formula")    
-[![Travis Build Status](https://travis-ci.org/sdg-mit/gitless.svg?branch=master)](https://travis-ci.org/sdg-mit/gitless "Travis Build Status")
+[![Travis Build Status](https://travis-ci.org/sdg-mit/gitless.png?branch=master)](https://travis-ci.org/sdg-mit/gitless "Travis Build Status")
 [![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/github/sdg-mit/gitless?svg=true)](https://ci.appveyor.com/project/spderosso/gitless "AppVeyor Build Status")
 
 [Gitless](http://gitless.com "Gitless's website") is an experimental version
