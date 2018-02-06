@@ -18,7 +18,7 @@ before_test:
 test_script:
   - ps: |
       # e2e tests require `gl` binary
-      &$env:PYTHON -m pip install .
+      &$env:PYTHON -m pip install . -r requirements.txt
       # 'gl' is installed in Python Scripts directory
       $env:PATH += ";$(Split-Path $env:PYTHON)\Scripts"
       &$env:PYTHON setup.py nosetests --logging-level=WARN --with-xunit 
