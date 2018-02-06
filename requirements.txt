@@ -1,4 +1,4 @@
 pygit2==0.26.3  # requires libgit2 0.26
 clint==0.5.1
 sh==1.12.14;sys_platform!='win32'
-pbs==0.11;sys_platform=='win32'
+pbs==0.110;sys_platform=='win32'
