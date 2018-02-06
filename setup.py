@@ -2,12 +2,19 @@
 # -*- coding: utf-8 -*-
 
 
+import ast
+import re
 import sys
 
 from setuptools import setup
 
 
-VERSION = '0.8.5'
+_version_re = re.compile(r'__version__\s+=\s+(.*)')
+
+
+with open('gitless/cli/gl.py', 'rb') as f:
+  version = str(ast.literal_eval(_version_re.search(
+    f.read().decode('utf-8')).group(1)))
 
 
 # Build helper
@@ -18,7 +25,7 @@ if sys.argv[-1] == 'gl-build':
   import platform
 
   rel = 'gl-v{0}-{1}-{2}'.format(
-      VERSION, platform.system().lower(), platform.machine())
+      version, platform.system().lower(), platform.machine())
 
   print('running pyinstaller...')
   pyinstaller(
@@ -52,7 +59,7 @@ website <http://gitless.com>`__.
 
 setup(
     name='gitless',
-    version=VERSION,
+    version=version,
     description='A version control system built on top of Git',
     long_description=ld,
     author='Santiago Perez De Rosso',

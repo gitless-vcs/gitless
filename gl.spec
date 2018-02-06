@@ -3,12 +3,9 @@ import os
 
 a = Analysis(['gl.py'],
              pathex=[os.getcwd()],
-             hiddenimports=['pygit2_cffi_51591433xe8494016'],
              hookspath=None,
              runtime_hooks=None)
 
-# this is a file pygit2 requires
-a.datas += [('decl.h', '../pygit2/pygit2/decl.h', 'DATA')]
 
 pyz = PYZ(a.pure)
 exe = EXE(pyz,
