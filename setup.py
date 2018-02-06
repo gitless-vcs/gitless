@@ -36,14 +36,6 @@ if sys.argv[-1] == 'gl-build':
   sys.exit()
 
 
-reqs = ['pygit2==0.24.0', 'clint==0.3.6']
-
-if sys.platform != 'win32':
-  reqs.append('sh==1.11')
-else:
-  reqs.append('pbs>=0.11')
-
-
 ld = """
 Gitless is an experimental version control system built on top of Git.
 Many people complain that Git is hard to use. We think the problem lies
@@ -67,7 +59,11 @@ setup(
     author_email='sperezde@csail.mit.edu',
     url='http://gitless.com',
     packages=['gitless', 'gitless.cli'],
-    install_requires=reqs,
+    install_requires=[
+      'pygit2>=0.24.0',
+      'clint>=0.3.6',
+      'sh>=1.11' if sys.platform != 'win32' else 'pbs>=0.11'
+    ],
     license='MIT',
     classifiers=(
         'Development Status :: 2 - Pre-Alpha',
