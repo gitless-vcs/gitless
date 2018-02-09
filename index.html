@@ -37,23 +37,23 @@
       <!-- Begin Download -->
       <h1><span>Downloads</span></h1>
       <div>
-        <p style="margin-top: 2em; font-size: small">Latest release: v0.8.5
-        (<a href="https://github.com/sdg-mit/gitless/releases/tag/v0.8.5">release notes</a>)
-        <span style="color: gray">Released on Dec 21 2016</span>
+        <p style="margin-top: 2em; font-size: small">Latest release: v0.8.6
+        (<a href="https://github.com/sdg-mit/gitless/releases/tag/v0.8.6">release notes</a>)
+        <span style="color: gray">Released on Feb 9 2018</span>
         </p>
         <ul>
           <li>
-            <a href="https://github.com/sdg-mit/gitless/releases/download/v0.8.5/gl-v0.8.5-darwin-x86_64.tar.gz">
+            <a href="https://github.com/sdg-mit/gitless/releases/download/v0.8.6/gl-v0.8.6-darwin-x86_64.tar.gz">
             macOS Binary (.tar.gz)
             </a>
           </li>
           <li>
-            <a href="https://github.com/sdg-mit/gitless/releases/download/v0.8.5/gl-v0.8.5-linux-x86_64.tar.gz">
+            <a href="https://github.com/sdg-mit/gitless/releases/download/v0.8.6/gl-v0.8.6-linux-x86_64.tar.gz">
             Linux Binary (.tar.gz)
             </a>
           </li>
           <li>
-            <a href="https://github.com/sdg-mit/gitless/archive/v0.8.5.tar.gz">
+            <a href="https://github.com/sdg-mit/gitless/archive/v0.8.6.tar.gz">
             Source Code (.tar.gz)
             </a>
           </li>
@@ -61,9 +61,8 @@
 
         <p>
         After installation, you should be able to execute the <code>gl</code>
-        command. Gitless is licensed under the 
-        <a href="https://github.com/sdg-mit/gitless/blob/master/LICENSE.md">GPL
-        v2</a>
+        command. Gitless is licensed under 
+        <a href="https://github.com/sdg-mit/gitless/blob/master/LICENSE.md">MIT</a>
         </p>
         <p style="font-size: small">
           <a href="https://github.com/sdg-mit/gitless/blob/master/README.md#install">
@@ -300,14 +299,14 @@ overwritten by checkout. Do you wish to continue? (y/N)
       To save changes to files you use
       <code><a id="gl-commit">gl commit</a></code>.
       By default, all tracked modified files are considered
-      for commit, but the set of files to commit can be customized with the
-      <code>o/only</code>, <code>e/exclude</code>, and <code>i/include</code>
+      for commit, but the set of files to commit can be customized by listing
+      the files to be committed only, or using the <code>e/exclude</code> and <code>i/include</code>
       flags:
       </p>
       <div class="code">
       <pre><code><span class="shell">$</span> gl commit -m "foo and bar"
-<span class="shell">$</span> gl commit -m "only foo" -o foo.py
-<span class="shell">$</span> gl commit -m "only foo and baz" -o foo.py baz.py
+<span class="shell">$</span> gl commit -m "only foo" foo.py
+<span class="shell">$</span> gl commit -m "only foo and baz" foo.py baz.py
 <span class="shell">$</span> gl commit -m "only foo" -e bar.py
 <span class="shell">$</span> gl commit -m "only foo and baz" -e bar.py -i baz.py
 <span class="shell">$</span> gl commit -m "foo, bar and baz" -i baz.py</code></pre></div>
@@ -319,8 +318,8 @@ overwritten by checkout. Do you wish to continue? (y/N)
       The <code><a id="gl-diff">gl diff</a></code> command can be used to see the
       difference between the working and committed versions of files. Like
       <code>commit</code>, the default set of files to diff is
-      the set of all tracked modified files but it can be customized with the
-      <code>o/only</code>, <code>e/exclude</code>, and <code>i/include</code>
+      the set of all tracked modified files but it can be customized by
+      listing files, or using the <code>e/exclude</code> and <code>i/include</code>
       flags.
       </p>
       <p>
@@ -581,13 +580,13 @@ of files to be committed</span>
 of files to be committed</span>
 
 <span class="task">Commit only some of the modified tracked files</span>
-<span class="shell">$</span> gl commit -o foo3 bar3
-<span class="comment">o/only restricts the set of files to be committed
+<span class="shell">$</span> gl commit foo3 bar3
+<span class="comment">listing files restricts the set of files to be committed
 to only the specified ones</span>
 
 <span class="task">Commit only some of the modified tracked or
 untracked files</span>
-<span class="shell">$</span> gl commit -o foo3 bar3 foo4
+<span class="shell">$</span> gl commit foo3 bar3 foo4
 </code>
 </pre>
 <pre class="git">
