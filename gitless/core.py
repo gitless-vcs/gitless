@@ -1333,10 +1333,18 @@ OpCb = collections.namedtuple(
     'OpCb', ['apply_ok', 'apply_err', 'save', 'restore_ok'])
 
 def stdout(p):
-  return p.stdout.decode(ENCODING)
+  try:
+      pstdout = p.stdout.decode(ENCODING)
+  except AttributeError:
+      pstdout = p.stdout
+  return pstdout
 
 def stderr(p):
-  return p.stderr.decode(ENCODING)
+  try:
+      pstderr = p.stderr.decode(ENCODING)
+  except AttributeError:
+      pstderr = p.stderr
+  return pstderr
 
 def walker(git_repo, target, reverse):
   flags = pygit2.GIT_SORT_TOPOLOGICAL | pygit2.GIT_SORT_TIME
