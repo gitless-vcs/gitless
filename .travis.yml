@@ -34,4 +34,6 @@ sudo: false
 jobs:
   include:
     - stage: Pack snap
+      env: EMPTY
+      before_script: skip
       script: docker run -v $(PWD):$(PWD) -w $(PWD) snapcore/snapcraft snapcraft
