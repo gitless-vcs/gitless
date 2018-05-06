@@ -35,5 +35,5 @@ jobs:
   include:
     - stage: Pack snap
       env: EMPTY
-      before_script: skip
+      install: skip
       script: docker run -v $(pwd):$(pwd) -w $(pwd) snapcore/snapcraft snapcraft
