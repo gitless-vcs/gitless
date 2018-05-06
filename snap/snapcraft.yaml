@@ -1,0 +1,15 @@
+name: gitless
+version: git
+summary: A simple version control system built on top of Git
+description: |
+  Version control system that is built on top of Git in
+  attempt to make user interface easier by playing with
+  underlying concepts. Gitless is fully compatible with
+  Git and can be used with it interchangeably.
+
+grade: devel
+confinement: devmode
+
+parts:
+  gitless-cli:
+    plugin: nil
