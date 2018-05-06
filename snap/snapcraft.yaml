@@ -12,4 +12,5 @@ confinement: devmode
 
 parts:
   gitless-cli:
-    plugin: nil
+    plugin: python
+    source: .
