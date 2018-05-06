@@ -10,10 +10,13 @@ description: |
 grade: devel
 confinement: devmode
 
-build-packages:
-  - libgit2-dev
-
 parts:
+  libgit2:
+    plugin: cmake
+    source: https://github.com/libgit2/libgit2/archive/v0.27.0.tar.gz
+
   gitless-cli:
     plugin: python
     source: .
+    after: [libgit2]
+
