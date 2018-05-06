@@ -10,6 +10,9 @@ description: |
 grade: devel
 confinement: devmode
 
+build-packages:
+  - libgit2-dev
+
 parts:
   gitless-cli:
     plugin: python
