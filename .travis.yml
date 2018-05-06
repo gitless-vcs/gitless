@@ -30,3 +30,8 @@ branches:
     - develop
 
 sudo: false
+
+jobs:
+  include:
+    - stage: Pack snap
+      script: docker run -v $(PWD):$(PWD) -w $(PWD) snapcore/snapcraft snapcraft
