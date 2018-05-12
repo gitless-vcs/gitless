@@ -29,4 +29,9 @@ parts:
     plugin: python
     source: .
     after: [libgit2]
-
+    # need git until https://github.com/sdg-mit/gitless/issues/176
+    stage-packages:
+      - git
+    build-packages:
+      - git
+      
