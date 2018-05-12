@@ -1,3 +1,5 @@
+# obligatory fields
+
 name: gitless
 version: git
 summary: A simple version control system built on top of Git
@@ -7,8 +9,14 @@ description: |
   underlying concepts. Gitless is fully compatible with
   Git and can be used with it interchangeably.
 
-grade: devel
-confinement: devmode
+grade: devel          # 'stable' for stable/candidate upload
+confinement: devmode  # 'strict' after right plugs and slots
+
+# 'optional' fields
+
+apps:
+  gl:
+    command: bin/gl
 
 parts:
   libgit2:
