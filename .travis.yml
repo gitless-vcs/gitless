@@ -30,3 +30,11 @@ branches:
     - develop
 
 sudo: false
+
+jobs:
+  include:
+    - stage: Pack snap
+      env: EMPTY
+      before_install: skip
+      install: skip
+      script: docker run -v $(pwd):$(pwd) -w $(pwd) snapcore/snapcraft snapcraft
