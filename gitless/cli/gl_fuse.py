@@ -18,7 +18,7 @@ def parser(subparsers, repo):
       'fuse', help=desc, description=(
         desc.capitalize() + '. ' +
         'By default all divergent changes from the given source branch are '
-        'fused. To customize the set of commmits to fuse use the only and '
+        'fused. To customize the set of commits to fuse use the only and '
         'exclude flags'))
   fuse_parser.add_argument(
       'src', nargs='?',
