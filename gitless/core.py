@@ -67,7 +67,9 @@ def init_repository(url=None):
   """
   cwd = os.getcwd()
   try:
-    pygit2.discover_repository(cwd)
+    path = pygit2.discover_repository(cwd)
+    if path is None:
+      raise KeyError('path')
     raise GlError('You are already in a Gitless repository')
   except KeyError:  # Expected
     if not url:
@@ -107,9 +109,13 @@ class Repository(object):
 
   def __init__(self):
     """Create a Repository out of the current working repository."""
+    badpath = False
     try:
       path = pygit2.discover_repository(os.getcwd())
+      badpath = path is None
     except KeyError:
+      badpath = True
+    if badpath:
       raise NotInRepoError('You are not in a Gitless\'s repository')
 
     self.git_repo = pygit2.Repository(path)
