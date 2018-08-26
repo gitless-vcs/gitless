@@ -1020,7 +1020,7 @@ class Branch(object):
     """Fuse the given commits onto this branch.
 
     Args:
-      src: the branch (Brach obj) to fuse commits from.
+      src: the branch (Branch obj) to fuse commits from.
       ip: id of the commit to act as the insertion point. The commits to fuse
         are inserted after this commit. ip has to correspond to one of the
         divergent commits from self or the divergent point.
