@@ -36,6 +36,6 @@ deploy:
   'on':
     branch: master
   provider: script
-  script: docker run -v $(pwd):$(pwd) -t snapcore/snapcraft sh -c "apt update -qq
+  script: docker run -v $(pwd):$(pwd) -t snapcore/snapcraft:stable sh -c "apt update -qq
     && cd $(pwd) && snapcraft && snapcraft push *.snap --release edge"
   skip_cleanup: true
