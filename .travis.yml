@@ -26,7 +26,9 @@ jobs:
     env: EMPTY
     before_install: skip
     install: skip
-    script: docker run -v $(pwd):$(pwd) -w $(pwd) snapcore/snapcraft:stable snapcraft
+    script: >
+      docker run -v $(pwd):$(pwd) -w $(pwd) snapcore/snapcraft:stable sh -c "apt
+      update && snapcraft"
 after_success:
 - openssl aes-256-cbc -K $encrypted_8b01c2e263fa_key -iv $encrypted_8b01c2e263fa_iv
   -in .snapcraft/travis_snapcraft.cfg -out .snapcraft/snapcraft.cfg -d
@@ -36,6 +38,7 @@ deploy:
   'on':
     branch: master
   provider: script
-  script: docker run -v $(pwd):$(pwd) -t snapcore/snapcraft:stable sh -c "apt update -qq
+  script: >
+    docker run -v $(pwd):$(pwd) -t snapcore/snapcraft:stable sh -c "apt update -qq
     && cd $(pwd) && snapcraft && snapcraft push *.snap --release edge"
   skip_cleanup: true
