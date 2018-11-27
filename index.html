@@ -206,10 +206,12 @@
 <span class="ansi-green">✔ Local repo created in /MyFiles/foo</span></code></pre>
       </div>
       <p>
-      In most cases there's already some existing repository you
-      want to work on instead of starting with an empty repository. To make a
-      local clone of a remote repository you can give the URL of the repository
-      as input to the same <code>gl init</code> command:
+      In most cases, instead of starting with an empty repository, there's already
+      some existing remote repository you want to work on. To clone a remote repository,
+      you pass the URL of the repository to the same <code>gl init</code> command, as
+      shown below (note that you'll have
+      to replace <code>https://github.com/spderosso/experiment</code> with
+      the URL of your repo): 
       </p>
       <div class="code">
       <pre><code><span class="shell">$</span> mkdir experiment
@@ -218,6 +220,12 @@
 <span class="ansi-green">✔ Local repo created in /MyFiles/experiment</span>
 <span class="ansi-green">✔ Initialized from remote https://github.com/spderosso/experiment</span></code></pre>
       </div>
+      <p>
+      If you don't have a remote repository yet, you can follow
+      <a href="https://help.github.com/articles/create-a-repo/">these instructions</a> to create one on
+      GitHub.
+      </p>
+      
       <a id="changes"><h3>Saving Changes</h3></a>
       <p>
       Now that you have your local repository, it's time to start saving
