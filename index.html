@@ -210,15 +210,15 @@
       some existing remote repository you want to work on. To clone a remote repository,
       you pass the URL of the repository to the same <code>gl init</code> command, as
       shown below (note that you'll have
-      to replace <code>https://github.com/spderosso/experiment</code> with
+      to replace <code>https://github.com/spderosso/try-gitless</code> with
       the URL of your repo): 
       </p>
       <div class="code">
-      <pre><code><span class="shell">$</span> mkdir experiment
-<span class="shell">$</span> cd experiment/
-<span class="shell">$</span> gl init https://github.com/spderosso/experiment
-<span class="ansi-green">✔ Local repo created in /MyFiles/experiment</span>
-<span class="ansi-green">✔ Initialized from remote https://github.com/spderosso/experiment</span></code></pre>
+      <pre><code><span class="shell">$</span> mkdir try-gitless
+<span class="shell">$</span> cd try-gitless/
+<span class="shell">$</span> gl init https://github.com/spderosso/try-gitless
+<span class="ansi-green">✔ Local repo created in /MyFiles/try-gitless</span>
+<span class="ansi-green">✔ Initialized from remote https://github.com/spderosso/try-gitless</span></code></pre>
       </div>
       <p>
       If you don't have a remote repository yet, you can follow
@@ -503,21 +503,21 @@ List of tags:
       easier alternative is to add the repository as a "remote" with the
       <code><a id="gl-remote">gl remote</a></code> command:
       </p>
-      <div class="code"><pre><code><span class="shell">$</span> gl remote -c experiment https://github.com/spderosso/experiment
-<span class="ansi-green">✔ Remote experiment mapping to https://github.com/spderosso/experiment created
+      <div class="code"><pre><code><span class="shell">$</span> gl remote -c try-gitless https://github.com/spderosso/try-gitless
+<span class="ansi-green">✔ Remote try-gitless mapping to https://github.com/spderosso/try-gitless created
 successfully</span>
   ➜ to list existing remotes do gl remote
-  ➜ to remove experiment do gl remote -d experiment
+  ➜ to remove try-gitless do gl remote -d try-gitless
 </code></pre></div>
       <p>
-      Now you can use <code>experiment</code> to refer to this remote repository
-      and use <code>experiment/some-branch</code> to refer to the branch of name
-      <code>some-branch</code> that lives in <code>experiment</code>.
+      Now you can use <code>try-gitless</code> to refer to this remote repository
+      and use <code>try-gitless/some-branch</code> to refer to the branch of name
+      <code>some-branch</code> that lives in <code>try-gitless</code>.
       </p>
       <p>
       <em>Downloading Changes.</em>
       It is also possible to fuse or merge changes from remote
-      branches. For example, doing <code>gl merge experiment/master</code>
+      branches. For example, doing <code>gl merge try-gitless/master</code>
       would merge changes in that remote branch that are not present in your
       local current branch. You can also use <code>gl fuse</code>.
       </p>
@@ -532,8 +532,8 @@ successfully</span>
       <em>Creating, Deleting, or Listing Remote Branches.</em>
       To create, delete, or list remote branches you use the same <code>gl branch</code>
       command that you use for local branches. If you do
-      <code>gl branch -c experiment/develop</code> this will create a branch
-      <code>develop</code> that lives in the remote <code>experiment</code>.
+      <code>gl branch -c try-gitless/develop</code> this will create a branch
+      <code>develop</code> that lives in the remote <code>try-gitless</code>.
       Recall that, by default, the head of this new branch will be equal to the head of
       the current branch, so all commits that are not present in the remote
       will be uploaded. To list remote branches use the
@@ -543,8 +543,8 @@ successfully</span>
       <em>Creating, Deleting, or Listing Remote Tags.</em>
       To create or delete remote tags you use the <code>gl tag</code> command.
       If you do
-      <code>gl tag -c experiment/v1.0</code> this will create a new tag
-      <code>v1.0</code> that lives in the remote <code>experiment</code>. You can also list
+      <code>gl tag -c try-gitless/v1.0</code> this will create a new tag
+      <code>v1.0</code> that lives in the remote <code>try-gitless</code>. You can also list
       remote tags with the <code>r/remote</code> flag of <code>gl tag</code>.
       </p>
 
@@ -947,43 +947,43 @@ so there's nothing here now</span>
       Git:
       </p>
       <div class="code vs">
-        <pre class="gl"><code><span class="task">Configure a new remote `experiment`</span>
-<span class="shell">$</span> gl remote -c experiment
-https://github.com/spderosso/experiment
-<span class="ansi-green">✔ Remote experiment mapping to
-https://github.com/spderosso/experiment
+        <pre class="gl"><code><span class="task">Configure a new remote `try-gitless`</span>
+<span class="shell">$</span> gl remote -c try-gitless
+https://github.com/spderosso/try-gitless
+<span class="ansi-green">✔ Remote try-gitless mapping to
+https://github.com/spderosso/try-gitless
 created successfully</span>
   ➜ to list existing remotes do gl remote
-  ➜ to remove experiment do gl remote -d experiment
+  ➜ to remove try-gitless do gl remote -d try-gitless
 
 <span class="task">Download and apply changes from a branch in
-`experiment`</span>
-<span class="shell">$</span> gl fuse experiment/master
+`try-gitless`</span>
+<span class="shell">$</span> gl fuse try-gitless/master
 ...
 <span class="ansi-green">✔ Fuse succeeded</span>
 <span class="comment">If you instead want to merge the changes, you
-can do `gl merge experiment/master`</span>
+can do `gl merge try-gitless/master`</span>
 
 <span class="comment">You can also set an upstream for the current branch</span>
-<span class="shell">$</span> gl branch -su experiment/master
+<span class="shell">$</span> gl branch -su try-gitless/master
 <span class="ansi-green">✔ Current branch master set to track
-experiment/master</span>
+try-gitless/master</span>
 <span class="shell">$</span> gl fuse 
 <span class="ansi-yellow">! No src branch specified, getting changes from
-upstream branch experiment/master</span>
+upstream branch try-gitless/master</span>
 ...
 <span class="ansi-green">✔ Fuse succeeded</span>
 
 <span class="task">Send changes to the remote</span>
 <span class="shell">$</span> gl publish
 <span class="ansi-yellow">! No src branch specified, sending changes to
-upstream branch experiment/master</span>
+upstream branch try-gitless/master</span>
 <span class="ansi-green">✔ Publish succeeded</span>
 <span class="comment">Only the changes in the current branch are uploaded</span></code></pre>
 <pre class="git">
-<code><span class="task">Configure a new remote `experiment`</span>
-<span class="shell">$</span> git remote add experiment
-https://github.com/spderosso/experiment
+<code><span class="task">Configure a new remote `try-gitless`</span>
+<span class="shell">$</span> git remote add try-gitless
+https://github.com/spderosso/try-gitless
 
 
 
@@ -991,14 +991,14 @@ https://github.com/spderosso/experiment
 
 
 <span class="task">Download and apply changes from a branch in
-`experiment`</span>
-<span class="shell">$</span> git pull experiment/master
+`try-gitless`</span>
+<span class="shell">$</span> git pull try-gitless/master
 ...
 <span class="comment">If you instead want to rebase the changes, you can
-do `git pull --rebase experiment/master`</span>
+do `git pull --rebase try-gitless/master`</span>
 
 <span class="comment">You can also set an upstream for the current branch</span>
-<span class="shell">$</span> git branch --set-upstream master experiment/master
+<span class="shell">$</span> git branch --set-upstream master try-gitless/master
 <span class="shell">$</span> git pull
 ...
 
