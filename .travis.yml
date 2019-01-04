@@ -4,8 +4,6 @@ addons:
   apt:
     packages:
     - snapcraft
-services:
-- docker
 python:
 - '2.7'
 - '3.3'
@@ -40,6 +38,6 @@ jobs:
       on:
         branch: master
       provider: snap
-      snap: *.snap
+      snap: "*.snap"
       channel: edge
       skip_cleanup: true
