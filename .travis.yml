@@ -31,9 +31,6 @@ jobs:
     before_install: skip
     install: skip
     script: snapcraft
-    after_success:
-    - openssl aes-256-cbc -K $encrypted_8b01c2e263fa_key -iv $encrypted_8b01c2e263fa_iv
-      -in .snapcraft/travis_snapcraft.cfg -out .snapcraft/snapcraft.cfg -d
     deploy:
       on:
         branch: master
