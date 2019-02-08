@@ -99,18 +99,9 @@ Documentation
 Contribute
 ----------
 
-There are several ways you can contribute to the project:
-
-- Bugs: did you find a bug? create an issue for it and we'll fix it
-ASAP
-- Code: you can browse through the open issues and see if there's something
-there you would like to work on. Is something missing? feel free to propose it!
-- Design: if you have any feedback about Gitless's design we would love to
-hear from you. You can create an issue in the project with your
-feedback/questions/suggestions or shoot us an email
-
-
-If you're planning on submitting code here are some useful things to know:
+If you find a bug, you can help us by submitting an issue to our
+GitHub Repository. If you'd like to contribute
+code, here are some useful things to know:
 
 - We follow (to some extent) the [Google Python Style Guide](
     https://google.github.io/styleguide/pyguide.html
@@ -120,7 +111,7 @@ Gitless's code so that your edits are consistent with the codebase
 
 - Finally, if you don't want [Travis](
     https://travis-ci.org/sdg-mit/gitless "Travis") to
-be mad at you, check that tests pass in Python 2.7 and 3.2+. Tests can be run with
+be mad at you, check that tests pass in Python 2.7 and 3.2+. Tests can be run with:
   ```
   pip install nose
   nosetests # run tests other than end-to-end tests
