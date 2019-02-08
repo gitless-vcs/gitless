@@ -3,6 +3,7 @@
 name: gitless
 version: git
 summary: A simple version control system built on top of Git
+license: MIT
 description: |
   Gitless is an experimental version control system built on top of Git.
   Many people complain that Git is hard to use. We think the problem lies
@@ -12,6 +13,8 @@ description: |
   on top of Git (could be considered what Git pros call a "porcelain" of
   Git), you can always fall back on Git. And of course your coworkers you
   share a repo with need never know that you're not a Git aficionado.
+
+base: core18
 
 grade: devel          # 'stable' for stable/candidate upload
 confinement: devmode  # 'strict' after right plugs and slots
