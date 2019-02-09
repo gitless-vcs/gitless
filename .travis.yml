@@ -33,7 +33,7 @@ jobs:
     env: EMPTY
     before_install: skip
     install: skip
-    script: snapcraft
+    script: sudo snapcraft
     deploy:
       on:
         branch: master
