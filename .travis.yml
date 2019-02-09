@@ -1,9 +1,5 @@
 language: python
 dist: xenial
-addons:
-  apt:
-    packages:
-    - snapcraft
 python:
 - '2.7'
 - '3.4'
@@ -29,7 +25,7 @@ jobs:
   - stage: Pack snap
     env: EMPTY
     before_install: skip
-    install: skip
+    install: sudo snap install snapcraft --classic
     script: snapcraft
     deploy:
       on:
