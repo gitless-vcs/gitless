@@ -25,7 +25,9 @@ jobs:
   - stage: Pack snap
     env: EMPTY
     before_install: skip
-    install: sudo snap install snapcraft --classic
+    install:
+    - sudo snap install snapcraft --classic
+    - sudo snap install multipass --classic --beta
     script: snapcraft
     deploy:
       on:
