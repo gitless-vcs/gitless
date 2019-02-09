@@ -27,7 +27,8 @@ apps:
 parts:
   libgit2:
     plugin: cmake
-    source: https://github.com/libgit2/libgit2/archive/v0.27.0.tar.gz
+    # https://www.pygit2.org/install.html#version-numbers
+    source: https://github.com/libgit2/libgit2/archive/v0.26.8.tar.gz
     build-packages:
       - libssl-dev
 
