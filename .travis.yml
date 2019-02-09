@@ -23,11 +23,16 @@ branches:
 jobs:
   include:
   - stage: Pack snap
+    addons:
+      snaps:
+      - name: snapcraft
+        classic: true
+      - name: multipass
+        classic: true
+        channel: beta
     env: EMPTY
     before_install: skip
-    install:
-    - sudo snap install snapcraft --classic
-    - sudo snap install multipass --classic --beta
+    install: skip
     script: snapcraft
     deploy:
       on:
