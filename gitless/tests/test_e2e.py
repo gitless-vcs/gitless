@@ -14,11 +14,12 @@ import time
 
 import sys
 if sys.platform != 'win32':
-  from sh import ErrorReturnCode, gl, git
+  from sh import ErrorReturnCode, Command
 else:
   from pbs import ErrorReturnCode, Command
-  gl = Command('gl')
-  git = Command('git')
+
+gl = Command('gl')
+git = Command('git')
 
 
 from gitless.tests import utils
