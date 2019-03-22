@@ -7,6 +7,7 @@ environment:
     PYTHON: 'C:\Python27-x64\python.exe'
 
 init:
+  - cmd: '%PYTHON% -m pip install -U pip'
   - cmd: '%PYTHON% -m pip install -U nose wheel'
 
 build: off
@@ -16,6 +17,7 @@ before_test:
   - cmd: git config --global user.email "appveyor@test.com"
 
 test_script:
+  - cmd: gl
   - ps: |
       # e2e tests require `gl` binary
       &$env:PYTHON -m pip install -r requirements.txt .
