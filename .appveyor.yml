@@ -10,7 +10,7 @@ init:
   - cmd: '%PYTHON% -m pip install -U pip'
   - cmd: '%PYTHON% -m pip install -U nose'
 
-build:
+build_script:
   # build and install `gl` binary (end to end test also use it)
   - cmd: '%PYTHON% -m pip install -r requirements.txt .'
 
