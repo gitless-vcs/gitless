@@ -19,7 +19,7 @@ before_test:
   - cmd: git config --global user.email "appveyor@test.com"
 
 test_script:
-  - cmd: dir
+  - cmd: dir /a:h
   - cmd: gl
   - ps: |
       # 'gl' is installed in Python Scripts directory
