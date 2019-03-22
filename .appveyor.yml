@@ -8,9 +8,11 @@ environment:
 
 init:
   - cmd: '%PYTHON% -m pip install -U pip'
-  - cmd: '%PYTHON% -m pip install -U nose wheel'
+  - cmd: '%PYTHON% -m pip install -U nose'
 
-build: off
+build:
+  # build and install `gl` binary (end to end test also use it)
+  - cmd: '%PYTHON% -m pip install -r requirements.txt .'
 
 before_test:
   - cmd: git config --global user.name "appveyor-test"
@@ -19,8 +21,6 @@ before_test:
 test_script:
   - cmd: gl
   - ps: |
-      # e2e tests require `gl` binary
-      &$env:PYTHON -m pip install -r requirements.txt .
       # 'gl' is installed in Python Scripts directory
       $env:PATH += ";$(Split-Path $env:PYTHON)\Scripts"
       &$env:PYTHON setup.py nosetests --logging-level=WARN --with-xunit 
