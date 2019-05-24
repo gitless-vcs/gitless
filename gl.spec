@@ -3,6 +3,9 @@ import os
 
 a = Analysis(['gl.py'],
              pathex=[os.getcwd()],
+             # https://github.com/pyinstaller/pyinstaller/issues/3198
+             # remove this when dropping support for Python < 3.7
+             hiddenimports=['_sysconfigdata'],
              hookspath=None,
              runtime_hooks=None)
 
