@@ -1,3 +1,5 @@
+# make sure to update setup.py
+
 pygit2==0.26.4  # requires libgit2 0.26
 clint==0.5.1
 sh==1.12.14;sys_platform!='win32'

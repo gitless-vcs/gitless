@@ -25,7 +25,7 @@ Note that the installation **won't interfere** with your Git installation in any
 way, you can keep using Git, and switch between Git and Gitless seamlessly.
 
 We currently require Git (1.7.12+) to be installed (but this requirement is
-going to disappear soon once we finish with our migration to pygit2).
+going to disappear soon once we finish with our migration to [pygit2](https://github.com/libgit2/pygit2)).
 
 
 ### Binary releases (macOS and Linux only)

@@ -67,9 +67,10 @@ setup(
     url='http://gitless.com',
     packages=['gitless', 'gitless.cli'],
     install_requires=[
-      'pygit2>=0.24.0',
-      'clint>=0.3.6',
-      'sh>=1.11' if sys.platform != 'win32' else 'pbs>=0.11'
+      # make sure it matches requirements.txt 
+      'pygit2==0.26.4', # requires libgit2 0.26
+      'clint==0.5.1',
+      'sh==1.12.14' if sys.platform != 'win32' else 'pbs==0.110'
     ],
     license='MIT',
     classifiers=(
