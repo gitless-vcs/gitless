@@ -35,7 +35,7 @@ if sys.argv[-1] == 'gl-build':
   print('creating tar.gz file')
   shutil.copy('README.md', rel)
   shutil.copy('LICENSE.md', rel)
-  
+
   with tarfile.open(rel + '.tar.gz', 'w:gz') as tar:
     tar.add(rel)
   print('success!! binary release at {0}'.format(rel + '.tar.gz'))
@@ -67,13 +67,13 @@ setup(
     url='http://gitless.com',
     packages=['gitless', 'gitless.cli'],
     install_requires=[
-      # make sure it matches requirements.txt 
-      'pygit2==0.26.4', # requires libgit2 0.26
+      # make sure it matches requirements.txt
+      'pygit2==0.27.4', # requires libgit2 0.27
       'clint>=0.3.6',
       'sh>=1.11' if sys.platform != 'win32' else 'pbs>=0.11'
     ],
     license='MIT',
-    classifiers=(
+    classifiers=[
         'Development Status :: 2 - Pre-Alpha',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: MIT License',
@@ -81,7 +81,7 @@ setup(
         'Programming Language :: Python',
         'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 3',
-        'Topic :: Software Development :: Version Control'),
+        'Topic :: Software Development :: Version Control'],
     entry_points={
         'console_scripts': [
             'gl = gitless.cli.gl:main'
