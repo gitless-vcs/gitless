@@ -3,7 +3,10 @@ Gitless
 
 [![PyPI version](https://badge.fury.io/py/gitless.png)](
     http://badge.fury.io/py/gitless "PyPI version")
-[![Homebrew Formula](https://img.shields.io/homebrew/v/gitless.svg)](https://formulae.brew.sh/formula/gitless "Homebrew Formula")    
+[![Homebrew Formula](https://img.shields.io/homebrew/v/gitless.svg)](https://formulae.brew.sh/formula/gitless "Homebrew Formula")
+[![Snap Package](https://img.shields.io/badge/snap%20store-v0.8.7-yellowgreen.svg)](https://snapcraft.io/gitless)
+
+
 [![Travis Build Status](https://travis-ci.org/sdg-mit/gitless.png?branch=master)](https://travis-ci.org/sdg-mit/gitless "Travis Build Status")
 [![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/github/sdg-mit/gitless?svg=true)](https://ci.appveyor.com/project/spderosso/gitless "AppVeyor Build Status")
 
@@ -26,24 +29,6 @@ way, you can keep using Git, and switch between Git and Gitless seamlessly.
 
 We currently require Git (1.7.12+) to be installed (but this requirement is
 going to disappear soon once we finish with our migration to [pygit2](https://github.com/libgit2/pygit2)).
-
-
-### Binary releases (macOS and Linux only)
-
-Binary releases for macOS and Linux are available from the
-[Gitless website](http://gitless.com "Gitless's website").
-
-If you've downloaded a binary release of Gitless everything is contained in the
-gl binary, so to install simply do:
-
-    $ cp path-to-downloaded-gl-binary /usr/local/bin/gl
-
-You can put the binary in other locations as well, just be sure to update your
-`PATH`.
-
-If for some reason this doesn't work (maybe you are running an old version of
-your OS?), try one of the other options (installing from source or via
-the Python Package Index).
 
 
 ### Installing from source
@@ -87,6 +72,32 @@ manager for macOS, you can install Gitless with:
 ```
 brew update
 brew install gitless
+```
+
+### Binary release (macOS only)
+
+A binary release for macOS is available from the
+[Gitless website](http://gitless.com "Gitless's website").
+
+If you've downloaded a binary release of Gitless everything is contained in the
+gl binary, so to install simply do:
+
+    $ cp path-to-downloaded-gl-binary /usr/local/bin/gl
+
+You can put the binary in other locations as well, just be sure to update your
+`PATH`.
+
+If for some reason this doesn't work (maybe you are running an old version of
+your OS?), try one of the other options (installing from source or via
+the Python Package Index).
+
+### Installing via Snapcraft (Linux only)
+
+If you are using [Snapcraft](https://snapcraft.io/ "Snapcraft"), a
+package manager for Linux, you can install Gitless with:
+
+```
+snap install gitless
 ```
 
 Documentation
