@@ -93,11 +93,14 @@ the Python Package Index).
 ### Installing via Snapcraft (Linux only)
 
 If you are using [Snapcraft](https://snapcraft.io/ "Snapcraft"), a
-package manager for Linux, you can install Gitless with:
+package manager for Linux, you can install the most recent release
+of Gitless with:
 
 ```
-snap install gitless
+snap install --channel=beta gitless
 ```
+
+You can also use the `edge` channel to install the most recent build.
 
 Documentation
 -------------
