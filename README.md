@@ -3,8 +3,6 @@ Gitless
 
 [![PyPI version](https://img.shields.io/pypi/v/gitless.svg)](https://pypi.org/project/gitless "PyPI version")
 [![Homebrew Formula](https://img.shields.io/homebrew/v/gitless.svg)](https://formulae.brew.sh/formula/gitless "Homebrew Formula")
-[![Snap Package](https://img.shields.io/badge/snap%20store-v0.8.7-orange.svg)](https://snapcraft.io/gitless)
-
 
 [![Travis Build Status](https://img.shields.io/travis/sdg-mit/gitless/master.svg)](https://travis-ci.org/sdg-mit/gitless "Travis Build Status")
 [![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/github/sdg-mit/gitless?svg=true)](https://ci.appveyor.com/project/spderosso/gitless "AppVeyor Build Status")
