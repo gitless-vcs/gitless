@@ -114,6 +114,11 @@ If you find a bug, you can help us by submitting an issue to our
 GitHub Repository. If you'd like to contribute
 code, here are some useful things to know:
 
+- To install gitless for development, [install pygit2](
+  http://www.pygit2.org/install.html "pygit2 install"), clone the repo,
+  `cd` to the repo root and do `./setup.py develop`. This will install
+  the `gl` command with a symlink to your source files. You can make
+  changes to your code and run `gl` to test them.
 - We follow (to some extent) the [Google Python Style Guide](
     https://google.github.io/styleguide/pyguide.html
     "Google Python Style Guide").
