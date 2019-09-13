@@ -128,6 +128,10 @@ class PathProcessor(argparse.Action):
                 self.skip_dir_cb(curr_dir_rel)
               dirs[:] = []
               continue
+            if not fps:
+              open(os.path.join(curr_dir, core.GL_KEEP_FILENAME), 'a').close()
+              fps.append(core.GL_KEEP_FILENAME)
+              dirs[:] = []
             for fp in fps:
               yield os.path.join(curr_dir_rel, fp)
         else:
@@ -248,3 +252,9 @@ def _oei_validate(only, exclude, include, curr_b):
   for e in err:
     pprint.err(e)
   return False
+
+
+def remove_keep_file_name(fp):
+  if(fp.endswith(core.GL_KEEP_FILENAME)):
+    return fp.replace(core.GL_KEEP_FILENAME, '')
+  return fp

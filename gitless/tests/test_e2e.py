@@ -21,6 +21,7 @@ else:
 gl = Command('gl')
 git = Command('git')
 
+from gitless import core
 
 from gitless.tests import utils
 
@@ -682,6 +683,92 @@ class TestMerge(TestOp):
     contents = utils.read_file(self.MASTER_FILE)
     self.assertTrue('uncommitted' in contents)
     self.assertTrue('contents 2' in contents)
+
+
+class TestEmptyDir(TestEndToEnd):
+
+  def test_empty_dir_status(self):
+    untracked_empty_dir = self._mk_empty_dir('untracked_empty_dir')
+
+    out = utils.stdout(gl.status())
+
+    self.assertIn(untracked_empty_dir, out, 'Empty dir didn\'t appear in status')
+
+  def test_ignored_empty_dir_status(self):
+    ignored_empty_dir = self._mk_empty_dir('ignored_empty_dir')
+    utils.write_file(os.path.join(self.path, '.gitignore'), ignored_empty_dir)
+
+    out = utils.stdout(gl.status())
+
+    self.assertFalse(ignored_empty_dir in out,
+        'Ignored empty dir was listed in status')
+
+  def test_track_empty_dir(self):
+    dir_to_track = self._mk_empty_dir('wanted_empty_dir')
+    expected_out = 'Empty directory {0} is now a tracked directory'.format(
+      self._dir_path(dir_to_track))
+
+    out = utils.stdout(gl.track(dir_to_track))
+
+    self.assertIn(expected_out, out, 'Empty dir wasn\'t tracked')
+
+  def test_track_parent_empty_dir(self):
+    parent_empty_dir = self._mk_empty_dir('parent_empty_dir')
+    child_dir = self._mk_empty_dir(os.path.join(parent_empty_dir, 'child_dir'))
+    unexpected_out = 'Empty directory {0} is now a tracked directory'.format(
+        os.path.join(child_dir, ''))
+
+    out = utils.stdout(gl.track(parent_empty_dir))
+
+    self.assertFalse(unexpected_out in out, 'Tracked empty dir child')
+
+  def test_tracked_empty_dir_status(self):
+    tracked_empty_dir = self._mk_empty_dir('tracked_empty_dir')
+    gl.track(tracked_empty_dir)
+    expected_out = '{0} (new directory)'.format(
+        self._dir_path(tracked_empty_dir))
+
+    out = utils.stdout(gl.status())
+
+    self.assertIn(expected_out, out, 'Didn\'t report newly tracked dir')
+
+  def test_commit_empty_dir(self):
+    empty_dir = self._mk_empty_dir('wanted_empty_dir')
+    gl.track(empty_dir)
+    pipe = 'std.out'
+    gl.commit(_out = pipe, _bg = True)
+
+    f = open(pipe)
+    out = previous_out = ''
+    while(os.path.getsize(pipe) == 0 or out != previous_out):
+      time.sleep(0.1)
+      previous_out = out
+      f.seek(0)
+      out = f.read()
+    f.close()
+
+    self.assertIn(self._dir_path(empty_dir), out)
+    self.assertFalse(core.GL_KEEP_FILENAME in out,
+        'Output included gitless keep file name')
+
+  def test_untracked_empty_dir_status(self):
+    untracked_empty_dir = self._mk_empty_dir('untracked_empty_dir')
+    gl.track(untracked_empty_dir)
+    gl.commit(m = 'Add empty dir')
+    gl.untrack(untracked_empty_dir)
+    expected_out = '{0} (exists at head)'.format(
+        self._dir_path(untracked_empty_dir))
+
+    out = utils.stdout(gl.status())
+
+    self.assertIn(expected_out, out, 'Didn\'t report untracked dir')
+
+  def _mk_empty_dir(self, name):
+    os.mkdir(os.path.join(self.path, name))
+    return name
+
+  def _dir_path(self, path):
+    return os.path.join(path, '')
 
 
 class TestPerformance(TestEndToEnd):

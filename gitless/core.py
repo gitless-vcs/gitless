@@ -57,6 +57,8 @@ GL_STATUS_UNTRACKED = 1
 GL_STATUS_TRACKED = 2
 GL_STATUS_IGNORED = 3
 
+GL_KEEP_FILENAME = '.glkeep'
+
 
 def error_on_none(path):
   """Raise a KeyError if the ```path``` argument is None."""
@@ -778,6 +780,14 @@ class Branch(object):
         exists_in_wd = os.path.exists(os.path.join(self.gl_repo.root, fp))
         yield self.FileStatus(
             fp, GL_STATUS_UNTRACKED, True, exists_in_wd, True, False)
+
+    # find untracked empty dirs
+    for dirpath, dirs, files in os.walk('.', topdown=True):
+      dirs[:] = [d for d in dirs if d not in ['.git'] and not
+          self.path_is_ignored(d)]
+      if not dirs and not files:
+        yield self.FileStatus(dirpath, GL_STATUS_UNTRACKED, False, True, False,
+            False)
 
   def status_file(self, path):
     """Return the status (see FileStatus) of the given path."""
