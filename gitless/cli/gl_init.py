@@ -30,7 +30,7 @@ def parser(subparsers, _):
       help='use only branches given from remote repo', dest='only')
   init_parser.add_argument(
       '-e', '--exclude', nargs='+',
-      help='use everything but this branches from remote repo', dest='exclude')
+      help='use everything but these branches from remote repo', dest='exclude')
 
   init_parser.set_defaults(func=main)
 
