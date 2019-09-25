@@ -25,6 +25,13 @@ def parser(subparsers, _):
       help=(
           'an optional remote repo address from where to read to create the '
           'local repo'))
+  init_parser.add_argument(
+      '-o', '--only', nargs='*',
+      help='use only files given (tracked modified or untracked)', dest='only')
+  init_parser.add_argument(
+      '-e', '--exclude', nargs='+',
+      help = 'use everything but these branches', dest='exclude')
+
   init_parser.set_defaults(func=main)
 
 
@@ -32,7 +39,7 @@ def main(args, repo):
   if repo:
     pprint.err('You are already in a Gitless repository')
     return False
-  core.init_repository(url=args.repo)
+  core.init_repository(url=args.repo, exclude=frozenset(args.exclude if args.exclude else []), only=frozenset(args.only if args.only else []))
   pprint.ok('Local repo created in {0}'.format(os.getcwd()))
   if args.repo:
     pprint.ok('Initialized from remote {0}'.format(args.repo))

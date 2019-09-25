@@ -65,7 +65,7 @@ def error_on_none(path):
   return path
 
 
-def init_repository(url=None):
+def init_repository(url=None, exclude=None, only=None):
   """Creates a new Gitless's repository in the cwd.
 
   Args:
@@ -73,6 +73,8 @@ def init_repository(url=None):
       given by this url.
   """
   cwd = os.getcwd()
+  branches_only = only
+  branches_exclude = exclude
   try:
     error_on_none(pygit2.discover_repository(cwd))
     raise GlError('You are already in a Gitless repository')
@@ -89,11 +91,19 @@ def init_repository(url=None):
       raise GlError(stderr(e))
 
     # We get all remote branches as well and create local equivalents
+    #Flags: only branches take precedence over exclude branches. If user selected branches as only, will not look at exclude
+    #If only empty, will look at exclude
+    #If both empty, will grab all branches
     repo = Repository()
     remote = repo.remotes['origin']
     for rb in (remote.lookup_branch(bn) for bn in remote.listall_branches()):
       if rb.branch_name == 'master':
         continue
+      if branches_only:
+          if rb.branch_name not in branches_only:
+              continue
+      elif branches_exclude and rb.branch_name in branches_exclude:
+          continue
       new_b = repo.create_branch(rb.branch_name, rb.head)
       new_b.upstream = rb
     return repo
