@@ -93,7 +93,7 @@ def init_repository(url=None, only=None, exclude=None):
       raise GlError(stderr(e))
 
     # We get all remote branches as well and create local equivalents
-    #Flags: only branches take precedence over exclude branches.
+    # Flags: only branches take precedence over exclude branches.
     repo = Repository()
     remote = repo.remotes['origin']
     for rb in (remote.lookup_branch(bn) for bn in remote.listall_branches()):
