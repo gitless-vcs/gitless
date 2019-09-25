@@ -93,15 +93,15 @@ def init_repository(url=None, only=None, exclude=None):
       raise GlError(stderr(e))
 
     # We get all remote branches as well and create local equivalents
-    #Flags: only branches take precedence over exclude branches. 
+    #Flags: only branches take precedence over exclude branches.
     repo = Repository()
     remote = repo.remotes['origin']
     for rb in (remote.lookup_branch(bn) for bn in remote.listall_branches()):
       if rb.branch_name == 'master':
         continue
-      if only and rb.branch_name not in branches_only:
+      if only and rb.branch_name not in only:
         continue
-      elif not only and exclude and rb.branch_name in branches_exclude:
+      elif not only and exclude and rb.branch_name in exclude:
         continue
       new_b = repo.create_branch(rb.branch_name, rb.head)
       new_b.upstream = rb
