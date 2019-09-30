@@ -43,21 +43,24 @@ def parser(subparsers, _):
       '-d', '--delete', nargs='+', help='delete branch(es)', dest='delete_b',
       metavar='branch')
 
-  edit_group = branch_parser.add_argument_group('edit the current branch')
-  edit_group.add_argument(
+  edit_current_branch_group = branch_parser.add_argument_group('edit the current branch')
+  edit_current_branch_group.add_argument(
       '-sh', '--set-head', help='set the head of the current branch',
       dest='new_head', metavar='commit_id')
-  edit_group.add_argument(
+  edit_current_branch_group.add_argument(
       '-su', '--set-upstream',
       help='set the upstream branch of the current branch',
       dest='upstream_b', metavar='branch')
-  edit_group.add_argument(
+  edit_current_branch_group.add_argument(
       '-uu', '--unset-upstream',
       help='unset the upstream branch of the current branch',
       action='store_true')
+
+  edit_group = branch_parser.add_argument_group('edit branches')
   edit_group.add_argument(
       '-rn', '--rename-branch', nargs='+',
-      help='renames this branch or another specified branch',
+      help='renames the current branch (gl branch -rn new_name) '
+      'or another specified branch (gl branch -rn branch_name new_name)',
       dest='rename_b'
   )
 
@@ -215,7 +218,7 @@ def _do_set_head(commit_id, repo):
 def _do_rename(rename_b, repo):
   ret = True
   if len(rename_b) == 1 :
-    # Renaming this current branch
+    # Renaming the current branch
     curr_b = repo.current_branch
     curr_b.rename(rename_b[0])
     pprint.ok('Renamed this branch to {0}'.format(rename_b[0]))
@@ -227,6 +230,6 @@ def _do_rename(rename_b, repo):
   else :
     # Gave more than 2 arguments
     pprint.err(
-        'Too many arguments given')
+        'Too many arguments given. Expected 1 or 2 arguments.')
     ret = False
   return ret

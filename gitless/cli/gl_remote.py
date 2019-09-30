@@ -26,7 +26,9 @@ def parser(subparsers, _):
       metavar='remote')
   remote_parser.add_argument(
       '-rn', '--rename', nargs='+',
-      help='rename the specified remote', dest='rename_r')
+      help='renames the specified remote: accepts two arguments '
+      '(current remote name and new remote name)',
+      dest='rename_r')
   remote_parser.set_defaults(func=main)
 
 
@@ -87,7 +89,8 @@ def _do_rename(rename_r, remotes):
   errors_found = False
   if len(rename_r) != 2:
     pprint.err(
-        'Expected 2 arguments to gl remote -rn')
+        'Expected 2 arguments in the folllowing format: '
+        'gl remote -rn current_remote_name new_remote_name')
     errors_found = True
   else:
     try:
