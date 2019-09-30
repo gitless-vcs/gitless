@@ -24,6 +24,9 @@ def parser(subparsers, _):
   remote_parser.add_argument(
       '-d', '--delete', nargs='+', help='delete remote(es)', dest='delete_r',
       metavar='remote')
+  remote_parser.add_argument(
+      '-rn', '--rename', nargs='+',
+      help='rename the specified remote', dest='rename_r')
   remote_parser.set_defaults(func=main)
 
 
@@ -36,6 +39,8 @@ def main(args, repo):
     ret = _do_create(args.remote_name, args.remote_url, remotes)
   elif args.delete_r:
     ret = _do_delete(args.delete_r, remotes)
+  elif args.rename_r:
+    ret = _do_rename(args.rename_r, remotes)
   else:
     ret = _do_list(remotes)
 
@@ -74,5 +79,21 @@ def _do_delete(delete_r, remotes):
       pprint.ok('Remote {0} removed successfully'.format(r))
     except KeyError:
       pprint.err('Remote \'{0}\' doesn\'t exist'.format(r))
+      errors_found = True
+  return not errors_found
+
+
+def _do_rename(rename_r, remotes):
+  errors_found = False
+  if len(rename_r) != 2:
+    pprint.err(
+        'Expected 2 arguments to gl remote -rn')
+    errors_found = True
+  else:
+    try:
+      remotes.rename(rename_r[0], rename_r[1])
+      pprint.ok('Renamed remote {0} to {1}'.format(rename_r[0], rename_r[1]))
+    except KeyError:
+      pprint.err('Remote \'{0}\' doesn\'t exist'.format(rename_r[0]))
       errors_found = True
   return not errors_found

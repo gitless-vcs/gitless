@@ -55,6 +55,11 @@ def parser(subparsers, _):
       '-uu', '--unset-upstream',
       help='unset the upstream branch of the current branch',
       action='store_true')
+  edit_group.add_argument(
+      '-rn', '--rename-branch', nargs='+',
+      help='renames this branch or another specified branch',
+      dest='rename_b'
+  )
 
   branch_parser.set_defaults(func=main)
 
@@ -63,7 +68,7 @@ def main(args, repo):
   is_list = bool(args.verbose or args.remote)
   is_create = bool(args.create_b or args.dp)
   is_delete = bool(args.delete_b)
-  is_edit = bool(args.new_head or args.upstream_b or args.unset_upstream)
+  is_edit = bool(args.new_head or args.upstream_b or args.unset_upstream or args.rename_b)
 
   if is_list + is_create + is_delete + is_edit > 1:
     pprint.err('Invalid flag combination')
@@ -82,6 +87,8 @@ def main(args, repo):
     ret = _do_unset_upstream(repo)
   elif args.new_head:
     ret = _do_set_head(args.new_head, repo)
+  elif args.rename_b:
+    ret = _do_rename(args.rename_b, repo)
   else:
     _do_list(repo, args.remote, v=args.verbose)
 
@@ -203,3 +210,23 @@ def _do_set_head(commit_id, repo):
   pprint.ok(
       'Head of current branch {0} is now {1}'.format(curr_b, pprint.commit_str(commit)))
   return True
+
+
+def _do_rename(rename_b, repo):
+  ret = True
+  if len(rename_b) == 1 :
+    # Renaming this current branch
+    curr_b = repo.current_branch
+    curr_b.rename(rename_b[0])
+    pprint.ok('Renamed this branch to {0}'.format(rename_b[0]))
+  elif len(rename_b) == 2:
+    # Renaming a specified branch to a new name
+    b = helpers.get_branch(rename_b[0], repo)
+    b.rename(rename_b[1])
+    pprint.ok('Renamed branch {0} to {1}'.format(rename_b[0], rename_b[1]))
+  else :
+    # Gave more than 2 arguments
+    pprint.err(
+        'Too many arguments given')
+    ret = False
+  return ret

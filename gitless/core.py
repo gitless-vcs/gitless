@@ -453,6 +453,9 @@ class RemoteCollection(object):
   def delete(self, name):
     self.git_remote_collection.delete(name)
 
+  def rename(self, name, new_name):
+    self.git_remote_collection.rename(name, new_name)
+
 
 class Remote(object):
   """Tracked remote repository.
@@ -505,6 +508,12 @@ class Remote(object):
     git.fetch(self.git_remote.name, branch_name)
     git_branch = self.gl_repo.git_repo.lookup_branch(
         self.git_remote.name + '/' + branch_name, pygit2.GIT_BRANCH_REMOTE)
+    # Make another check for the branch being None
+    # As observed in issue : https://github.com/sdg-mit/gitless/issues/211
+    if git_branch is None:
+        git.fetch(self.git_remote.name)
+        git_branch = self.gl_repo.git_repo.lookup_branch(
+            self.git_remote.name + '/' + branch_name, pygit2.GIT_BRANCH_REMOTE)
     return RemoteBranch(git_branch, self.gl_repo)
 
 
@@ -652,6 +661,9 @@ class Branch(object):
     s_id, _ = _stash(_stash_msg(self.branch_name))
     if s_id:
       git.stash.drop(s_id)
+
+  def rename(self, new_name):
+    self.git_branch.rename(new_name)
 
   @property
   def upstream(self):
