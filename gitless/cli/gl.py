@@ -67,7 +67,7 @@ def print_help(parser):
       for choice in subparsers_action._choices_actions:
           print('    {:<19} {}'.format(choice.dest, choice.help))
 
-def main():
+def build_parser(subcommands, repo):
   parser = argparse.ArgumentParser(
       description=(
           'Gitless: a version control system built on top of Git.\nMore info, '
@@ -80,12 +80,18 @@ def main():
   subparsers = parser.add_subparsers(title='subcommands', dest='subcmd_name')
   subparsers.required = True
 
+  for sub_cmd in subcommands:
+    sub_cmd.parser(subparsers, repo)
+
+  return parser
+
+def main():
   sub_cmds = [
       gl_track, gl_untrack, gl_status, gl_diff, gl_commit, gl_branch, gl_tag,
       gl_checkout, gl_merge, gl_resolve, gl_fuse, gl_remote, gl_publish,
       gl_switch, gl_init, gl_history]
-  for sub_cmd in sub_cmds:
-    sub_cmd.parser(subparsers, repo)
+
+  parser = build_parser(sub_cmds, repo)
 
   if len(sys.argv) == 1:
     print_help(parser)

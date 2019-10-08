@@ -11,6 +11,8 @@ from functools import wraps
 import os
 import shutil
 import tempfile
+import unittest
+import argparse
 
 import sys
 if sys.platform != 'win32':
@@ -20,6 +22,7 @@ else:
   git = Command('git')
 
 from gitless import core
+from gitless.cli import gl, helpers, gl_track
 import gitless.tests.utils as utils_lib
 
 
@@ -34,7 +37,12 @@ IGNORED_FP = 'f3'
 IGNORED_FP_WITH_SPACE = 'f3 space'
 NONEXISTENT_FP = 'nonexistent'
 NONEXISTENT_FP_WITH_SPACE = 'nonexistent space'
+GITIGNORE_FP = '.gitignore'
 DIR = 'dir'
+REPO_DIR = '.git'
+REPO_FP = os.path.join(REPO_DIR, 'HEAD')
+GITTEST_DIR = '.gittest'
+GITTEST_FP = os.path.join(GITTEST_DIR, 'fp')
 UNTRACKED_DIR_FP = os.path.join(DIR, 'f1')
 UNTRACKED_DIR_FP_WITH_SPACE = os.path.join(DIR, 'f1 space')
 TRACKED_DIR_FP = os.path.join(DIR, 'f2')
@@ -49,12 +57,12 @@ ALL_FPS_IN_WD = [
     IGNORED_FP, IGNORED_FP_WITH_SPACE, UNTRACKED_DIR_FP,
     UNTRACKED_DIR_FP_WITH_SPACE, TRACKED_DIR_FP, TRACKED_DIR_FP_WITH_SPACE,
     UNTRACKED_DIR_DIR_FP, UNTRACKED_DIR_DIR_FP_WITH_SPACE, TRACKED_DIR_DIR_FP,
-    TRACKED_DIR_DIR_FP_WITH_SPACE, '.gitignore']
+    TRACKED_DIR_DIR_FP_WITH_SPACE, GITIGNORE_FP, GITTEST_FP]
 ALL_DIR_FPS_IN_WD = [
     TRACKED_DIR_FP, TRACKED_DIR_FP_WITH_SPACE, UNTRACKED_DIR_FP,
     UNTRACKED_DIR_FP_WITH_SPACE, TRACKED_DIR_DIR_FP,
     TRACKED_DIR_DIR_FP_WITH_SPACE, UNTRACKED_DIR_DIR_FP,
-    UNTRACKED_DIR_DIR_FP_WITH_SPACE]
+    UNTRACKED_DIR_DIR_FP_WITH_SPACE, GITTEST_DIR]
 BRANCH = 'b1'
 REMOTE_BRANCH = 'rb'
 FP_IN_CONFLICT = 'f_conflict'
@@ -164,10 +172,11 @@ class TestFile(TestCore):
     utils_lib.write_file(UNTRACKED_DIR_DIR_FP)
     utils_lib.write_file(UNTRACKED_DIR_DIR_FP_WITH_SPACE)
     utils_lib.write_file(
-        '.gitignore', contents='{0}\n{1}'.format(
+        GITIGNORE_FP, contents='{0}\n{1}'.format(
             IGNORED_FP, IGNORED_FP_WITH_SPACE))
     utils_lib.write_file(IGNORED_FP)
     utils_lib.write_file(IGNORED_FP_WITH_SPACE)
+    utils_lib.write_file(GITTEST_FP)
 
     self.curr_b = self.repo.current_branch
 
@@ -258,6 +267,10 @@ class TestFileTrack(TestFile):
   @assert_no_side_effects(IGNORED_FP, IGNORED_FP_WITH_SPACE)
   def test_track_ignored(self):
     self.__assert_track_ignored(IGNORED_FP, IGNORED_FP_WITH_SPACE)
+
+  @assert_contents_unchanged(GITIGNORE_FP)
+  def test_track_gitignore(self):
+      self.__assert_track_untracked(GITIGNORE_FP)
 
 
 class TestFileUntrack(TestFile):
@@ -744,6 +757,44 @@ class TestFileResolve(TestFile):
     self.assertRaisesRegexp(
         ValueError, 'no conflicts',
         self.curr_b.resolve_file, DIR_FP_IN_CONFLICT)
+
+class TestFilePathProcessor(TestFile):
+
+  def setUp(self):
+    super(TestFilePathProcessor, self).setUp()
+    self.parser = gl.build_parser([gl_track], self.repo)
+
+  def test_path_processor_track_git(self):
+    argv = ['track', REPO_DIR]
+    args = self.parser.parse_args(argv)
+    files = [fp for fp in args.files]
+    # Should be empty in this case
+    self.assertFalse(files)
+
+  @assert_contents_unchanged(REPO_FP)
+  def test_path_processor_track_git_file(self):
+    argv = ['track', REPO_FP]
+    args = self.parser.parse_args(argv)
+    files = [fp for fp in args.files]
+    self.assertFalse(files)
+
+  @assert_no_side_effects(GITIGNORE_FP)
+  def test_path_processor_track_gitignore(self):
+    argv = ['track', GITIGNORE_FP]
+    args = self.parser.parse_args(argv)
+    files = [fp for fp in args.files]
+
+    self.assertEqual(len(files), 1)
+    self.assertTrue(GITIGNORE_FP in files)
+
+  @assert_no_side_effects(GITTEST_FP)
+  def test_path_processor_track_gittest_dir(self):
+    argv = ['track', GITTEST_DIR]
+    args = self.parser.parse_args(argv)
+    files = [fp for fp in args.files]
+
+    self.assertEqual(len(files), 1)
+    self.assertTrue(GITTEST_FP in files)
 
 
 # Unit tests for branch related operations

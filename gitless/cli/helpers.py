@@ -112,7 +112,7 @@ class PathProcessor(argparse.Action):
 
   def __call__(self, parser, namespace, paths, option_string=None):
     root = self.repo.root if self.repo else ''
-    repo_dir = self.repo.path[:-1] if self.repo else ''  # strip trailing /
+    repo_dir = self.repo.path if self.repo else '' # Don't strip trailing /
     def process_paths():
       for path in paths:
         path = os.path.abspath(path)
@@ -133,8 +133,6 @@ class PathProcessor(argparse.Action):
         else:
           if not path.startswith(repo_dir):
             yield os.path.relpath(path, root)
-          else:
-            yield path
 
     setattr(namespace, self.dest, process_paths())
 
