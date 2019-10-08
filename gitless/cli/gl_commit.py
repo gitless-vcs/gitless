@@ -30,7 +30,7 @@ def parser(subparsers, repo):
         desc.capitalize() + '. ' +
         'By default all tracked modified files are committed. To customize the'
         ' set of files to be committed use the only, exclude, and include '
-        'flags'))
+        'flags'), aliases=['ci'])
   commit_parser.add_argument(
       '-m', '--message', help='Commit message', dest='m')
   commit_parser.add_argument(

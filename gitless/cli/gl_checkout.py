@@ -16,7 +16,7 @@ def parser(subparsers, repo):
   """Adds the checkout parser to the given subparsers object."""
   desc = 'checkout committed versions of files'
   checkout_parser = subparsers.add_parser(
-      'checkout', help=desc, description=desc.capitalize())
+      'checkout', help=desc, description=desc.capitalize(), aliases=['co'])
   checkout_parser.add_argument(
       '-cp', '--commit-point', help=(
           'the commit point to checkout the files at. Defaults to HEAD.'),

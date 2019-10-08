@@ -18,7 +18,7 @@ def parser(subparsers, _):
   """Adds the branch parser to the given subparsers object."""
   desc = 'list, create, delete, or edit branches'
   branch_parser = subparsers.add_parser(
-      'branch', help=desc, description=desc.capitalize())
+      'branch', help=desc, description=desc.capitalize(), aliases=['br'])
 
   list_group = branch_parser.add_argument_group('list branches')
   list_group.add_argument(
