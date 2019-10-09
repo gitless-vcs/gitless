@@ -10,4 +10,4 @@ from __future__ import unicode_literals
 from . import file_cmd
 
 
-parser = file_cmd.parser('start tracking changes to files', 'track')
+parser = file_cmd.parser('start tracking changes to files', 'track', ['tr'])

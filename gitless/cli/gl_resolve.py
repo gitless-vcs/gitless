@@ -10,4 +10,4 @@ from __future__ import unicode_literals
 from . import file_cmd
 
 
-parser = file_cmd.parser('mark files with conflicts as resolved', 'resolve')
+parser = file_cmd.parser('mark files with conflicts as resolved', 'resolve', ['rs'])
