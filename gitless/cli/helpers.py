@@ -112,13 +112,18 @@ class PathProcessor(argparse.Action):
 
   def __call__(self, parser, namespace, paths, option_string=None):
     root = self.repo.root if self.repo else ''
-    repo_dir = self.repo.path if self.repo else '' # Don't strip trailing /
+    repo_path = self.repo.path if self.repo else ''
+    # We add the sep so that we can use `startswith` to determine if a file
+    # is inside the .git folder
+    # `normpath` is important because libgit2 returns the repo_path with forward
+    # slashes on Windows
+    normalized_repo_path = os.path.normpath(repo_path) + os.path.sep
     def process_paths():
       for path in paths:
         path = os.path.abspath(path)
         if self.recursive and os.path.isdir(path):
           for curr_dir, dirs, fps in os.walk(path, topdown=True):
-            if curr_dir.startswith(repo_dir):
+            if curr_dir.startswith(normalized_repo_path):
               dirs[:] = []
               continue
             curr_dir_rel = os.path.relpath(curr_dir, root)
@@ -131,7 +136,7 @@ class PathProcessor(argparse.Action):
             for fp in fps:
               yield os.path.join(curr_dir_rel, fp)
         else:
-          if not path.startswith(repo_dir):
+          if not path.startswith(normalized_repo_path):
             yield os.path.relpath(path, root)
 
     setattr(namespace, self.dest, process_paths())
