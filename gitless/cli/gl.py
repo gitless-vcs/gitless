@@ -21,13 +21,13 @@ from clint.textui import colored
 
 from gitless import core
 
-from aliases import AliasedSubParsersAction
 
 from . import (
     gl_track, gl_untrack, gl_status, gl_diff, gl_commit, gl_branch, gl_tag,
     gl_checkout, gl_merge, gl_resolve, gl_fuse, gl_remote, gl_publish,
     gl_switch, gl_init, gl_history)
 from . import pprint
+from . import helpers
 
 
 SUCCESS = 0
@@ -76,7 +76,7 @@ def build_parser(subcommands, repo):
           'downloads and documentation at {0}'.format(URL)),
       formatter_class=argparse.RawDescriptionHelpFormatter)
   if sys.version_info[0] < 3:
-      parser.register('action', 'parsers', AliasedSubParsersAction)
+      parser.register('action', 'parsers', helpers.AliasedSubParsersAction)
   parser.add_argument(
       '--version', action='version', version=(
          'GL Version: {0}\nYou can check if there\'s a new version of Gitless '
