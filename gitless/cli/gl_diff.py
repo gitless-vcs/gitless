@@ -20,7 +20,7 @@ def parser(subparsers, repo):
       'diff', help=desc, description=(
         desc.capitalize() + '. ' +
         'By default all tracked modified files are diffed. To customize the '
-        ' set of files to diff use the only, exclude, and include flags'))
+        ' set of files to diff use the only, exclude, and include flags'), aliases=['df'])
   helpers.oei_flags(diff_parser, repo)
   diff_parser.set_defaults(func=main)
 

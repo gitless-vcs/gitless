@@ -13,10 +13,10 @@ from . import helpers, pprint
 VOWELS = ('a', 'e', 'i', 'o', 'u')
 
 
-def parser(help_msg, subcmd):
+def parser(help_msg, subcmd, subcmd_aliases=[]):
   def f(subparsers, repo):
     p = subparsers.add_parser(
-        subcmd, help=help_msg, description=help_msg.capitalize())
+        subcmd, help=help_msg, description=help_msg.capitalize(), aliases=subcmd_aliases)
     p.add_argument(
         'files', nargs='+', help='the file(s) to {0}'.format(subcmd),
         action=helpers.PathProcessor, repo=repo,

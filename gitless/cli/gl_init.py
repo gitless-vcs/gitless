@@ -19,7 +19,7 @@ def parser(subparsers, _):
   desc = (
       'create an empty git repository or clone remote')
   init_parser = subparsers.add_parser(
-      'init', help=desc, description=desc.capitalize())
+      'init', help=desc, description=desc.capitalize(), aliases=['in'])
   init_parser.add_argument(
       'repo', nargs='?',
       help=(

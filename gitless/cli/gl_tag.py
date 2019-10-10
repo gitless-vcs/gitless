@@ -16,7 +16,7 @@ def parser(subparsers, _):
   """Adds the tag parser to the given subparsers object."""
   desc = 'list, create, or delete tags'
   tag_parser = subparsers.add_parser(
-      'tag', help=desc, description=desc.capitalize())
+      'tag', help=desc, description=desc.capitalize(), aliases=['tg'])
 
   list_group = tag_parser.add_argument_group('list tags')
   list_group.add_argument(

@@ -14,7 +14,7 @@ def parser(subparsers, _):
   """Adds the remote parser to the given subparsers object."""
   desc = 'list, create, edit or delete remotes'
   remote_parser = subparsers.add_parser(
-      'remote', help=desc, description=desc.capitalize())
+      'remote', help=desc, description=desc.capitalize(), aliases=['rt'])
   remote_parser.add_argument(
       '-c', '--create', nargs='?', help='create remote', dest='remote_name',
       metavar='remote')

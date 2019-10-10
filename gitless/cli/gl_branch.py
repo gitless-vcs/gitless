@@ -18,7 +18,7 @@ def parser(subparsers, _):
   """Adds the branch parser to the given subparsers object."""
   desc = 'list, create, delete, or edit branches'
   branch_parser = subparsers.add_parser(
-      'branch', help=desc, description=desc.capitalize())
+      'branch', help=desc, description=desc.capitalize(), aliases=['br'])
 
   list_group = branch_parser.add_argument_group('list branches')
   list_group.add_argument(
@@ -149,8 +149,14 @@ def _do_create(create_b, dp, repo):
           continue
         remote_str = ' in remote repository {0}'.format(maybe_remote)
     try:
-      r.create_branch(b_name, target)
+      new_branch = r.create_branch(b_name, target)
       pprint.ok('Created new branch {0}{1}'.format(b_name, remote_str))
+      try:
+          new_branch.upstream = helpers.get_branch(dp, repo)
+          pprint.ok('Upstream of {0} set to {1}'.format(b_name, dp))
+      except:
+          # Not a branch
+          continue
     except ValueError as e:
       pprint.err(e)
       errors_found = True

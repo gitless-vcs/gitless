@@ -15,7 +15,7 @@ from . import helpers, pprint
 def parser(subparsers, repo):
   desc = 'merge the divergent changes of one branch onto another'
   merge_parser = subparsers.add_parser(
-      'merge', help=desc, description=desc.capitalize())
+      'merge', help=desc, description=desc.capitalize(), aliases=['mg'])
   group = merge_parser.add_mutually_exclusive_group()
   group.add_argument(
       'src', nargs='?', help='the source branch to read changes from')
