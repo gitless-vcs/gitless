@@ -152,9 +152,7 @@ def _do_create(create_b, dp, repo):
       new_branch = r.create_branch(b_name, target)
       pprint.ok('Created new branch {0}{1}'.format(b_name, remote_str))
       try:
-          remote, branch = dp.split('/', 1) if '/' in dp else ('' , '')
-          upstream_branch = helpers.get_branch(dp, repo) or helpers.get_branch(branch, repo.remotes[remote])
-          new_branch.upstream = upstream_branch
+          new_branch.upstream = helpers.get_branch(dp, repo)
           pprint.ok('Upstream of {0} set to {1}'.format(b_name, dp))
       except:
           # Not a branch
