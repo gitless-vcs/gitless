@@ -21,7 +21,6 @@ from clint.textui import colored
 
 from gitless import core
 
-
 from . import (
     gl_track, gl_untrack, gl_status, gl_diff, gl_commit, gl_branch, gl_tag,
     gl_checkout, gl_merge, gl_resolve, gl_fuse, gl_remote, gl_publish,
