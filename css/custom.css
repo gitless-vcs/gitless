@@ -43,10 +43,6 @@ h4 {
   margin:0px 0px .5em 0px;
 }
 
-@media (max-width: 970px) {
-  #ribbon { display: none; }
-}
-
 #header {
   position: relative;
   margin-top: 40px;
@@ -89,7 +85,7 @@ h4 {
   background: url('../ribbon-gl.png') 0 0 no-repeat;
 }
 
-.vs .gl { 
+.vs .gl {
   position: relative;
   float: left;
   width: 370px;
@@ -158,18 +154,21 @@ li { margin-bottom: 5px; }
   position: relative;
 }
 
-#main p { width: 42em; }
+#main li {
+  margin-bottom: 15px;
+  width: 490px;
+}
 
 #footer {
   position: relative;
   font-family: 'Droid Serif', Verdana, Arial, Helvetica, sans-serif;
   letter-spacing: -.03em;
-  font-size: 80%; 
+  font-size: 80%;
   padding-bottom: 20px;
   padding-top: 10px;
   border-top: 1px solid #aaaaaa;
 }
- 
+
 p { margin-left: 0; }
 .fig { margin-bottom: 20px; }
 .fig img { width: 500px;}

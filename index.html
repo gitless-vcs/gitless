@@ -20,12 +20,6 @@
 </head>
 
 <body>
-  <div id="ribbon">
-  <a href="https://github.com/sdg-mit/gitless">
-    <img style="position: absolute; top: 0; right: 0; border: 0;"
-     src="fork-me.png" alt="Fork me on GitHub">
-  </a>
-  </div>
   <div id="container">
 
     <div id="header" class="full">
@@ -37,12 +31,14 @@
         <a href="#vs">gitless vs. git</a> |
         <a href="https://github.com/sdg-mit/gitless/issues/">
           report a bug
-        </a>
+        </a> |
+        <a href="#research">research</a> |
+        <a href="https://github.com/sdg-mit/gitless">github</a>
       </p>
       <!-- End page links and bug reporting -->
     </div>
 
-    <div id="sidebar" class="third news">  
+    <div id="sidebar" class="third news">
       <!-- Begin Download -->
       <h1><span>Downloads</span></h1>
       <div>
@@ -70,7 +66,7 @@
 
         <p>
         After installation, you should be able to execute the <code>gl</code>
-        command. Gitless is licensed under 
+        command. Gitless is licensed under
         <a href="https://github.com/sdg-mit/gitless/blob/master/LICENSE.md">MIT</a>
         </p>
         <p style="font-size: small">
@@ -89,29 +85,36 @@
     <div id="main" class="twothird">
       <h1>About</h1>
       <p>
-      Gitless is a version control system built on top of Git.
-      Many people complain that Git is hard to use. We think the problem lies
-      deeper than the user interface, in the concepts underlying Git. Gitless
-      is an experiment to see what happens if you put a simple veneer on an app
-      that changes the underlying concepts. Because Gitless is implemented on
-      top of Git (could be considered what Git pros call a "porcelain" of Git),
-      you can always fall back on Git. And of course your coworkers you share a
-      repo with need never know that you're not a Git aficionado.
+      Gitless is a free distributed version control system, that is
+      easy to learn and use:
       </p>
-
-      <p>
-      Check out the <a href="#documentation">documentation</a> to get started.
-      If you are new to version control, the
-      documentation should be enough to get you started. If you are a Git pro
-      looking to see what's different from your beloved Git you'll be able to
-      spot the differences by glancing through the
-      <a href="#vs">Gitless vs. Git</a> section.
-      If you are
-      interested in software design and want to learn more about the research
-      behind Gitless see the 
-      <a href="#research">research</a> section.
-      If you want a thirty-minutes summary presentation, watch <a href="https://www.youtube.com/watch?v=31XZYMjg93o">"What’s Wrong With Git?" from Git Merge 2017</a>.
-      </p>
+      <ul>
+        <li>
+        <strong>Simple commit workflow</strong><br/>
+        Track or untrack files to control
+        what changes to commit. Changes to tracked files are
+        committed by default, but you can easily customize the set of files to
+        commit using flags
+        </li>
+        <li>
+        <strong>Independent branches</strong><br/>
+        Branches in Gitless include your working changes, so you
+        can switch between branches without having to worry about conflicting
+        uncommitted changes
+        </li>
+        <li>
+        <strong>Friendly command-line interface</strong><br/>
+        Gitless commands will give you good feedback and help you figure out
+        what to do next
+        </li>
+        <li>
+        <strong>Compatible with Git</strong><br/>
+        Because Gitless is implemented on top of Git, you can always fall back
+        on Git. And your coworkers you share a repo with need never
+        know that you're not a Git aficionado. Moreover, you can use Gitless
+        with GitHub or with any Git hosting service.
+        </li>
+      </ul>
     </div>
     <!-- End Main -->
 
@@ -219,7 +222,7 @@
       you pass the URL of the repository to the same <code>gl init</code> command, as
       shown below (note that you'll have
       to replace <code>https://github.com/spderosso/try-gitless</code> with
-      the URL of your repo): 
+      the URL of your repo):
       </p>
       <div class="code">
       <pre><code><span class="shell">$</span> mkdir try-gitless
@@ -233,7 +236,7 @@
       <a href="https://help.github.com/articles/create-a-repo/">these instructions</a> to create one on
       GitHub.
       </p>
-      
+
       <a id="changes"><h3>Saving Changes</h3></a>
       <p>
       Now that you have your local repository, it's time to start saving
@@ -349,7 +352,7 @@ overwritten by checkout. Do you wish to continue? (y/N)
         again you need to track it with <code>gl track</code>.
       </p>
 
- 
+
       <a id="branching"><h3>Branching</h3></a>
       <p>
       A branch is an independent line of development. You are always working
@@ -562,7 +565,7 @@ successfully</span>
       for each remote branch, and each local branch is automatically configured
       to have as upstream its remote counterpart.
       </p>
-  
+
 
       <!-- End Documentation/Guide -->
     </div>
@@ -976,7 +979,7 @@ can do `gl merge try-gitless/master`</span>
 <span class="shell">$</span> gl branch -su try-gitless/master
 <span class="ansi-green">✔ Current branch master set to track
 try-gitless/master</span>
-<span class="shell">$</span> gl fuse 
+<span class="shell">$</span> gl fuse
 <span class="ansi-yellow">! No src branch specified, getting changes from
 upstream branch try-gitless/master</span>
 ...
@@ -1034,7 +1037,9 @@ of the `push.default` config variable</span>
     <div class="twothird">
       <a id="research"><h1>Research</h1></a>
       <p>
-      Here's a list of papers related to Gitless:
+      If you are
+      interested in software design and want to learn more about the research
+      behind Gitless, take a look at the following papers:
       </p>
       <ul>
         <li>
@@ -1050,12 +1055,15 @@ of the `push.default` config variable</span>
         <a href="https://spderosso.github.io/onward13.pdf"
           title="pdf - What's Wrong with Git? A Conceptual Design Analysis">
           What's Wrong with Git? A Conceptual Design Analysis</a><br/>
-        S. P. De Rosso and D. Jackson.
+        S. Perez De Rosso and D. Jackson.
         In <em>Proceedings of the 2013 ACM International Symposium on New
         Ideas, New Paradigms, and Reflections on Programming &amp; Software
         (Onward! 2013)</em>
         </li>
       </ul>
+      <p>
+      If you want a thirty-minutes summary presentation, watch <a href="https://www.youtube.com/watch?v=31XZYMjg93o">"What’s Wrong With Git?" from Git Merge 2017</a>.
+      </p>
 
     </div>
     <!-- End Research -->
@@ -1063,12 +1071,12 @@ of the `push.default` config variable</span>
     <!-- Begin Footer -->
     <div id="footer" class="full top_margin_20">
       <p>
-      &copy; 2016 <a href="https://spderosso.github.io">Santiago De Rosso</a>
+      &copy; 2016 <a href="https://spderosso.github.io">spderosso</a>
       </p>
       <p>
       <em>Acknowledgements.</em> Gitless is part of a research project exploring
       concept design. This research is part of a collaboration between MIT and
-      SUTD (the Singapore University of Technology and Design), and is funded by
+      the Singapore University of Technology and Design (SUTD), and is funded by
       a grant from SUTD's International Design Center
       </p>
     </div>
