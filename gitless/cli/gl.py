@@ -88,6 +88,12 @@ def build_parser(subcommands, repo):
 
   return parser
 
+def setup_windows_console():
+  if sys.platform == 'win32':
+    import ctypes
+    kernel32 = ctypes.windll.kernel32
+    kernel32.SetConsoleMode(kernel32.GetStdHandle(-11), 7)
+
 def main():
   sub_cmds = [
       gl_track, gl_untrack, gl_status, gl_diff, gl_commit, gl_branch, gl_tag,
@@ -105,6 +111,7 @@ def main():
     if args.subcmd_name != 'init' and not repo:
       raise core.NotInRepoError('You are not in a Gitless\'s repository')
 
+    setup_windows_console()
     return SUCCESS if args.func(args, repo) else ERRORS_FOUND
   except KeyboardInterrupt:
     pprint.puts('\n')
