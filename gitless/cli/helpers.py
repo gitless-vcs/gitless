@@ -134,7 +134,7 @@ class PathProcessor(argparse.Action):
               dirs[:] = []
               continue
             for fp in fps:
-              yield os.path.join(curr_dir_rel, fp)
+              yield fp if curr_dir_rel == '.' else os.path.join(curr_dir_rel, fp)
         else:
           if not path.startswith(normalized_repo_path):
             yield os.path.relpath(path, root)
