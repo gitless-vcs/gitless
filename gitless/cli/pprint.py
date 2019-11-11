@@ -135,7 +135,7 @@ def commit_str(ci):
   return ci_str.getvalue().strip()
 
 
-def commit(ci, compact=False, stream=sys.stdout.write):
+def commit(ci, compact=False, stream=sys.stdout.write, line_additions=0, line_deletions=0):
   merge_commit = len(ci.parent_ids) > 1
   color = colored.magenta if merge_commit else colored.yellow
   if compact:
@@ -152,6 +152,10 @@ def commit(ci, compact=False, stream=sys.stdout.write):
   ci_author_dt = datetime.fromtimestamp(
       ci.author.time, FixedOffset(ci.author.offset))
   puts(color('Date:      {0:%c %z}'.format(ci_author_dt)), stream=stream)
+  put_s = lambda num: '' if num == 1 else 's'
+  puts(color('Stats:     {0} line{1} added, {2} line{3} removed'
+    .format(line_additions, put_s(line_additions), 
+      line_deletions, put_s(line_deletions))), stream=stream)
   puts(stream=stream)
   with indent(4):
     puts(ci.message, stream=stream)
@@ -224,6 +228,16 @@ def diff(patch, stream=sys.stdout.write):
     _hunk(hunk, stream=stream)
 
   puts(stream=stream)
+  puts(stream=stream)
+
+def diff_totals(total_additions, total_deletions, stream=sys.stdout.write):
+
+  put_s = lambda num: '' if num == 1 else 's'
+  puts('Diff summary', stream=stream)
+  puts('Total of {0} line{1} added'
+    .format(total_additions, put_s(total_additions)), stream=stream)
+  puts('Total of {0} line{1} removed'
+    .format(total_deletions, put_s(total_deletions)), stream=stream)
   puts(stream=stream)
 
 
