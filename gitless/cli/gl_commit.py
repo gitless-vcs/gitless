@@ -50,6 +50,20 @@ def main(args, repo):
     return False
 
   curr_b = repo.current_branch
+  total_additions = 0
+  total_deletions = 0
+  for fp in commit_files:
+      try:
+        patch = curr_b.diff_file(fp)
+      except KeyError:
+        continue
+
+      if patch.delta.is_binary:
+        continue
+
+      total_additions += patch.line_stats[1]
+      total_deletions += patch.line_stats[2]
+
   partials = None
   if args.p:
     partials = _do_partial_selection(commit_files, curr_b)
@@ -68,7 +82,7 @@ def main(args, repo):
   pprint.ok('Commit on branch {0} succeeded'.format(repo.current_branch))
 
   pprint.blank()
-  pprint.commit(ci)
+  pprint.commit(ci, line_additions=total_additions, line_deletions=total_deletions)
 
   if curr_b.fuse_in_progress:
     _op_continue(curr_b.fuse_continue, 'Fuse')

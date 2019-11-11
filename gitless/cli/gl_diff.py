@@ -33,6 +33,9 @@ def main(args, repo):
   success = True
   curr_b = repo.current_branch
   with tempfile.NamedTemporaryFile(mode='w', delete=False) as tf:
+    total_additions = 0
+    total_deletions = 0
+    patches = []
     for fp in files:
       try:
         patch = curr_b.diff_file(fp)
@@ -47,11 +50,16 @@ def main(args, repo):
 
       additions = patch.line_stats[1]
       deletions = patch.line_stats[2]
+      total_additions += additions
+      total_deletions += deletions
       if (not additions) and (not deletions):
         pprint.warn('No diffs to output for {0}'.format(fp))
         continue
-
-      pprint.diff(patch, stream=tf.write)
+      patches.append(patch)
+    if patches:
+      pprint.diff_totals(total_additions, total_deletions, stream=tf.write)
+      for patch in patches:
+        pprint.diff(patch, stream=tf.write)
 
   if os.path.getsize(tf.name) > 0:
     helpers.page(tf.name, repo)
