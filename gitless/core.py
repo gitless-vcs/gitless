@@ -516,6 +516,23 @@ class Remote(object):
             self.git_remote.name + '/' + branch_name, pygit2.GIT_BRANCH_REMOTE)
     return RemoteBranch(git_branch, self.gl_repo)
 
+  def lookup_branches(self, branch_names):
+    if not stdout(git('ls-remote', '--heads', self.name, branch_names)):
+      return None
+    # The branch exists in the remote
+    git.fetch(self.git_remote.name, branch_names)
+    remote_branches = []
+    for branch_name in branch_names:
+      git_branch = self.gl_repo.git_repo.lookup_branch(
+          self.git_remote.name + '/' + branch_name, pygit2.GIT_BRANCH_REMOTE)
+      # Make another check for the branch being None
+      # As observed in issue : https://github.com/sdg-mit/gitless/issues/211
+      if git_branch is None:
+          git.fetch(self.git_remote.name)
+          git_branch = self.gl_repo.git_repo.lookup_branch(
+              self.git_remote.name + '/' + branch_name, pygit2.GIT_BRANCH_REMOTE)
+      remote_branches.append(RemoteBranch(git_branch, self.gl_repo))
+    return remote_branches
 
   # Tag-related methods
 

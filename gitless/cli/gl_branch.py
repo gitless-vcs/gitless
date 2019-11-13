@@ -118,7 +118,7 @@ def _do_list(repo, list_remote, v=False):
 
   if list_remote:
     for r in sorted(repo.remotes, key=lambda r: r.name):
-      for b in (r.lookup_branch(n) for n in sorted(r.listall_branches())):
+      for b in r.lookup_branches(sorted(r.listall_branches())):
         pprint.item('  {0}'.format(colored.yellow(str(b))))
         if v:
           pprint.item('    ➜ head is {0}'.format(pprint.commit_str(b.head)))
