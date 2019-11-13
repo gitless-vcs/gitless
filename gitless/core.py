@@ -502,13 +502,15 @@ class Remote(object):
       yield regex.match(head).group(1)
 
   def lookup_branch(self, branch_name):
-    return self.lookup_branches([branch_name])[0]
+    branches = self.lookup_branches([branch_name])
+    if not branches:
+      return None
+    else:
+      return branches[0]
 
   def lookup_branches(self, branch_names):
     all_branches = self.listall_branches()
     branch_names = [branch_name for branch_name in all_branches if branch_name in branch_names]
-    if not branch_names:
-      return None
 
     # The branches exist in the remote
     git.fetch(self.git_remote.name, branch_names)
