@@ -510,7 +510,8 @@ class Remote(object):
 
   def lookup_branches(self, branch_names):
     all_branches = self.listall_branches()
-    branch_names = [branch_name for branch_name in all_branches if branch_name in branch_names]
+    branch_names = [branch_name for branch_name in all_branches 
+                                              if branch_name in branch_names]
 
     # The branches exist in the remote
     git.fetch(self.git_remote.name, branch_names)
