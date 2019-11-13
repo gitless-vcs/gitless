@@ -146,6 +146,8 @@ class Repository(object):
         return self.remotes[remote].lookup_branch(remote_branch).head
       except KeyError:
         pass
+      except AttributeError:
+        pass
     try:
       return self.git_repo.revparse_single(revision)
     except (KeyError, ValueError):
@@ -503,18 +505,13 @@ class Remote(object):
 
   def lookup_branch(self, branch_name):
     branches = self.lookup_branches([branch_name])
-    if not branches:
-      return None
-    else:
-      return branches[0]
+    return branches[0] if branches else None
 
   def lookup_branches(self, branch_names):
-    all_branches = self.listall_branches()
-    branch_names = [branch_name for branch_name in all_branches 
-                                              if branch_name in branch_names]
-
-    # The branches exist in the remote
-    git.fetch(self.git_remote.name, branch_names)
+    try:
+      git.fetch(self.git_remote.name, branch_names)
+    except:
+      return None
     remote_branches = []
     for branch_name in branch_names:
       git_branch = self.gl_repo.git_repo.lookup_branch(
@@ -527,6 +524,9 @@ class Remote(object):
               self.git_remote.name + '/' + branch_name, pygit2.GIT_BRANCH_REMOTE)
       remote_branches.append(RemoteBranch(git_branch, self.gl_repo))
     return remote_branches
+
+  def lookupall_branches(self):
+    return self.lookup_branches(sorted(self.listall_branches()))
 
   # Tag-related methods
 
