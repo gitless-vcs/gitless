@@ -146,6 +146,8 @@ class Repository(object):
         return self.remotes[remote].lookup_branch(remote_branch).head
       except KeyError:
         pass
+      except AttributeError:
+        pass
     try:
       return self.git_repo.revparse_single(revision)
     except (KeyError, ValueError):
@@ -502,20 +504,29 @@ class Remote(object):
       yield regex.match(head).group(1)
 
   def lookup_branch(self, branch_name):
-    if not stdout(git('ls-remote', '--heads', self.name, branch_name)):
-      return None
-    # The branch exists in the remote
-    git.fetch(self.git_remote.name, branch_name)
-    git_branch = self.gl_repo.git_repo.lookup_branch(
-        self.git_remote.name + '/' + branch_name, pygit2.GIT_BRANCH_REMOTE)
-    # Make another check for the branch being None
-    # As observed in issue : https://github.com/sdg-mit/gitless/issues/211
-    if git_branch is None:
-        git.fetch(self.git_remote.name)
-        git_branch = self.gl_repo.git_repo.lookup_branch(
-            self.git_remote.name + '/' + branch_name, pygit2.GIT_BRANCH_REMOTE)
-    return RemoteBranch(git_branch, self.gl_repo)
+    branches = self.lookup_branches([branch_name])
+    return branches[0] if branches else None
 
+  def lookup_branches(self, branch_names):
+    try:
+      git.fetch(self.git_remote.name, branch_names)
+    except:
+      return None
+    remote_branches = []
+    for branch_name in branch_names:
+      git_branch = self.gl_repo.git_repo.lookup_branch(
+          self.git_remote.name + '/' + branch_name, pygit2.GIT_BRANCH_REMOTE)
+      # Make another check for the branch being None
+      # As observed in issue : https://github.com/sdg-mit/gitless/issues/211
+      if git_branch is None:
+          git.fetch(self.git_remote.name)
+          git_branch = self.gl_repo.git_repo.lookup_branch(
+              self.git_remote.name + '/' + branch_name, pygit2.GIT_BRANCH_REMOTE)
+      remote_branches.append(RemoteBranch(git_branch, self.gl_repo))
+    return remote_branches
+
+  def lookupall_branches(self):
+    return self.lookup_branches(sorted(self.listall_branches()))
 
   # Tag-related methods
 
