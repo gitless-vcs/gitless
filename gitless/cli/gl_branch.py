@@ -118,8 +118,10 @@ def _do_list(repo, list_remote, v=False):
 
   if list_remote:
     for r in sorted(repo.remotes, key=lambda r: r.name):
-      for b in r.lookupall_branches():
-        pprint.item('  {0}'.format(colored.yellow(str(b))))
+      branches = r.lookupall_branches() if v else r.listall_branches()
+      b_remote = '' if v else r.name + '/'
+      for b in branches:
+        pprint.item('  {0}'.format(colored.yellow(b_remote + str(b))))
         if v:
           pprint.item('    ➜ head is {0}'.format(pprint.commit_str(b.head)))
 
