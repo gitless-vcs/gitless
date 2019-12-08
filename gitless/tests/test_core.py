@@ -188,11 +188,11 @@ class TestFile(TestCore):
     utils_lib.write_file(IGNORED_FP_WITH_SPACE)
     utils_lib.write_file(GITTEST_FP)
 
-    # Testing with symlinks!
+    # Testing with symlinks! The symlink calls will be no ops on Windows
     utils_lib.write_file(SYMLINK_TARGET_FP, contents=SYMLINK_TARGET_FP_CONTENTS)
-    os.symlink(REPO_DIR, SYMLINK_GIT)
+    utils_lib.symlink(REPO_DIR, SYMLINK_GIT)
     os.mkdir(SYMLINK_DIR)
-    os.symlink(SYMLINK_TARGET, SYMLINK_FP)
+    utils_lib.symlink(SYMLINK_TARGET, SYMLINK_FP)
 
     self.curr_b = self.repo.current_branch
 
@@ -823,20 +823,22 @@ class TestFilePathProcessor(TestFile):
 
   @assert_no_side_effects(SYMLINK_TARGET_FP)
   def test_path_processor_track_symlink(self):
-      argv = ['track', SYMLINK_FP]
-      args = self.parser.parse_args(argv)
-      files = [fp for fp in args.files]
+    argv = ['track', SYMLINK_FP]
+    args = self.parser.parse_args(argv)
+    files = [fp for fp in args.files]
 
+    if os.path.exists(SYMLINK_FP):
       self.assertEqual(len(files), 1)
       self.assertTrue(SYMLINK_FP in files)
       self.assertFalse(SYMLINK_TARGET_FP in files)
 
   @assert_no_side_effects(SYMLINK_TARGET_FP)
   def test_path_processor_track_symlink_dir(self):
-      argv = ['track', SYMLINK_DIR]
-      args = self.parser.parse_args(argv)
-      files = [fp for fp in args.files]
+    argv = ['track', SYMLINK_DIR]
+    args = self.parser.parse_args(argv)
+    files = [fp for fp in args.files]
 
+    if os.path.exists(SYMLINK_FP):
       self.assertEqual(len(files), 1)
       self.assertTrue(SYMLINK_FP in files)
       self.assertFalse(SYMLINK_TARGET_FP in files)

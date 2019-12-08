@@ -82,6 +82,16 @@ def rmtree(path):
   logging.debug('Removed dir {0}'.format(path))
 
 
+def symlink(src, dst, target_is_directory=False, *, dir_fd=None):
+  try:
+    os.symlink(src, dst, target_is_directory, dir_fd=dir_fd)
+  except OSError:
+    # Swallow the OSError, because Windows is very weird about creating
+    # symlinks. Technically, python supports this if it is run with the right
+    # permissions. In that case, this will just work.
+    pass
+
+
 def write_file(fp, contents=''):
   _x_file('w', fp, contents=contents)
 
