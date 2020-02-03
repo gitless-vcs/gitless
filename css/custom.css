@@ -54,11 +54,23 @@ h4 {
 .header-gl {
   font-size: 2.9em;
   font-weight: bold;
+  display: flex;
+  margin-bottom: 5px;
 }
 
 #header p {
   color: gray;
   margin-left: 4px;
+}
+
+.header-gl img {
+  width: 40px;
+}
+
+.header-text {
+  padding-top: 8px;
+  padding-right: 10px;
+  margin-left: -3px;
 }
 
 .code {
