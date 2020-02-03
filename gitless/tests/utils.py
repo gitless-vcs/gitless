@@ -82,7 +82,7 @@ def rmtree(path):
   logging.debug('Removed dir {0}'.format(path))
 
 
-def symlink(src, dst, target_is_directory=False, *, dir_fd=None):
+def symlink(src, dst, target_is_directory=False, dir_fd=None):
   try:
     os.symlink(src, dst, target_is_directory, dir_fd=dir_fd)
   except OSError:
