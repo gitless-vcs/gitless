@@ -221,15 +221,15 @@
       some existing remote repository you want to work on. To clone a remote repository,
       you pass the URL of the repository to the same <code>gl init</code> command, as
       shown below (note that you'll have
-      to replace <code>https://github.com/spderosso/try-gitless</code> with
+      to replace <code>https://github.com/gitless-vcs/try-gitless</code> with
       the URL of your repo):
       </p>
       <div class="code">
       <pre><code><span class="shell">$</span> mkdir try-gitless
 <span class="shell">$</span> cd try-gitless/
-<span class="shell">$</span> gl init https://github.com/spderosso/try-gitless
+<span class="shell">$</span> gl init https://github.com/gitless-vcs/try-gitless
 <span class="ansi-green">✔ Local repo created in /MyFiles/try-gitless</span>
-<span class="ansi-green">✔ Initialized from remote https://github.com/spderosso/try-gitless</span></code></pre>
+<span class="ansi-green">✔ Initialized from remote https://github.com/gitless-vcs/try-gitless</span></code></pre>
       </div>
       <p>
       If you don't have a remote repository yet, you can follow
@@ -514,8 +514,8 @@ List of tags:
       easier alternative is to add the repository as a "remote" with the
       <code><a id="gl-remote">gl remote</a></code> command:
       </p>
-      <div class="code"><pre><code><span class="shell">$</span> gl remote -c try-gitless https://github.com/spderosso/try-gitless
-<span class="ansi-green">✔ Remote try-gitless mapping to https://github.com/spderosso/try-gitless created
+      <div class="code"><pre><code><span class="shell">$</span> gl remote -c try-gitless https://github.com/gitless-vcs/try-gitless
+<span class="ansi-green">✔ Remote try-gitless mapping to https://github.com/gitless-vcs/try-gitless created
 successfully</span>
   ➜ to list existing remotes do gl remote
   ➜ to remove try-gitless do gl remote -d try-gitless
@@ -960,9 +960,9 @@ so there's nothing here now</span>
       <div class="code vs">
         <pre class="gl"><code><span class="task">Configure a new remote `try-gitless`</span>
 <span class="shell">$</span> gl remote -c try-gitless
-https://github.com/spderosso/try-gitless
+https://github.com/gitless-vcs/try-gitless
 <span class="ansi-green">✔ Remote try-gitless mapping to
-https://github.com/spderosso/try-gitless
+https://github.com/gitless-vcs/try-gitless
 created successfully</span>
   ➜ to list existing remotes do gl remote
   ➜ to remove try-gitless do gl remote -d try-gitless
@@ -994,7 +994,7 @@ upstream branch try-gitless/master</span>
 <pre class="git">
 <code><span class="task">Configure a new remote `try-gitless`</span>
 <span class="shell">$</span> git remote add try-gitless
-https://github.com/spderosso/try-gitless
+https://github.com/gitless-vcs/try-gitless
 
 
 
