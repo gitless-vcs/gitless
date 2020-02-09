@@ -85,10 +85,16 @@ def rmtree(path):
 def symlink(src, dst, target_is_directory=False, dir_fd=None):
   try:
     os.symlink(src, dst, target_is_directory, dir_fd=dir_fd)
-  except OSError:
-    # Swallow the OSError, because Windows is very weird about creating
-    # symlinks. Technically, python supports this if it is run with the right
-    # permissions. In that case, this will just work.
+  except AttributeError, NotImplementedError, OSError:
+    # Swallow the exceptions, because Windows is very weird about creating
+    # symlinks. Python 2 does not have a symlink method on in the os module,
+    # AttributeError will handle that. Python 3 does have a symlink method in
+    # the os module, however, it has some quirks. NotImplementedError handles
+    # the case where the Windows version is prior to Vista. OSError handles the
+    # case where python doesn't have permissions to create a symlink on
+    # windows. In all cases, it's not necessary to test this, so skip it.
+    # See: https://docs.python.org/3.5/library/os.html#os.symlink and
+    # https://docs.python.org/2.7/library/os.html#os.symlink for full details.
     pass
 
 
