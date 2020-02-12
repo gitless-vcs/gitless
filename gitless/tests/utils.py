@@ -82,9 +82,9 @@ def rmtree(path):
   logging.debug('Removed dir {0}'.format(path))
 
 
-def symlink(src, dst, target_is_directory=False, dir_fd=None):
+def symlink(src, dst):
   try:
-    os.symlink(src, dst, target_is_directory, dir_fd=dir_fd)
+    os.symlink(src, dst)
   except (AttributeError, NotImplementedError, OSError):
     # Swallow the exceptions, because Windows is very weird about creating
     # symlinks. Python 2 does not have a symlink method on in the os module,
