@@ -82,6 +82,22 @@ def rmtree(path):
   logging.debug('Removed dir {0}'.format(path))
 
 
+def symlink(src, dst):
+  try:
+    os.symlink(src, dst)
+  except (AttributeError, NotImplementedError, OSError):
+    # Swallow the exceptions, because Windows is very weird about creating
+    # symlinks. Python 2 does not have a symlink method on in the os module,
+    # AttributeError will handle that. Python 3 does have a symlink method in
+    # the os module, however, it has some quirks. NotImplementedError handles
+    # the case where the Windows version is prior to Vista. OSError handles the
+    # case where python doesn't have permissions to create a symlink on
+    # windows. In all cases, it's not necessary to test this, so skip it.
+    # See: https://docs.python.org/3.5/library/os.html#os.symlink and
+    # https://docs.python.org/2.7/library/os.html#os.symlink for full details.
+    pass
+
+
 def write_file(fp, contents=''):
   _x_file('w', fp, contents=contents)
 

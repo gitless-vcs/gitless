@@ -43,6 +43,12 @@ REPO_DIR = '.git'
 REPO_FP = os.path.join(REPO_DIR, 'HEAD')
 GITTEST_DIR = '.gittest'
 GITTEST_FP = os.path.join(GITTEST_DIR, 'fp')
+SYMLINK_TARGET = 'symtarget'
+SYMLINK_TARGET_FP_CONTENTS = 'symf1\n'
+SYMLINK_TARGET_FP = os.path.join(SYMLINK_TARGET, 'symf1')
+SYMLINK_DIR = 'symdir'
+SYMLINK_FP = os.path.join(SYMLINK_DIR, 'sym')
+SYMLINK_GIT = 'gitsym'
 UNTRACKED_DIR_FP = os.path.join(DIR, 'f1')
 UNTRACKED_DIR_FP_WITH_SPACE = os.path.join(DIR, 'f1 space')
 TRACKED_DIR_FP = os.path.join(DIR, 'f2')
@@ -57,12 +63,16 @@ ALL_FPS_IN_WD = [
     IGNORED_FP, IGNORED_FP_WITH_SPACE, UNTRACKED_DIR_FP,
     UNTRACKED_DIR_FP_WITH_SPACE, TRACKED_DIR_FP, TRACKED_DIR_FP_WITH_SPACE,
     UNTRACKED_DIR_DIR_FP, UNTRACKED_DIR_DIR_FP_WITH_SPACE, TRACKED_DIR_DIR_FP,
-    TRACKED_DIR_DIR_FP_WITH_SPACE, GITIGNORE_FP, GITTEST_FP]
+    TRACKED_DIR_DIR_FP_WITH_SPACE, GITIGNORE_FP, GITTEST_FP, SYMLINK_TARGET_FP,
+    SYMLINK_FP, SYMLINK_GIT]
+# the symbolic link is both a file and directory. The OS typically treats it
+# like a directory but we want to treat it as a file for tracking purposes.
 ALL_DIR_FPS_IN_WD = [
     TRACKED_DIR_FP, TRACKED_DIR_FP_WITH_SPACE, UNTRACKED_DIR_FP,
     UNTRACKED_DIR_FP_WITH_SPACE, TRACKED_DIR_DIR_FP,
     TRACKED_DIR_DIR_FP_WITH_SPACE, UNTRACKED_DIR_DIR_FP,
-    UNTRACKED_DIR_DIR_FP_WITH_SPACE, GITTEST_DIR]
+    UNTRACKED_DIR_DIR_FP_WITH_SPACE, GITTEST_DIR, SYMLINK_TARGET, SYMLINK_DIR,
+    SYMLINK_FP, SYMLINK_GIT]
 BRANCH = 'b1'
 REMOTE_BRANCH = 'rb'
 FP_IN_CONFLICT = 'f_conflict'
@@ -177,6 +187,12 @@ class TestFile(TestCore):
     utils_lib.write_file(IGNORED_FP)
     utils_lib.write_file(IGNORED_FP_WITH_SPACE)
     utils_lib.write_file(GITTEST_FP)
+
+    # Testing with symlinks! The symlink calls will be no ops on Windows
+    utils_lib.write_file(SYMLINK_TARGET_FP, contents=SYMLINK_TARGET_FP_CONTENTS)
+    utils_lib.symlink(REPO_DIR, SYMLINK_GIT)
+    os.mkdir(SYMLINK_DIR)
+    utils_lib.symlink(SYMLINK_TARGET, SYMLINK_FP)
 
     self.curr_b = self.repo.current_branch
 
@@ -795,6 +811,37 @@ class TestFilePathProcessor(TestFile):
 
     self.assertEqual(len(files), 1)
     self.assertTrue(GITTEST_FP in files)
+
+  @assert_no_side_effects(GITTEST_FP)
+  def test_path_processor_track_gittest_fp(self):
+    argv = ['track', GITTEST_FP]
+    args = self.parser.parse_args(argv)
+    files = [fp for fp in args.files]
+
+    self.assertEqual(len(files), 1)
+    self.assertTrue(GITTEST_FP in files)
+
+  @assert_no_side_effects(SYMLINK_TARGET_FP)
+  def test_path_processor_track_symlink(self):
+    argv = ['track', SYMLINK_FP]
+    args = self.parser.parse_args(argv)
+    files = [fp for fp in args.files]
+
+    if os.path.exists(SYMLINK_FP):
+      self.assertEqual(len(files), 1)
+      self.assertTrue(SYMLINK_FP in files)
+      self.assertFalse(SYMLINK_TARGET_FP in files)
+
+  @assert_no_side_effects(SYMLINK_TARGET_FP)
+  def test_path_processor_track_symlink_dir(self):
+    argv = ['track', SYMLINK_DIR]
+    args = self.parser.parse_args(argv)
+    files = [fp for fp in args.files]
+
+    if os.path.exists(SYMLINK_FP):
+      self.assertEqual(len(files), 1)
+      self.assertTrue(SYMLINK_FP in files)
+      self.assertFalse(SYMLINK_TARGET_FP in files)
 
 
 # Unit tests for branch related operations

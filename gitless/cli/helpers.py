@@ -121,7 +121,10 @@ class PathProcessor(argparse.Action):
     def process_paths():
       for path in paths:
         path = os.path.abspath(path)
-        if self.recursive and os.path.isdir(path):
+        # Treat symlinks as normal files, even if the link points to a
+        # directory. The directory could be outside of the repo, then things
+        # get weird... This is standard git behavior.
+        if self.recursive and os.path.isdir(path) and not os.path.islink(path):
           for curr_dir, dirs, fps in os.walk(path, topdown=True):
             if curr_dir.startswith(normalized_repo_path):
               dirs[:] = []
