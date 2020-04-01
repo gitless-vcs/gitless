@@ -9,6 +9,7 @@ from __future__ import unicode_literals
 
 import sys
 import argparse
+import argcomplete
 import traceback
 import pygit2
 
@@ -101,7 +102,7 @@ def main():
       gl_switch, gl_init, gl_history]
 
   parser = build_parser(sub_cmds, repo)
-
+  argcomplete.autocomplete(parser)
   if len(sys.argv) == 1:
     print_help(parser)
     return SUCCESS
