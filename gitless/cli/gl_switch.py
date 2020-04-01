@@ -21,6 +21,10 @@ def parser(subparsers, _):
       help='move uncomitted changes made in the current branch to the '
       'destination branch',
       action='store_true')
+  switch_parser.add_argument('-mi', '--move-ignored',
+      help='move ignored files to the destination branch, '
+      'has no effect if --move-over is also set',
+      action='store_true')
   switch_parser.set_defaults(func=main)
 
 
@@ -33,6 +37,6 @@ def main(args, repo):
     pprint.err_exp('to create a new branch do gl branch -c {0}'.format(args.branch))
     return False
 
-  repo.switch_current_branch(b, move_over=args.move_over)
+  repo.switch_current_branch(b, move_over=args.move_over, move_ignored=args.move_ignored)
   pprint.ok('Switched to branch {0}'.format(args.branch))
   return True

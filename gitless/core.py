@@ -256,13 +256,15 @@ class Repository(object):
     """
     return self.git_repo.listall_branches(pygit2.GIT_BRANCH_LOCAL)
 
-  def switch_current_branch(self, dst_b, move_over=False):
+  def switch_current_branch(self, dst_b, move_over=False, move_ignored=False):
     """Switches to the given branch.
 
     Args:
       dst_b: the destination branch.
       move_over: if True, then uncommitted changes made in the current branch are
         moved to the destination branch (defaults to False).
+      move_ignored: if True, and move_over is False, then ignored files are moved
+        to the destination branch, but uncommitted changes are not (defaults to False).
     """
     if dst_b.is_current:
       raise ValueError(
@@ -346,7 +348,10 @@ class Repository(object):
 
       if not move_over:
         # Stash
-        git.stash.save('--all', '--', msg)
+        if move_ignored:
+          git.stash.save('--include-untracked', '--', msg)
+        else:
+          git.stash.save('--all', '--', msg)
 
     def restore(b):
       s_id, msg = _stash(_stash_msg(b.branch_name))
