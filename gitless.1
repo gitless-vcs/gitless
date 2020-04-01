@@ -1,0 +1,664 @@
+.TH gitless "1" Manual
+.SH NAME
+gl
+.SH SYNOPSIS
+.B gl
+[-h] [--version] {track,tr,untrack,un,status,st,diff,df,commit,ci,branch,br,tag,tg,checkout,co,merge,mg,resolve,rs,fuse,fs,remote,rt,publish,pb,switch,sw,init,in,history,hs} ...
+.SH DESCRIPTION
+Gitless: a version control system built on top of Git.
+More info, downloads and documentation at http://gitless.com
+.SH OPTIONS
+
+.TP
+\fB\-\-version\fR
+show program's version number and exit
+
+.SS
+\fBSub-commands\fR
+.TP
+\fBgl\fR \fI\,track\/\fR
+start tracking changes to files
+.TP
+\fBgl\fR \fI\,untrack\/\fR
+stop tracking changes to files
+.TP
+\fBgl\fR \fI\,status\/\fR
+show status of the repo
+.TP
+\fBgl\fR \fI\,diff\/\fR
+show changes to files
+.TP
+\fBgl\fR \fI\,commit\/\fR
+save changes to the local repository
+.TP
+\fBgl\fR \fI\,branch\/\fR
+list, create, delete, or edit branches
+.TP
+\fBgl\fR \fI\,tag\/\fR
+list, create, or delete tags
+.TP
+\fBgl\fR \fI\,checkout\/\fR
+checkout committed versions of files
+.TP
+\fBgl\fR \fI\,merge\/\fR
+merge the divergent changes of one branch onto another
+.TP
+\fBgl\fR \fI\,resolve\/\fR
+mark files with conflicts as resolved
+.TP
+\fBgl\fR \fI\,fuse\/\fR
+fuse the divergent changes of a branch onto the current branch
+.TP
+\fBgl\fR \fI\,remote\/\fR
+list, create, edit or delete remotes
+.TP
+\fBgl\fR \fI\,publish\/\fR
+publish commits upstream
+.TP
+\fBgl\fR \fI\,switch\/\fR
+switch branches
+.TP
+\fBgl\fR \fI\,init\/\fR
+create an empty git repository or clone remote
+.TP
+\fBgl\fR \fI\,history\/\fR
+show commit history
+.SH OPTIONS 'gl track'
+usage: gl track [-h] files [files ...]
+
+Start tracking changes to files
+
+.TP
+\fBfiles\fR
+the file(s) to track
+
+
+.SH OPTIONS 'gl tr'
+usage: gl track [-h] files [files ...]
+
+Start tracking changes to files
+
+.TP
+\fBfiles\fR
+the file(s) to track
+
+
+.SH OPTIONS 'gl untrack'
+usage: gl untrack [-h] files [files ...]
+
+Stop tracking changes to files
+
+.TP
+\fBfiles\fR
+the file(s) to untrack
+
+
+.SH OPTIONS 'gl un'
+usage: gl untrack [-h] files [files ...]
+
+Stop tracking changes to files
+
+.TP
+\fBfiles\fR
+the file(s) to untrack
+
+
+.SH OPTIONS 'gl status'
+usage: gl status [-h] [paths [paths ...]]
+
+Show status of the repo
+
+.TP
+\fBpaths\fR
+the specific path(s) to status
+
+
+.SH OPTIONS 'gl st'
+usage: gl status [-h] [paths [paths ...]]
+
+Show status of the repo
+
+.TP
+\fBpaths\fR
+the specific path(s) to status
+
+
+.SH OPTIONS 'gl diff'
+usage: gl diff [-h] [-e file [file ...]] [-i file [file ...]]
+                             [file [file ...]]
+
+Show changes to files. By default all tracked modified files are diffed. To customize the  set of files to diff use the only, exclude, and include flags
+
+.TP
+\fBfile\fR
+use only files given (tracked modified or untracked)
+
+.TP
+\fB\-e\fR file [file ...], \fB\-\-exclude\fR file [file ...]
+exclude files given (files must be tracked modified)
+
+.TP
+\fB\-i\fR file [file ...], \fB\-\-include\fR file [file ...]
+include files given (files must be untracked)
+
+.SH OPTIONS 'gl df'
+usage: gl diff [-h] [-e file [file ...]] [-i file [file ...]]
+                             [file [file ...]]
+
+Show changes to files. By default all tracked modified files are diffed. To customize the  set of files to diff use the only, exclude, and include flags
+
+.TP
+\fBfile\fR
+use only files given (tracked modified or untracked)
+
+.TP
+\fB\-e\fR file [file ...], \fB\-\-exclude\fR file [file ...]
+exclude files given (files must be tracked modified)
+
+.TP
+\fB\-i\fR file [file ...], \fB\-\-include\fR file [file ...]
+include files given (files must be untracked)
+
+.SH OPTIONS 'gl commit'
+usage: gl commit [-h] [-m M] [-p] [-e file [file ...]]
+                               [-i file [file ...]]
+                               [file [file ...]]
+
+Save changes to the local repository. By default all tracked modified files are committed. To customize the set of files to be committed use the only, exclude, and include flags
+
+.TP
+\fBfile\fR
+use only files given (tracked modified or untracked)
+
+.TP
+\fB\-m\fR \fI\,M\/\fR, \fB\-\-message\fR \fI\,M\/\fR
+Commit message
+
+.TP
+\fB\-p\fR, \fB\-\-partial\fR
+Interactively select segments of files to commit
+
+.TP
+\fB\-e\fR file [file ...], \fB\-\-exclude\fR file [file ...]
+exclude files given (files must be tracked modified)
+
+.TP
+\fB\-i\fR file [file ...], \fB\-\-include\fR file [file ...]
+include files given (files must be untracked)
+
+.SH OPTIONS 'gl ci'
+usage: gl commit [-h] [-m M] [-p] [-e file [file ...]]
+                               [-i file [file ...]]
+                               [file [file ...]]
+
+Save changes to the local repository. By default all tracked modified files are committed. To customize the set of files to be committed use the only, exclude, and include flags
+
+.TP
+\fBfile\fR
+use only files given (tracked modified or untracked)
+
+.TP
+\fB\-m\fR \fI\,M\/\fR, \fB\-\-message\fR \fI\,M\/\fR
+Commit message
+
+.TP
+\fB\-p\fR, \fB\-\-partial\fR
+Interactively select segments of files to commit
+
+.TP
+\fB\-e\fR file [file ...], \fB\-\-exclude\fR file [file ...]
+exclude files given (files must be tracked modified)
+
+.TP
+\fB\-i\fR file [file ...], \fB\-\-include\fR file [file ...]
+include files given (files must be untracked)
+
+.SH OPTIONS 'gl branch'
+usage: gl branch [-h] [-r] [-v] [-c branch [branch ...]]
+                               [-dp DP] [-d branch [branch ...]]
+                               [-sh commit_id] [-su branch] [-uu]
+                               [-rn RENAME_B [RENAME_B ...]]
+
+List, create, delete, or edit branches
+
+
+
+.TP
+\fB\-r\fR, \fB\-\-remote\fR
+list remote branches in addition to local branches
+
+.TP
+\fB\-v\fR, \fB\-\-verbose\fR
+be verbose, will output the head of each branch
+
+.TP
+\fB\-c\fR branch [branch ...], \fB\-\-create\fR branch [branch ...]
+create branch(es)
+
+.TP
+\fB\-dp\fR \fI\,DP\/\fR, \fB\-\-divergent\-point\fR \fI\,DP\/\fR
+the commit from where to 'branch out' (only relevant if a new branch is created; defaults to HEAD)
+
+.TP
+\fB\-d\fR branch [branch ...], \fB\-\-delete\fR branch [branch ...]
+delete branch(es)
+
+.TP
+\fB\-sh\fR commit_id, \fB\-\-set\-head\fR commit_id
+set the head of the current branch
+
+.TP
+\fB\-su\fR branch, \fB\-\-set\-upstream\fR branch
+set the upstream branch of the current branch
+
+.TP
+\fB\-uu\fR, \fB\-\-unset\-upstream\fR
+unset the upstream branch of the current branch
+
+.TP
+\fB\-rn\fR \fI\,RENAME_B\/\fR [\fI\,RENAME_B\/\fR ...], \fB\-\-rename\-branch\fR \fI\,RENAME_B\/\fR [\fI\,RENAME_B\/\fR ...]
+renames the current branch (gl branch \-rn new_name) or another specified branch (gl branch \-rn branch_name new_name)
+
+.SH OPTIONS 'gl br'
+usage: gl branch [-h] [-r] [-v] [-c branch [branch ...]]
+                               [-dp DP] [-d branch [branch ...]]
+                               [-sh commit_id] [-su branch] [-uu]
+                               [-rn RENAME_B [RENAME_B ...]]
+
+List, create, delete, or edit branches
+
+
+
+.TP
+\fB\-r\fR, \fB\-\-remote\fR
+list remote branches in addition to local branches
+
+.TP
+\fB\-v\fR, \fB\-\-verbose\fR
+be verbose, will output the head of each branch
+
+.TP
+\fB\-c\fR branch [branch ...], \fB\-\-create\fR branch [branch ...]
+create branch(es)
+
+.TP
+\fB\-dp\fR \fI\,DP\/\fR, \fB\-\-divergent\-point\fR \fI\,DP\/\fR
+the commit from where to 'branch out' (only relevant if a new branch is created; defaults to HEAD)
+
+.TP
+\fB\-d\fR branch [branch ...], \fB\-\-delete\fR branch [branch ...]
+delete branch(es)
+
+.TP
+\fB\-sh\fR commit_id, \fB\-\-set\-head\fR commit_id
+set the head of the current branch
+
+.TP
+\fB\-su\fR branch, \fB\-\-set\-upstream\fR branch
+set the upstream branch of the current branch
+
+.TP
+\fB\-uu\fR, \fB\-\-unset\-upstream\fR
+unset the upstream branch of the current branch
+
+.TP
+\fB\-rn\fR \fI\,RENAME_B\/\fR [\fI\,RENAME_B\/\fR ...], \fB\-\-rename\-branch\fR \fI\,RENAME_B\/\fR [\fI\,RENAME_B\/\fR ...]
+renames the current branch (gl branch \-rn new_name) or another specified branch (gl branch \-rn branch_name new_name)
+
+.SH OPTIONS 'gl tag'
+usage: gl tag [-h] [-r] [-c tag [tag ...]] [-ci CI]
+                            [-d tag [tag ...]]
+
+List, create, or delete tags
+
+
+
+.TP
+\fB\-r\fR, \fB\-\-remote\fR
+list remote tags in addition to local tags
+
+.TP
+\fB\-c\fR tag [tag ...], \fB\-\-create\fR tag [tag ...]
+create tag(s)
+
+.TP
+\fB\-ci\fR \fI\,CI\/\fR, \fB\-\-commit\fR \fI\,CI\/\fR
+the commit to tag (only relevant if a new tag is created; defaults to the HEAD commit)
+
+.TP
+\fB\-d\fR tag [tag ...], \fB\-\-delete\fR tag [tag ...]
+delete tag(s)
+
+.SH OPTIONS 'gl tg'
+usage: gl tag [-h] [-r] [-c tag [tag ...]] [-ci CI]
+                            [-d tag [tag ...]]
+
+List, create, or delete tags
+
+
+
+.TP
+\fB\-r\fR, \fB\-\-remote\fR
+list remote tags in addition to local tags
+
+.TP
+\fB\-c\fR tag [tag ...], \fB\-\-create\fR tag [tag ...]
+create tag(s)
+
+.TP
+\fB\-ci\fR \fI\,CI\/\fR, \fB\-\-commit\fR \fI\,CI\/\fR
+the commit to tag (only relevant if a new tag is created; defaults to the HEAD commit)
+
+.TP
+\fB\-d\fR tag [tag ...], \fB\-\-delete\fR tag [tag ...]
+delete tag(s)
+
+.SH OPTIONS 'gl checkout'
+usage: gl checkout [-h] [-cp CP] files [files ...]
+
+Checkout committed versions of files
+
+.TP
+\fBfiles\fR
+the file(s) to checkout
+
+.TP
+\fB\-cp\fR \fI\,CP\/\fR, \fB\-\-commit\-point\fR \fI\,CP\/\fR
+the commit point to checkout the files at. Defaults to HEAD.
+
+.SH OPTIONS 'gl co'
+usage: gl checkout [-h] [-cp CP] files [files ...]
+
+Checkout committed versions of files
+
+.TP
+\fBfiles\fR
+the file(s) to checkout
+
+.TP
+\fB\-cp\fR \fI\,CP\/\fR, \fB\-\-commit\-point\fR \fI\,CP\/\fR
+the commit point to checkout the files at. Defaults to HEAD.
+
+.SH OPTIONS 'gl merge'
+usage: gl merge [-h] [-a] [src]
+
+Merge the divergent changes of one branch onto another
+
+.TP
+\fBsrc\fR
+the source branch to read changes from
+
+.TP
+\fB\-a\fR, \fB\-\-abort\fR
+abort the merge in progress
+
+.SH OPTIONS 'gl mg'
+usage: gl merge [-h] [-a] [src]
+
+Merge the divergent changes of one branch onto another
+
+.TP
+\fBsrc\fR
+the source branch to read changes from
+
+.TP
+\fB\-a\fR, \fB\-\-abort\fR
+abort the merge in progress
+
+.SH OPTIONS 'gl resolve'
+usage: gl resolve [-h] files [files ...]
+
+Mark files with conflicts as resolved
+
+.TP
+\fBfiles\fR
+the file(s) to resolve
+
+
+.SH OPTIONS 'gl rs'
+usage: gl resolve [-h] files [files ...]
+
+Mark files with conflicts as resolved
+
+.TP
+\fBfiles\fR
+the file(s) to resolve
+
+
+.SH OPTIONS 'gl fuse'
+usage: gl fuse [-h] [-o commit_id [commit_id ...]]
+                             [-e commit_id [commit_id ...]] [-ip [commit_id]]
+                             [-a]
+                             [src]
+
+Fuse the divergent changes of a branch onto the current branch. By default all divergent changes from the given source branch are fused. To customize the set of commits to fuse use the only and exclude flags
+
+.TP
+\fBsrc\fR
+the source branch to read changes from. If none is given the upstream branch of the current branch is used as the source
+
+.TP
+\fB\-o\fR commit_id [commit_id ...], \fB\-\-only\fR commit_id [commit_id ...]
+fuse only the commits given (commits must belong to the set of divergent commits from the given src branch)
+
+.TP
+\fB\-e\fR commit_id [commit_id ...], \fB\-\-exclude\fR commit_id [commit_id ...]
+exclude from the fuse the commits given (commits must belong to the set of divergent commits from the given src branch)
+
+.TP
+\fB\-ip\fR [commit_id], \fB\-\-insertion\-point\fR [commit_id]
+the divergent changes will be inserted after the commit given, dp for divergent point is the default
+
+.TP
+\fB\-a\fR, \fB\-\-abort\fR
+abort the fuse in progress
+
+.SH OPTIONS 'gl fs'
+usage: gl fuse [-h] [-o commit_id [commit_id ...]]
+                             [-e commit_id [commit_id ...]] [-ip [commit_id]]
+                             [-a]
+                             [src]
+
+Fuse the divergent changes of a branch onto the current branch. By default all divergent changes from the given source branch are fused. To customize the set of commits to fuse use the only and exclude flags
+
+.TP
+\fBsrc\fR
+the source branch to read changes from. If none is given the upstream branch of the current branch is used as the source
+
+.TP
+\fB\-o\fR commit_id [commit_id ...], \fB\-\-only\fR commit_id [commit_id ...]
+fuse only the commits given (commits must belong to the set of divergent commits from the given src branch)
+
+.TP
+\fB\-e\fR commit_id [commit_id ...], \fB\-\-exclude\fR commit_id [commit_id ...]
+exclude from the fuse the commits given (commits must belong to the set of divergent commits from the given src branch)
+
+.TP
+\fB\-ip\fR [commit_id], \fB\-\-insertion\-point\fR [commit_id]
+the divergent changes will be inserted after the commit given, dp for divergent point is the default
+
+.TP
+\fB\-a\fR, \fB\-\-abort\fR
+abort the fuse in progress
+
+.SH OPTIONS 'gl remote'
+usage: gl remote [-h] [-c [remote]] [-d remote [remote ...]]
+                               [-rn RENAME_R [RENAME_R ...]]
+                               [remote_url]
+
+List, create, edit or delete remotes
+
+.TP
+\fBremote_url\fR
+the url of the remote (only relevant if a new remote is created)
+
+.TP
+\fB\-c\fR [remote], \fB\-\-create\fR [remote]
+create remote
+
+.TP
+\fB\-d\fR remote [remote ...], \fB\-\-delete\fR remote [remote ...]
+delete remote(es)
+
+.TP
+\fB\-rn\fR \fI\,RENAME_R\/\fR [\fI\,RENAME_R\/\fR ...], \fB\-\-rename\fR \fI\,RENAME_R\/\fR [\fI\,RENAME_R\/\fR ...]
+renames the specified remote: accepts two arguments (current remote name and new remote name)
+
+.SH OPTIONS 'gl rt'
+usage: gl remote [-h] [-c [remote]] [-d remote [remote ...]]
+                               [-rn RENAME_R [RENAME_R ...]]
+                               [remote_url]
+
+List, create, edit or delete remotes
+
+.TP
+\fBremote_url\fR
+the url of the remote (only relevant if a new remote is created)
+
+.TP
+\fB\-c\fR [remote], \fB\-\-create\fR [remote]
+create remote
+
+.TP
+\fB\-d\fR remote [remote ...], \fB\-\-delete\fR remote [remote ...]
+delete remote(es)
+
+.TP
+\fB\-rn\fR \fI\,RENAME_R\/\fR [\fI\,RENAME_R\/\fR ...], \fB\-\-rename\fR \fI\,RENAME_R\/\fR [\fI\,RENAME_R\/\fR ...]
+renames the specified remote: accepts two arguments (current remote name and new remote name)
+
+.SH OPTIONS 'gl publish'
+usage: gl publish [-h] [dst]
+
+Publish commits upstream
+
+.TP
+\fBdst\fR
+the branch where to publish commits
+
+
+.SH OPTIONS 'gl pb'
+usage: gl publish [-h] [dst]
+
+Publish commits upstream
+
+.TP
+\fBdst\fR
+the branch where to publish commits
+
+
+.SH OPTIONS 'gl switch'
+usage: gl switch [-h] [-mo] branch
+
+Switch branches
+
+.TP
+\fBbranch\fR
+switch to branch
+
+.TP
+\fB\-mo\fR, \fB\-\-move\-over\fR
+move uncomitted changes made in the current branch to the destination branch
+
+.SH OPTIONS 'gl sw'
+usage: gl switch [-h] [-mo] branch
+
+Switch branches
+
+.TP
+\fBbranch\fR
+switch to branch
+
+.TP
+\fB\-mo\fR, \fB\-\-move\-over\fR
+move uncomitted changes made in the current branch to the destination branch
+
+.SH OPTIONS 'gl init'
+usage: gl init [-h] [-o ONLY [ONLY ...]]
+                             [-e EXCLUDE [EXCLUDE ...]]
+                             [repo]
+
+Create an empty git repository or clone remote
+
+.TP
+\fBrepo\fR
+an optional remote repo address from where to read to create the local repo
+
+.TP
+\fB\-o\fR \fI\,ONLY\/\fR [\fI\,ONLY\/\fR ...], \fB\-\-only\fR \fI\,ONLY\/\fR [\fI\,ONLY\/\fR ...]
+use only branches given from remote repo
+
+.TP
+\fB\-e\fR \fI\,EXCLUDE\/\fR [\fI\,EXCLUDE\/\fR ...], \fB\-\-exclude\fR \fI\,EXCLUDE\/\fR [\fI\,EXCLUDE\/\fR ...]
+use everything but these branches from remote repo
+
+.SH OPTIONS 'gl in'
+usage: gl init [-h] [-o ONLY [ONLY ...]]
+                             [-e EXCLUDE [EXCLUDE ...]]
+                             [repo]
+
+Create an empty git repository or clone remote
+
+.TP
+\fBrepo\fR
+an optional remote repo address from where to read to create the local repo
+
+.TP
+\fB\-o\fR \fI\,ONLY\/\fR [\fI\,ONLY\/\fR ...], \fB\-\-only\fR \fI\,ONLY\/\fR [\fI\,ONLY\/\fR ...]
+use only branches given from remote repo
+
+.TP
+\fB\-e\fR \fI\,EXCLUDE\/\fR [\fI\,EXCLUDE\/\fR ...], \fB\-\-exclude\fR \fI\,EXCLUDE\/\fR [\fI\,EXCLUDE\/\fR ...]
+use everything but these branches from remote repo
+
+.SH OPTIONS 'gl history'
+usage: gl history [-h] [-v] [-l LIMIT] [-c] [-b [branch_name]]
+
+Show commit history
+
+
+.TP
+\fB\-v\fR, \fB\-\-verbose\fR
+be verbose, will output the diffs of the commit
+
+.TP
+\fB\-l\fR \fI\,LIMIT\/\fR, \fB\-\-limit\fR \fI\,LIMIT\/\fR
+limit number of commits displayed
+
+.TP
+\fB\-c\fR, \fB\-\-compact\fR
+output history in a compact format
+
+.TP
+\fB\-b\fR [branch_name], \fB\-\-branch\fR [branch_name]
+the branch to show history of (defaults to the current branch)
+
+.SH OPTIONS 'gl hs'
+usage: gl history [-h] [-v] [-l LIMIT] [-c] [-b [branch_name]]
+
+Show commit history
+
+
+.TP
+\fB\-v\fR, \fB\-\-verbose\fR
+be verbose, will output the diffs of the commit
+
+.TP
+\fB\-l\fR \fI\,LIMIT\/\fR, \fB\-\-limit\fR \fI\,LIMIT\/\fR
+limit number of commits displayed
+
+.TP
+\fB\-c\fR, \fB\-\-compact\fR
+output history in a compact format
+
+.TP
+\fB\-b\fR [branch_name], \fB\-\-branch\fR [branch_name]
+the branch to show history of (defaults to the current branch)
+
+.SH AUTHORS
+.B gitless
+was written by Santiago Perez De Rosso <sperezde@csail.mit.edu>.
+.SH DISTRIBUTION
+The latest version of gitless may be downloaded from
+.UR http://gitless.com
+.UE
