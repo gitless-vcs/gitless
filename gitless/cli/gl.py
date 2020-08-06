@@ -18,8 +18,6 @@ if sys.platform != 'win32':
 else:
   from pbs import ErrorReturnCode
 
-from clint.textui import colored
-
 from gitless import core
 
 from . import (
@@ -44,9 +42,9 @@ repo = None
 try:
   repo = core.Repository()
   try:
-    colored.DISABLE_COLOR = not repo.config.get_bool('color.ui')
+    pprint.DISABLE_COLOR = not repo.config.get_bool('color.ui')
   except pygit2.GitError:
-    colored.DISABLE_COLOR = (
+    prrint.DISABLE_COLOR = (
         repo.config['color.ui'] in ['no', 'never'])
 except (core.NotInRepoError, KeyError):
   pass

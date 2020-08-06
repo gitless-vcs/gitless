@@ -9,8 +9,6 @@ from __future__ import unicode_literals
 
 import os
 
-from clint.textui import colored
-
 from gitless import core
 
 from . import helpers, pprint
@@ -30,7 +28,7 @@ def parser(subparsers, repo):
 def main(args, repo):
   curr_b = repo.current_branch
   pprint.msg('On branch {0}, repo-directory {1}'.format(
-    colored.green(curr_b.branch_name), colored.green('//' + repo.cwd)))
+    pprint.green(curr_b.branch_name), pprint.green('//' + repo.cwd)))
 
   if curr_b.merge_in_progress:
     pprint.blank()
@@ -83,16 +81,16 @@ def _print_tracked_mod_files(tracked_mod_list, relative_paths, repo):
   root = repo.root
   for f in tracked_mod_list:
     exp = ''
-    color = colored.yellow
+    color = pprint.yellow
     if not f.exists_at_head:
       exp = ' (new file)'
-      color = colored.green
+      color = pprint.green
     elif not f.exists_in_wd:
       exp = ' (deleted)'
-      color = colored.red
+      color = pprint.red
     elif f.in_conflict:
       exp = ' (with conflicts)'
-      color = colored.cyan
+      color = pprint.cyan
 
     fp = os.path.relpath(os.path.join(root, f.fp)) if relative_paths else f.fp
     if fp == '.':
@@ -114,12 +112,12 @@ def _print_untracked_files(untracked_list, relative_paths, repo):
   root = repo.root
   for f in untracked_list:
     exp = ''
-    color = colored.blue
+    color = pprint.blue
     if f.in_conflict:
       exp = ' (with conflicts)'
-      color = colored.cyan
+      color = pprint.cyan
     elif f.exists_at_head:
-      color = colored.magenta
+      color = pprint.magenta
       if f.exists_in_wd:
         exp = ' (exists at head)'
       else:

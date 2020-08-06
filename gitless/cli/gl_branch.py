@@ -7,8 +7,6 @@
 
 from __future__ import unicode_literals
 
-from clint.textui import colored
-
 from gitless import core
 
 from . import helpers, pprint
@@ -110,7 +108,7 @@ def _do_list(repo, list_remote, v=False):
   for b in (repo.lookup_branch(n) for n in sorted(repo.listall_branches())):
     current_str = '*' if b.is_current else ' '
     upstream_str = '(upstream is {0})'.format(b.upstream) if b.upstream else ''
-    color = colored.green if b.is_current else colored.yellow
+    color = pprint.green if b.is_current else pprint.yellow
     pprint.item(
         '{0} {1} {2}'.format(current_str, color(b.branch_name), upstream_str))
     if v:
@@ -121,7 +119,7 @@ def _do_list(repo, list_remote, v=False):
       branches = r.lookupall_branches() if v else r.listall_branches()
       b_remote = '' if v else r.name + '/'
       for b in branches:
-        pprint.item('  {0}'.format(colored.yellow(b_remote + str(b))))
+        pprint.item('  {0}'.format(pprint.yellow(b_remote + str(b))))
         if v:
           pprint.item('    ➜ head is {0}'.format(pprint.commit_str(b.head)))
 

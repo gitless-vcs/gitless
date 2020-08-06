@@ -17,8 +17,7 @@ from locale import getpreferredencoding
 import re
 import sys
 
-from clint.textui import colored, indent
-from clint.textui import puts as clint_puts
+DISABLE_COLOR = False
 
 from gitless import core
 
@@ -33,23 +32,62 @@ ENCODING = getpreferredencoding() or 'utf-8'
 
 
 def puts(s='', newline=True, stream=sys.stdout.write):
-  assert not IS_PY2 or (
-      isinstance(s, unicode) or isinstance(s, colored.ColoredString))
+  assert not IS_PY2 or isinstance(s, unicode)
 
   if IS_PY2:
     s = s.encode(ENCODING, errors='ignore')
-  clint_puts(s, newline=newline, stream=stream)
+  if newline:
+    s = s + '\n'
+  stream(s)
+
+
+# Colored strings
+RED = '\033[31m'
+RED_BOLD = '\033[1;31m'
+GREEN = '\033[32m'
+GREEN_BOLD = '\033[1;32m'
+YELLOW = '\033[33m'
+BLUE = '\033[34m'
+MAGENTA = '\033[35m'
+CYAN = '\033[36m'
+CLEAR = '\033[0m'
+
+def _color(color_code, text):
+  return '{0}{1}{2}'.format(color_code, text, CLEAR) if should_color() else text
+
+def should_color():
+  # We only output colored lines if the coloring is enabled and we are not being
+  # piped or redirected
+  return not DISABLE_COLOR and sys.stdout.isatty()
+
+def red(text):
+  return _color(RED, text)
+
+def green(text):
+  return _color(GREEN, text)
+
+def yellow(text):
+  return _color(YELLOW, text)
+
+def blue(text):
+  return _color(BLUE, text)
+
+def magenta(text):
+  return _color(MAGENTA, text)
+
+def cyan(text):
+  return _color(CYAN, text)
 
 
 # Stdout
 
 
 def ok(text):
-  puts(colored.green('✔ {0}'.format(text)))
+  puts(green('✔ {0}'.format(text)))
 
 
 def warn(text):
-  puts(colored.yellow('! {0}'.format(text)))
+  puts(yellow('! {0}'.format(text)))
 
 
 def msg(text, stream=sys.stdout.write):
@@ -57,13 +95,11 @@ def msg(text, stream=sys.stdout.write):
 
 
 def exp(text, stream=sys.stdout.write):
-  with indent(2):
-    puts('➜ {0}'.format(text), stream=stream)
+  puts('  ➜ {0}'.format(text), stream=stream)
 
 
 def item(i, opt_text='', stream=sys.stdout.write):
-  with indent(4):
-    puts('{0}{1}'.format(i, opt_text), stream=stream)
+  puts('    {0}{1}'.format(i, opt_text), stream=stream)
 
 
 def blank(stream=sys.stdout.write):
@@ -77,7 +113,7 @@ def sep(stream=sys.stdout.write):
 # Err
 
 def err(text):
-  puts(colored.red('✘ {0}'.format(text)), stream=sys.stderr.write)
+  puts(red('✘ {0}'.format(text)), stream=sys.stderr.write)
 
 
 def err_msg(text):
@@ -137,7 +173,7 @@ def commit_str(ci):
 
 def commit(ci, compact=False, stream=sys.stdout.write, line_additions=0, line_deletions=0):
   merge_commit = len(ci.parent_ids) > 1
-  color = colored.magenta if merge_commit else colored.yellow
+  color = magenta if merge_commit else yellow
   if compact:
     title = ci.message.splitlines()[0]
     puts('{0} {1}'.format(color(str(ci.id)[:7]), title), stream=stream)
@@ -154,11 +190,10 @@ def commit(ci, compact=False, stream=sys.stdout.write, line_additions=0, line_de
   puts(color('Date:      {0:%c %z}'.format(ci_author_dt)), stream=stream)
   put_s = lambda num: '' if num == 1 else 's'
   puts(color('Stats:     {0} line{1} added, {2} line{3} removed'
-    .format(line_additions, put_s(line_additions), 
+    .format(line_additions, put_s(line_additions),
       line_deletions, put_s(line_deletions))), stream=stream)
   puts(stream=stream)
-  with indent(4):
-    puts(ci.message, stream=stream)
+  puts('    {0}'.format(ci.message), stream=stream)
 
 # Op Callbacks
 
@@ -203,7 +238,7 @@ def diff(patch, stream=sys.stdout.write):
   new_fp = patch.delta.new_file.path
   puts('Diff of file "{0}"'.format(old_fp), stream=stream)
   if old_fp != new_fp:
-    puts(colored.cyan(' (renamed to {0})'.format(new_fp)), stream=stream)
+    puts(cyan(' (renamed to {0})'.format(new_fp)), stream=stream)
     puts(stream=stream)
 
   if patch.delta.is_binary:
@@ -242,7 +277,7 @@ def diff_totals(total_additions, total_deletions, stream=sys.stdout.write):
 
 
 def _hunk(hunk, stream=sys.stdout.write):
-  puts(colored.cyan('@@ -{0},{1} +{2},{3} @@'.format(
+  puts(cyan('@@ -{0},{1} +{2},{3} @@'.format(
       hunk.old_start, hunk.old_lines, hunk.new_start, hunk.new_lines)),
       stream=stream)
   padding = _padding(hunk)
@@ -305,21 +340,18 @@ def _format_line(diff_line, padding, bold_delim=None):
   Returns:
     a padded and colored version of the diff line with line numbers
   """
-  # Color constants
-  # We only output colored lines if the coloring is enabled and we are not being
-  # piped or redirected
-  if colored.DISABLE_COLOR or not sys.stdout.isatty():
-    GREEN = ''
-    GREEN_BOLD = ''
-    RED = ''
-    RED_BOLD = ''
-    CLEAR = ''
+  if should_color():
+    green = GREEN
+    green_bold = GREEN_BOLD
+    red = RED
+    red_bold = RED_BOLD
+    clear = CLEAR
   else:
-    GREEN = '\033[32m'
-    GREEN_BOLD = '\033[1;32m'
-    RED = '\033[31m'
-    RED_BOLD = '\033[1;31m'
-    CLEAR = '\033[0m'
+    green = ''
+    green_bold = ''
+    red = ''
+    red_bold = ''
+    clear = ''
 
   formatted = ''
   st = diff_line.origin
@@ -331,25 +363,25 @@ def _format_line(diff_line, padding, bold_delim=None):
     formatted = (
         str(old_lineno).ljust(padding) + str(new_lineno).ljust(padding) + line)
   elif st == '+':
-    formatted = ' ' * padding + GREEN + str(new_lineno).ljust(padding)
+    formatted = ' ' * padding + green + str(new_lineno).ljust(padding)
     if not bold_delim:
       formatted += line
     else:
       bold_start, bold_end = bold_delim
       formatted += (
-          line[:bold_start] + GREEN_BOLD + line[bold_start:bold_end] + CLEAR +
-          GREEN + line[bold_end:])
+          line[:bold_start] + green_bold + line[bold_start:bold_end] + clear +
+          green + line[bold_end:])
   elif st == '-':
-    formatted = RED + str(old_lineno).ljust(padding) + ' ' * padding
+    formatted = red + str(old_lineno).ljust(padding) + ' ' * padding
     if not bold_delim:
       formatted += line
     else:
       bold_start, bold_end = bold_delim
       formatted += (
-          line[:bold_start] + RED_BOLD + line[bold_start:bold_end] + CLEAR +
-          RED + line[bold_end:])
+          line[:bold_start] + red_bold + line[bold_start:bold_end] + clear +
+          red + line[bold_end:])
 
-  return formatted + CLEAR
+  return formatted + clear
 
 
 def _highlight(line1, line2):
