@@ -19,7 +19,7 @@ with open('gitless/cli/gl.py', 'rb') as f:
 
 # Build helper
 if sys.argv[-1] == 'gl-build':
-  from sh import pyinstaller
+  from subprocess import run
   import shutil
   import tarfile
   import platform
@@ -28,8 +28,9 @@ if sys.argv[-1] == 'gl-build':
       version, platform.system().lower(), platform.machine())
 
   print('running pyinstaller...')
-  pyinstaller(
-      'gl.spec', clean=True, distpath=rel, _out=sys.stdout, _err=sys.stderr)
+  run(
+    ['pyinstaller', 'gl.spec', '--clean', '--distpath', rel],
+    stdout=sys.stdout, stderr=sys.stderr)
   print('success!! gl binary should be at {0}/gl'.format(rel))
 
   print('creating tar.gz file')
@@ -69,7 +70,6 @@ setup(
     install_requires=[
       # make sure it matches requirements.txt
       'pygit2==1.1.1', # requires libgit2 0.99 or 1.0
-      'sh>=1.11' if sys.platform != 'win32' else 'pbs>=0.11',
       'argcomplete>=1.11.1'
     ],
     license='MIT',

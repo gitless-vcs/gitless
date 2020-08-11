@@ -2,5 +2,3 @@
 
 argcomplete>=1.11.1
 pygit2==1.1.1  # requires libgit2 0.99 or 1.0
-sh==1.12.14;sys_platform!='win32'
-pbs==0.110;sys_platform=='win32'

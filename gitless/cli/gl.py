@@ -13,10 +13,7 @@ import argcomplete
 import traceback
 import pygit2
 
-if sys.platform != 'win32':
-  from sh import ErrorReturnCode
-else:
-  from pbs import ErrorReturnCode
+from subprocess import CalledProcessError
 
 from gitless import core
 
@@ -124,7 +121,7 @@ def main():
   except (ValueError, pygit2.GitError, core.GlError) as e:
     pprint.err(e)
     return ERRORS_FOUND
-  except ErrorReturnCode as e:
+  except CalledProcessError as e:
     pprint.err(e.stderr)
     return ERRORS_FOUND
   except:

@@ -21,19 +21,11 @@ from locale import getpreferredencoding
 import os
 import re
 import shutil
+import sys
 
 import pygit2
 
-
-import sys
-if sys.platform != 'win32':
-  from sh import git, ErrorReturnCode
-else:
-  from pbs import Command, ErrorReturnCode
-  git = Command('git')
-
-git = git.bake('--no-pager')
-
+from subprocess import run, CalledProcessError
 
 ENCODING = getpreferredencoding() or 'utf-8'
 
@@ -84,13 +76,13 @@ def init_repository(url=None, only=None, exclude=None):
     if not url:
       repo = pygit2.init_repository(cwd)
       # We also create an initial root commit
-      git.commit(allow_empty=True, m='Initialize repository')
+      git('commit', '--allow-empty', '-m', 'Initialize repository')
       return repo
 
     try:
-      git.clone(url, cwd)
-    except ErrorReturnCode as e:
-      raise GlError(stderr(e))
+      git('clone', url, cwd)
+    except CalledProcessError as e:
+      raise GlError(e.stderr)
 
     # We get all remote branches as well and create local equivalents
     # Flags: only branches take precedence over exclude branches.
@@ -282,17 +274,16 @@ class Repository(object):
     git_repo = self.git_repo
     au_fp = lambda b: os.path.join(
         self.path, 'GL_AU_{0}'.format(b.branch_name.replace('/', '_')))
-    update_index = git.bake('update-index', _cwd=self.root)
 
     def save(b):
       msg = _stash_msg(b.branch_name)
 
       # Save assumed unchanged info
-      au_fps = ' '.join(b._au_files())
+      au_fps = list(b._au_files())
       if au_fps:
         with io.open(au_fp(b), mode='w', encoding=ENCODING) as f:
-          f.write(au_fps)
-        update_index('--no-assume-unchanged', au_fps)
+          f.write(' '.join(au_fps))
+        git('update-index', '--no-assume-unchanged', *au_fps, cwd=self.root)
 
       if b.merge_in_progress or b.fuse_in_progress:
         body = {}
@@ -349,9 +340,9 @@ class Repository(object):
       if not move_over:
         # Stash
         if move_ignored:
-          git.stash.save('--include-untracked', '--', msg)
+          git('stash', 'save', '--include-untracked', '--', msg)
         else:
-          git.stash.save('--all', '--', msg)
+          git('stash', 'save', '--all', '--', msg)
 
     def restore(b):
       s_id, msg = _stash(_stash_msg(b.branch_name))
@@ -363,14 +354,14 @@ class Repository(object):
         if os.path.exists(au):
           with io.open(au, mode='r', encoding=ENCODING) as f:
             au_fps = f.read()
-          update_index('--assume-unchanged', au_fps)
+          git('update-index', '--assume-unchanged', *au_fps.split())
           os.remove(au)
 
       split_msg = msg.split(INFO_SEP)
 
       if len(split_msg) == 1:  # No op to restore
         # Pop
-        git.stash.pop(s_id)
+        git('stash', 'pop', s_id)
         # Restore assumed unchanged info
         restore_au_info()
       else:  # Restore op
@@ -387,7 +378,7 @@ class Repository(object):
           self._ref_create('MERGE_HEAD', ref_info['MERGE_HEAD'])
 
         # Pop
-        git.stash.pop(s_id)
+        git('stash', 'pop', s_id)
 
         # Restore conflict info
         conf_info = body[CONF_INFO]
@@ -404,8 +395,8 @@ class Repository(object):
           if index_e[THEIRS]:
             index_info.append(build_entry(index_e[THEIRS], 3))
 
-        update_index('--unresolve', _in=' '.join(conf_info.keys()))
-        update_index('--index-info', _in='\n'.join(index_info))
+        git('update-index', '--unresolve', _in=' '.join(conf_info.keys()))
+        git('update-index', '--index-info', _in='\n'.join(index_info))
 
         # Restore msg info
         merge_msg_fp = os.path.join(self.path, 'MERGE_MSG')
@@ -452,8 +443,8 @@ class RemoteCollection(object):
     # Check that the given url corresponds to a git repo
     try:
       git('ls-remote', '--heads', url)
-    except ErrorReturnCode as e:
-      raise ValueError(stderr(e))
+    except CalledProcessError as e:
+      raise ValueError(e.stderr)
 
     self.git_remote_collection.create(name, url)
 
@@ -491,10 +482,10 @@ class Remote(object):
     # push
     tmp_b = self.gl_repo.create_branch('gl_tmp_ref', head)
     try:
-      git.push(self.name, '{0}:{1}'.format(tmp_b, name))
+      git('push', self.name, '{0}:{1}'.format(tmp_b, name))
       return self.lookup_branch(name)
-    except ErrorReturnCode as e:
-      raise GlError(stderr(e))
+    except CalledProcessError as e:
+      raise GlError(e.stderr)
     finally:
       tmp_b.delete()
 
@@ -505,7 +496,7 @@ class Remote(object):
     to each name.
     """
     regex = re.compile(r'.*\trefs/heads/(.*)')
-    for head in stdout(git('ls-remote', '--heads', self.name)).splitlines():
+    for head in git('ls-remote', '--heads', self.name).splitlines():
       yield regex.match(head).group(1)
 
   def lookup_branch(self, branch_name):
@@ -514,7 +505,7 @@ class Remote(object):
 
   def lookup_branches(self, branch_names):
     try:
-      git.fetch(self.git_remote.name, branch_names)
+      git('fetch', self.git_remote.name, *branch_names)
     except:
       return None
     remote_branches = []
@@ -524,7 +515,7 @@ class Remote(object):
       # Make another check for the branch being None
       # As observed in issue : https://github.com/sdg-mit/gitless/issues/211
       if git_branch is None:
-          git.fetch(self.git_remote.name)
+          git('fetch', self.git_remote.name)
           git_branch = self.gl_repo.git_repo.lookup_branch(
               self.git_remote.name + '/' + branch_name, pygit2.GIT_BRANCH_REMOTE)
       remote_branches.append(RemoteBranch(git_branch, self.gl_repo))
@@ -545,10 +536,10 @@ class Remote(object):
     # push
     tmp_t = self.gl_repo.create_tag('gl_tmp_ref', commit)
     try:
-      git.push(self.name, 'refs/tags/{0}:refs/tags/{1}'.format(tmp_t, name))
+      git('push', self.name, 'refs/tags/{0}:refs/tags/{1}'.format(tmp_t, name))
       return self.lookup_tag(name)
-    except ErrorReturnCode as e:
-      raise GlError(stderr(e))
+    except CalledProcessError as e:
+      raise GlError(e.stderr)
     finally:
       tmp_t.delete()
 
@@ -559,18 +550,18 @@ class Remote(object):
     to each name.
     """
     regex = re.compile(r'.*\trefs/tags/(.*)')
-    for head in stdout(git('ls-remote', '--tags', self.name)).splitlines():
+    for head in git('ls-remote', '--tags', self.name).splitlines():
       tag_name = regex.match(head).group(1)
       if tag_name.endswith('^{}'):
         continue
       yield tag_name
 
   def lookup_tag(self, tag_name):
-    tag_info = stdout(git('ls-remote', '--tags', self.name, tag_name))
+    tag_info = git('ls-remote', '--tags', self.name, tag_name)
     if not tag_info:
       return None
     # The tag exists in the remote
-    git.fetch(self.git_remote.name, tag_name)
+    git('fetch', self.git_remote.name, tag_name)
 
     regex = re.compile(r'(.*)\trefs/tags/.*')
     commit_id = regex.match(tag_info).group(1)
@@ -596,9 +587,9 @@ class RemoteTag(object):
 
   def delete(self):
     try:
-      git.push(self.remote_name, ':{0}'.format(self.tag_name))
-    except ErrorReturnCode as e:
-      raise GlError(stderr(e))
+      git('push', self.remote_name, ':{0}'.format(self.tag_name))
+    except CalledProcessError as e:
+      raise GlError(e.stderr)
 
   def __str__(self):
     return self.remote_name + '/' + self.tag_name
@@ -622,9 +613,9 @@ class RemoteBranch(object):
 
   def delete(self):
     try:
-      git.push(self.remote_name, ':{0}'.format(self.branch_name))
-    except ErrorReturnCode as e:
-      raise GlError(stderr(e))
+      git('push', self.remote_name, ':{0}'.format(self.branch_name))
+    except CalledProcessError as e:
+      raise GlError(e.stderr)
 
   @property
   def target(self):
@@ -641,7 +632,7 @@ class RemoteBranch(object):
     return walker(self.gl_repo.git_repo, self.target, reverse=reverse)
 
   def _update(self):
-    git.fetch(self.remote_name, self.branch_name)
+    git('fetch', self.remote_name, self.branch_name)
     self.git_branch = self.gl_repo.git_repo.lookup_branch(
         self.remote_name + '/' + self.branch_name, pygit2.GIT_BRANCH_REMOTE)
 
@@ -676,7 +667,7 @@ class Branch(object):
     # We also cleanup any stash left
     s_id, _ = _stash(_stash_msg(self.branch_name))
     if s_id:
-      git.stash.drop(s_id)
+      git('stash', 'drop', s_id)
 
   def rename(self, new_name):
     self.git_branch.rename(new_name)
@@ -794,8 +785,7 @@ class Branch(object):
         'in_conflict'])
 
   def _au_files(self):
-    for f_out in stdout(
-        git('ls-files', '-v', _cwd=self.gl_repo.root)).splitlines():
+    for f_out in git('ls-files', '-v', cwd=self.gl_repo.root).splitlines():
       if f_out[0] == 'h':
         yield f_out[2:].strip()
 
@@ -809,7 +799,7 @@ class Branch(object):
       yield self.FileStatus(fp, *self._st_map[git_s])
 
     # status doesn't report au files
-    au_files = self._au_files()
+    au_files = list(self._au_files())
     if au_files:
       for fp in au_files:
         exists_in_wd = os.path.exists(os.path.join(self.gl_repo.root, fp))
@@ -825,7 +815,7 @@ class Branch(object):
 
     git_st = self.gl_repo.git_repo.status_file(_get_git_path(path))
     root = self.gl_repo.root
-    cmd_out = stdout(git('ls-files', '-v', '--full-name', path, _cwd=root))
+    cmd_out = git('ls-files', '-v', '--full-name', path, cwd=root)
     is_au = cmd_out and cmd_out[0] == 'h'
     if is_au:
       exists_in_wd = os.path.exists(os.path.join(root, path))
@@ -866,8 +856,7 @@ class Branch(object):
         git_path = _get_git_path(path)
         index.add(git_path)
     elif is_au:  # Case (ii)
-      git('update-index', '--no-assume-unchanged', path,
-          _cwd=self.gl_repo.root)
+      git('update-index', '--no-assume-unchanged', path, cwd=self.gl_repo.root)
     else:
       raise GlError('File {0} in unknown status {1}'.format(path, git_st))
 
@@ -897,8 +886,7 @@ class Branch(object):
         git_path = _get_git_path(path)
         index.remove(git_path)
     elif not is_au:  # Case (ii)
-      git('update-index', '--assume-unchanged', path,
-          _cwd=self.gl_repo.root)
+      git('update-index', '--assume-unchanged', path, cwd=self.gl_repo.root)
     else:
       raise GlError('File {0} in unknown status {1}'.format(path, git_st))
 
@@ -1000,18 +988,18 @@ class Branch(object):
     if result & pygit2.GIT_MERGE_ANALYSIS_UP_TO_DATE:
       raise GlError('No commits to merge')
     try:
-      git.merge(src, '--no-ff')
-    except ErrorReturnCode as e:
-      err = stderr(e)
+      git('merge', str(src), '--no-ff')
+    except CalledProcessError as e:
+      err = e.stderr
       if not 'stash' in err:
-        raise GlError(stdout(e) + err)
+        raise GlError(e.stdout + err)
       if op_cb and op_cb.save:
         op_cb.save()
-      git.stash.save('--', _stash_msg_merge(self))
+      git('stash', 'save', '--', _stash_msg_merge(self))
       try:
-        git.merge(src, '--no-ff')
-      except ErrorReturnCode as e:
-        raise GlError(stdout(e) + stderr(e))
+        git('merge', str(src), '--no-ff')
+      except CalledProcessError as e:
+        raise GlError(e.stdout + e.stderr)
 
     self._state_cleanup()
     restore_fn = op_cb.restore_ok if op_cb else None
@@ -1031,7 +1019,7 @@ class Branch(object):
   def abort_merge(self):
     if not self.merge_in_progress:
       raise GlError('No merge in progress, nothing to abort')
-    git.merge(abort=True)
+    git('merge', '--abort')
 
 
   # Fuse-related methods
@@ -1197,7 +1185,7 @@ class Branch(object):
       # case either so we need to find an alternative way of doing this)
       if save_fn:
         save_fn()
-      git.stash.save('--', msg_fn(self))
+      git('stash', 'save', '--', msg_fn(self))
       git_repo.checkout_tree(tree)
     git_repo.reset(cid, pygit2.GIT_RESET_SOFT)
 
@@ -1205,10 +1193,10 @@ class Branch(object):
     s_id, _ = _stash(msg_fn(self))
     if s_id:
       try:
-        git.stash.pop(s_id)
+        git('stash', 'pop', s_id)
         if restore_fn:
           restore_fn()
-      except ErrorReturnCode:
+      except CalledProcessError:
         raise ApplyFailedError(
             'Uncommitted changes failed to apply onto the new head of the '
             'branch')
@@ -1302,13 +1290,14 @@ class Branch(object):
       assert branch.branch_name in self.gl_repo.remotes[
           branch.remote_name].listall_branches()
 
-      cmd = git.push(
-          branch.remote_name,
-          '{0}:{1}'.format(self.branch_name, branch.branch_name))
-      if 'Everything up-to-date' in stderr(cmd):
+      cmd = git_p(
+        'push',
+        branch.remote_name,
+        '{0}:{1}'.format(self.branch_name, branch.branch_name))
+      if 'Everything up-to-date' in cmd.stderr:
         raise GlError('No commits to publish')
-    except ErrorReturnCode as e:
-      err_msg = stderr(e)
+    except CalledProcessError as e:
+      err_msg = e.stderr
       if 'Updates were rejected' in err_msg:
         raise GlError('There are changes you need to fuse/merge')
       raise GlError(err_msg)
@@ -1341,7 +1330,7 @@ class Tag(object):
     self.commit = commit
 
   def delete(self):
-    git.tag('-d', self.tag_name)
+    git('tag', '-d', self.tag_name)
 
   def __str__(self):
     return self.tag_name
@@ -1351,18 +1340,18 @@ class Tag(object):
 
 def _stash(pattern):
   """Returns the id and msg of the stash that matches the given pattern."""
-  out = stdout(git.stash.list(grep=pattern, format='|*|%gd|*|%B|*|'))
+  out = git('stash', 'list', '--grep', pattern, '--format=|%gd|%s|')
   if not out:
     return None, None
 
-  result = re.match(r'\|\*\|(stash@\{.+\})\|\*\|(.*)\|\*\|', out, re.DOTALL)
+  result = re.match(r'\|(stash@\{.+\})\|(.*)\|', out, re.DOTALL)
   if not result:
     raise GlError('Unexpected output of git stash: {0}'.format(out))
 
   return result.group(1).strip(), result.group(2).strip()
 
 def _stash_msg(name):
-  return '---gl-{0}---'.format(name)
+  return 'gl-{0}'.format(name)
 
 def _stash_msg_fuse(name):
   return _stash_msg('fuse-{0}'.format(name))
@@ -1376,19 +1365,14 @@ def _stash_msg_merge(name):
 OpCb = collections.namedtuple(
     'OpCb', ['apply_ok', 'apply_err', 'save', 'restore_ok'])
 
-def stdout(p):
-  try:
-      pstdout = p.stdout.decode(ENCODING)
-  except AttributeError:
-      pstdout = p.stdout
-  return pstdout
+def git(*args, cwd=None, _in=None):
+  return git_p(*args, cwd=cwd, _in=_in).stdout
 
-def stderr(p):
-  try:
-      pstderr = p.stderr.decode(ENCODING)
-  except AttributeError:
-      pstderr = p.stderr
-  return pstderr
+def git_p(*args, cwd=None, _in=None):
+  p = run(
+    ['git', '--no-pager', *args], check=True, capture_output=True, cwd=cwd,
+    input=_in, encoding=ENCODING)
+  return p
 
 def walker(git_repo, target, reverse):
   flags = pygit2.GIT_SORT_TOPOLOGICAL | pygit2.GIT_SORT_TIME

@@ -18,11 +18,7 @@ import sys
 import tempfile
 import unittest
 
-if sys.platform != 'win32':
-  from sh import git, ErrorReturnCode
-else:
-  from pbs import ErrorReturnCode, Command
-  git = Command('git')
+from subprocess import run, CalledProcessError
 
 
 IS_PY2 = sys.version_info[0] == 2
@@ -59,7 +55,7 @@ class TestBase(unittest.TestCase):
       fun(*args, **kwargs)
       self.fail('Exception not raised')
     except exc as e:
-      msg = stderr(e) if isinstance(e, ErrorReturnCode) else str(e)
+      msg = e.stderr if isinstance(e, CalledProcessError) else str(e)
       if not re.search(r, msg):
         self.fail('No "{0}" found in "{1}"'.format(r, msg))
 
@@ -107,8 +103,8 @@ def append_to_file(fp, contents=''):
 
 
 def set_test_config():
-  git.config('user.name', 'test')
-  git.config('user.email', 'test@test.com')
+  git('config', 'user.name', 'test')
+  git('config', 'user.email', 'test@test.com')
 
 
 def read_file(fp):
@@ -117,12 +113,18 @@ def read_file(fp):
   return ret
 
 
-def stdout(p):
-  return p.stdout.decode(ENCODING)
+def git(*args, cwd=None, _in=None):
+  p = run(
+    ['git', '--no-pager', *args], capture_output=True, check=True, cwd=cwd,
+    input=_in, encoding=ENCODING)
+  return p.stdout
 
 
-def stderr(p):
-  return p.stderr.decode(ENCODING)
+def gl(*args, cwd=None, _in=None):
+  p = run(
+    ['gl', *args], capture_output=True, check=True, cwd=cwd,
+    input=_in, encoding=ENCODING)
+  return p.stdout
 
 
 # Private functions

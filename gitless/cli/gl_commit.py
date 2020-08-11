@@ -7,15 +7,6 @@
 
 from __future__ import unicode_literals
 
-import subprocess
-
-import sys
-if sys.platform != 'win32':
-  from sh import git
-else:
-  from pbs import Command
-  git = Command('git')
-
 from gitless import core
 
 from . import commit_dialog
@@ -74,7 +65,7 @@ def main(args, repo):
   msg = args.m if args.m else commit_dialog.show(commit_files, repo)
   if not msg.strip():
     if partials:
-      git.reset('HEAD', partials)
+      core.git('reset', 'HEAD', partials)
     raise ValueError('Missing commit message')
 
   _auto_track(commit_files, curr_b)
@@ -121,7 +112,7 @@ def _do_partial_selection(files, curr_b):
       pprint.warn('Can\'t select segments for deleted file {0}'.format(fp))
       continue
 
-    subprocess.call(['git', 'add', '-p', fp])
+    core.git('add', '-p', fp)
     # TODO: check that at least one hunk was staged
     partials.append(fp)
 
