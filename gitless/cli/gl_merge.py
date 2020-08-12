@@ -5,8 +5,6 @@
 """gl merge - Merge the divergent changes of one branch onto another."""
 
 
-from __future__ import unicode_literals
-
 from gitless import core
 
 from . import helpers, pprint

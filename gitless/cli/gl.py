@@ -5,8 +5,6 @@
 """gl - Main Gitless's command. Dispatcher to the other cmds."""
 
 
-from __future__ import unicode_literals
-
 import sys
 import argparse
 import argcomplete

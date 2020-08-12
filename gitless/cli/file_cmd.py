@@ -5,8 +5,6 @@
 """Helper module for gl_{track, untrack, resolve}."""
 
 
-from __future__ import unicode_literals
-
 from . import helpers, pprint
 
 

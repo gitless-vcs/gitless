@@ -5,8 +5,6 @@
 """gl tag - List, create, edit or delete tags."""
 
 
-from __future__ import unicode_literals
-
 from gitless import core
 
 from . import helpers, pprint

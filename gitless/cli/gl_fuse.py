@@ -5,8 +5,6 @@
 """gl fuse - Fuse the divergent changes of a branch onto the current branch."""
 
 
-from __future__ import unicode_literals
-
 from gitless import core
 
 from . import helpers, pprint

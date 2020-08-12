@@ -5,8 +5,6 @@
 """Core unit tests."""
 
 
-from __future__ import unicode_literals
-
 from functools import wraps
 import os
 import shutil
@@ -1019,7 +1017,7 @@ class TestRemoteList(TestRemote):
   def test_list_all(self):
     self.remotes.create('remote1', self.remote_path)
     self.remotes.create('remote2', self.remote_path)
-    self.assertItemsEqual(
+    self.assertCountEqual(
         ['remote1', 'remote2'], [r.name for r in self.remotes])
 
 
@@ -1061,7 +1059,7 @@ class TestRemoteSync(TestRemote):
     # Retry (this time it should work)
     current_b.publish(remote_branch)
 
-    self.assertItemsEqual(
+    self.assertCountEqual(
         ['master', REMOTE_BRANCH], self.remote.listall_branches())
     self.assertEqual(
         master_head_before.id, self.remote.lookup_branch('master').head.id)

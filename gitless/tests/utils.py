@@ -5,8 +5,6 @@
 """Utility library for tests."""
 
 
-from __future__ import unicode_literals
-
 import io
 from locale import getpreferredencoding
 import logging
@@ -21,7 +19,6 @@ import unittest
 from subprocess import run, CalledProcessError
 
 
-IS_PY2 = sys.version_info[0] == 2
 ENCODING = getpreferredencoding() or 'utf-8'
 
 
@@ -37,18 +34,6 @@ class TestBase(unittest.TestCase):
   def tearDown(self):
     """Removes the temporary dir."""
     rmtree(self.path)
-
-  # Python 2/3 compatibility
-  def assertItemsEqual(self, actual, expected, msg=None):
-    try:
-      return super(TestBase, self).assertItemsEqual(actual, expected, msg=msg)
-    except AttributeError:
-      try:
-        # Checks that actual and expected have the same elements in the same
-        # number, regardless of their order
-        return super(TestBase, self).assertCountEqual(actual, expected, msg=msg)
-      except AttributeError:
-        return self.assertEqual(sorted(actual), sorted(expected), msg=msg)
 
   def assertRaisesRegexp(self, exc, r, fun, *args, **kwargs):
     try:
@@ -131,8 +116,6 @@ def gl(*args, cwd=None, _in=None):
 
 
 def _x_file(x, fp, contents=''):
-  assert not IS_PY2 or isinstance(contents, unicode)
-
   if not contents:
     contents = fp
   dirs, _ = os.path.split(fp)

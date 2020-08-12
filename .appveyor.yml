@@ -1,10 +1,18 @@
 # Based on pygit2's appveyor config
 environment:
   matrix:
-  - GENERATOR: 'Visual Studio 10'
-    PYTHON: 'C:\Python27\python.exe'
-  - GENERATOR: 'Visual Studio 10 Win64'
-    PYTHON: 'C:\Python27-x64\python.exe'
+  - GENERATOR: 'Visual Studio 14'
+    PYTHON: 'C:\Python36\python.exe'
+  - GENERATOR: 'Visual Studio 14 Win64'
+    PYTHON: 'C:\Python36-x64\python.exe'
+  - GENERATOR: 'Visual Studio 14'
+    PYTHON: 'C:\Python37\python.exe'
+  - GENERATOR: 'Visual Studio 14 Win64'
+    PYTHON: 'C:\Python37-x64\python.exe'
+  - GENERATOR: 'Visual Studio 14'
+    PYTHON: 'C:\Python38\python.exe'
+  - GENERATOR: 'Visual Studio 14 Win64'
+    PYTHON: 'C:\Python38-x64\python.exe'
 
 init:
   - cmd: '%PYTHON% -m pip install -U nose wheel'
@@ -21,7 +29,7 @@ test_script:
       &$env:PYTHON -m pip install -r requirements.txt .
       # 'gl' is installed in Python Scripts directory
       $env:PATH += ";$(Split-Path $env:PYTHON)\Scripts"
-      &$env:PYTHON setup.py nosetests --logging-level=WARN --with-xunit 
+      &$env:PYTHON setup.py nosetests --logging-level=WARN --with-xunit
       if ($LastExitCode -ne 0) { $host.SetShouldExit($LastExitCode) }
       # upload results to AppVeyor
       $wc = New-Object 'System.Net.WebClient'

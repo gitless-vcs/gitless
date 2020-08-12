@@ -5,8 +5,6 @@
 """Gitless's commit dialog."""
 
 
-from __future__ import unicode_literals
-
 import io
 from locale import getpreferredencoding
 import os
@@ -18,7 +16,6 @@ import shlex
 from . import pprint
 
 
-IS_PY2 = sys.version_info[0] == 2
 ENCODING = getpreferredencoding() or 'utf-8'
 
 _COMMIT_FILE = 'GL_COMMIT_EDIT_MSG'
@@ -35,11 +32,7 @@ def show(files, repo):
   Returns:
     The commit msg.
   """
-  if IS_PY2:
-    # wb because we use pprint to write
-    cf = io.open(_commit_file(repo), mode='wb')
-  else:
-    cf = io.open(_commit_file(repo), mode='w', encoding=ENCODING)
+  cf = io.open(_commit_file(repo), mode='w', encoding=ENCODING)
 
   curr_b = repo.current_branch
   if curr_b.merge_in_progress or curr_b.fuse_in_progress:

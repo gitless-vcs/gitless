@@ -24,8 +24,8 @@ Install
 Note that the installation **won't interfere** with your Git installation in any
 way, you can keep using Git, and switch between Git and Gitless seamlessly.
 
-We currently require Git (1.7.12+) to be installed (but this requirement is
-going to disappear soon once we finish with our migration to [pygit2](https://github.com/libgit2/pygit2)).
+We currently require Git (1.7.12+) to be installed, but this requirement is
+going to disappear soon once we finish with our migration to [pygit2](https://github.com/libgit2/pygit2).
 
 
 ### Binary release (macOS and Linux only)
@@ -47,11 +47,7 @@ the Python Package Index).
 
 ### Installing from source
 
-To install from source you need to have Python (2.7, 3.2+ or PyPy)
-installed.
-
-Note to Windows users: Python 3 is not supported yet,
-see [#146](https://github.com/sdg-mit/gitless/issues/146) for more info.
+To install from source you need to have Python 3.6+ installed.
 
 Additionally, you need to [install pygit2](
 http://www.pygit2.org/install.html "pygit2 install").
@@ -66,10 +62,7 @@ and do:
 
 If you are a Python fan you might find it easier to install
 Gitless via the Python Package Index. To do this, you need to have
-Python (2.7, 3.2+ or PyPy) installed.
-
-Note to Windows users: Python 3 is not supported yet,
-see [#146](https://github.com/sdg-mit/gitless/issues/146) for more info.
+Python 3.6+ installed.
 
 Additionally, you need to [install pygit2](
 http://www.pygit2.org/install.html "pygit2 install").
@@ -119,7 +112,7 @@ code, here are some useful things to know:
   `cd` to the repo root and do `./setup.py develop`. This will install
   the `gl` command with a symlink to your source files. You can make
   changes to your code and run `gl` to test them.
-- We follow (to some extent) the [Google Python Style Guide](
+- We follow, to some extent, the [Google Python Style Guide](
     https://google.github.io/styleguide/pyguide.html
     "Google Python Style Guide").
 Before submitting code, take a few seconds to look at the style guide and the
@@ -127,9 +120,7 @@ Gitless's code so that your edits are consistent with the codebase
 
 - Finally, if you don't want [Travis](
     https://travis-ci.org/sdg-mit/gitless "Travis") to
-be mad at you, check that tests pass in Python 2.7 and 3.2+. Tests can be run with:
+be mad at you, check that tests pass in Python 3.6+. Tests can be run with:
   ```
-  pip install nose
-  nosetests # run tests other than end-to-end tests
-  nosetests ./gitless/tests/test_e2e.py # run end-to-end tests
+  python -m unittest discover gitless/tests
   ```

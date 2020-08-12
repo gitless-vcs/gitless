@@ -5,15 +5,9 @@
 """Gitless's library."""
 
 
-from __future__ import unicode_literals
-
 import collections
 import errno
 import io
-try:
-  from itertools import izip as zip
-except ImportError:
-  pass
 
 import itertools
 import json

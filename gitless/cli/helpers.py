@@ -5,8 +5,6 @@
 """Some helpers for commands."""
 
 
-from __future__ import unicode_literals
-
 import argparse
 import os
 import subprocess

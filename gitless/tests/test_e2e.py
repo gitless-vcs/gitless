@@ -5,8 +5,6 @@
 """End-to-end test."""
 
 
-from __future__ import unicode_literals
-
 import logging
 import os
 import re
@@ -472,7 +470,7 @@ class TestFuse(TestOp):
   def __assert_history(self, expected):
     out = utils.gl('history')
     cids = list(reversed(re.findall(r'ci (.*) in (\S*)', out, re.UNICODE)))
-    self.assertItemsEqual(
+    self.assertCountEqual(
         cids, expected, 'cids is ' + text(cids) + ' exp ' + text(expected))
 
     st_out = utils.gl('status')

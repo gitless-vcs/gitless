@@ -5,8 +5,6 @@
 """Module for pretty printing Gitless output."""
 
 
-from __future__ import unicode_literals
-
 try:
   from StringIO import StringIO
 except ImportError:
@@ -27,15 +25,10 @@ SEP = (
     '######')
 
 
-IS_PY2 = sys.version_info[0] == 2
 ENCODING = getpreferredencoding() or 'utf-8'
 
 
 def puts(s='', newline=True, stream=sys.stdout.write):
-  assert not IS_PY2 or isinstance(s, unicode)
-
-  if IS_PY2:
-    s = s.encode(ENCODING, errors='ignore')
   if newline:
     s = s + '\n'
   stream(s)
@@ -284,7 +277,6 @@ def _hunk(hunk, stream=sys.stdout.write):
 
   del_line, add_line, maybe_bold, saw_add = None, None, False, False
   for diff_line in hunk.lines:
-    assert not IS_PY2 or isinstance(diff_line.content, unicode)
     st = diff_line.origin
 
     if st == '-' and not maybe_bold:
