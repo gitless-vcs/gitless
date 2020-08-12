@@ -13,6 +13,7 @@ description: |
   Git), you can always fall back on Git. And of course your coworkers you
   share a repo with need never know that you're not a Git aficionado.
 
+# Base snap for snapd that is based on Ubuntu 18.04
 base: core18
 
 grade: devel          # 'stable' for stable/candidate upload

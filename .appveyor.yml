@@ -34,4 +34,3 @@ test_script:
 branches:
   only:
     - master
-    - develop

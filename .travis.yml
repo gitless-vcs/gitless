@@ -14,12 +14,10 @@ before_script:
 - git config --global user.name "travis-test"
 - git config --global user.email "travis@test.com"
 script:
-- nosetests --logging-level=WARN
-- nosetests gitless/tests/test_e2e.py --logging-level=WARN
+- python -m unittest discover gitless/tests
 branches:
   only:
   - master
-  - develop
 jobs:
   include:
   - stage: Pack snap

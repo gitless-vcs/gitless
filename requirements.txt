@@ -1,4 +1,4 @@
-# make sure to update setup.py
+# make sure to update setup.py if you make any changes to this file
 
 argcomplete>=1.11.1
 pygit2==1.1.1  # requires libgit2 0.99 or 1.0
