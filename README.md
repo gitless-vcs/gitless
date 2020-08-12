@@ -4,8 +4,8 @@ Gitless
 [![PyPI version](https://img.shields.io/pypi/v/gitless.svg)](https://pypi.org/project/gitless "PyPI version")
 [![Homebrew Formula](https://img.shields.io/homebrew/v/gitless.svg)](https://formulae.brew.sh/formula/gitless "Homebrew Formula")
 
-[![Travis Build Status](https://img.shields.io/travis/sdg-mit/gitless/master.svg)](https://travis-ci.org/sdg-mit/gitless "Travis Build Status")
-[![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/github/sdg-mit/gitless?svg=true)](https://ci.appveyor.com/project/spderosso/gitless "AppVeyor Build Status")
+[![Travis Build Status](https://img.shields.io/travis/gitless-vcs/gitless/master.svg)](https://travis-ci.org/gitless-vcs/gitless "Travis Build Status")
+[![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/github/gitless-vcs/gitless?svg=true)](https://ci.appveyor.com/project/spderosso/gitless-11bfm "AppVeyor Build Status")
 
 [Gitless](http://gitless.com "Gitless's website") is an experimental version
 control system built on top of Git. Many
@@ -119,7 +119,7 @@ Before submitting code, take a few seconds to look at the style guide and the
 Gitless's code so that your edits are consistent with the codebase
 
 - Finally, if you don't want [Travis](
-    https://travis-ci.org/sdg-mit/gitless "Travis") to
+    https://travis-ci.org/gitless-vcs/gitless "Travis") to
 be mad at you, check that tests pass in Python 3.7+. Tests can be run with:
   ```
   python -m unittest discover gitless/tests
