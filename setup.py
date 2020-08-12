@@ -68,8 +68,8 @@ setup(
     url='http://gitless.com',
     packages=['gitless', 'gitless.cli'],
     install_requires=[
-      # make sure it matches requirements.txt
-      'pygit2==1.1.1', # requires libgit2 0.99 or 1.0
+      # make sure install_requires is consistent with requirements.txt
+      'pygit2==1.2.0', # requires libgit2 1.0.x
       'argcomplete>=1.11.1'
     ],
     license='MIT',
