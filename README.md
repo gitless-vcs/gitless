@@ -7,22 +7,27 @@ Gitless
 [![Travis Build Status](https://img.shields.io/travis/gitless-vcs/gitless/master.svg)](https://travis-ci.org/gitless-vcs/gitless "Travis Build Status")
 [![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/github/gitless-vcs/gitless?svg=true)](https://ci.appveyor.com/project/spderosso/gitless-11bfm "AppVeyor Build Status")
 
-[Gitless](http://gitless.com "Gitless's website") is an experimental version
-control system built on top of Git. Many
-people complain that Git is hard to use. We think the problem lies deeper than
-the user interface, in the concepts underlying Git. Gitless is an experiment to
-see what happens if you put a simple veneer on an app that changes the
-underlying concepts. Because Gitless is implemented on top of Git (could be
-considered what Git pros call a "porcelain" of Git), you can always fall
-back on Git. And of course your coworkers you share a repository with need never
-know that you're not a Git aficionado.
+[Gitless](http://gitless.com "Gitless's website") is a version control system built on top of Git, that is easy to learn and use:
+
+- **Simple commit workflow**
+
+    Track or untrack files to control what changes to commit. Changes to tracked files are committed by default, but you can easily customize the set of files to commit using flags
+- **Independent branches**
+
+    Branches in Gitless include your working changes, so you can switch between branches without having to worry about conflicting uncommitted changes
+- **Friendly command-line interface**
+
+    Gitless commands will give you good feedback and help you figure out what to do next
+- **Compatible with Git**
+
+    Because Gitless is implemented on top of Git, you can always fall back on Git. And your coworkers you share a repo with need never know that you're not a Git aficionado. Moreover, you can use Gitless with GitHub or with any Git hosting service
 
 
 Install
 -------
 
-Note that the installation **won't interfere** with your Git installation in any
-way, you can keep using Git, and switch between Git and Gitless seamlessly.
+Installing Gitless won't interfere with your Git installation in any
+way. You can keep using Git and switch between Git and Gitless seamlessly.
 
 We currently require Git (1.7.12+) to be installed, but this requirement is
 going to disappear soon once we finish with our migration to [pygit2](https://github.com/libgit2/pygit2).
@@ -104,7 +109,7 @@ Contribute
 ----------
 
 If you find a bug, you can help us by submitting an issue to our
-GitHub Repository. If you'd like to contribute
+GitHub repository. If you'd like to contribute
 code, here are some useful things to know:
 
 - To install gitless for development, [install pygit2](
