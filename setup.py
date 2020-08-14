@@ -45,14 +45,11 @@ if sys.argv[-1] == 'gl-build':
 
 
 ld = """
-Gitless is an experimental version control system built on top of Git.
-Many people complain that Git is hard to use. We think the problem lies
-deeper than the user interface, in the concepts underlying Git. Gitless
-is an experiment to see what happens if you put a simple veneer on an
-app that changes the underlying concepts. Because Gitless is implemented
-on top of Git (could be considered what Git pros call a \"porcelain\" of
-Git), you can always fall back on Git. And of course your coworkers you
-share a repo with need never know that you're not a Git aficionado.
+Gitless is a version control system built on top of Git, that is easy to learn
+and use. It features a simple commit workflow, independent branches, and
+a friendly command-line interface. Because Gitless is implemented on top of
+Git, you can always fall back on Git. And your coworkers you share a repo with
+need never know that you're not a Git aficionado.
 
 More info, downloads and documentation @ `Gitless's
 website <http://gitless.com>`__.
@@ -61,11 +58,11 @@ website <http://gitless.com>`__.
 setup(
     name='gitless',
     version=version,
-    description='A version control system built on top of Git',
+    description='A simple version control system built on top of Git',
     long_description=ld,
     author='Santiago Perez De Rosso',
     author_email='sperezde@csail.mit.edu',
-    url='http://gitless.com',
+    url='https://gitless.com',
     packages=['gitless', 'gitless.cli'],
     install_requires=[
       # make sure install_requires is consistent with requirements.txt
