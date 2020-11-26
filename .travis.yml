@@ -5,7 +5,6 @@ addons:
     packages:
     - snapcraft
 python:
-- '3.7'
 - '3.8'
 env: LIBGIT2=~/libgit2/_install/ LD_LIBRARY_PATH=~/libgit2/_install/lib
 before_install: ./.travis.sh
