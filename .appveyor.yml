@@ -1,4 +1,5 @@
 # Based on pygit2's appveyor config
+image: Visual Studio 2019
 environment:
   matrix:
   - GENERATOR: 'Visual Studio 14'
