@@ -98,6 +98,16 @@ snap install --channel=beta gitless
 
 You can also use the `edge` channel to install the most recent build.
 
+### Installing via the Arch User Repository
+
+If you are using [Arch Linux](https://www.archlinux.org/) or any of
+its derivatives, you can use your favorite
+[AUR Helper](https://wiki.archlinux.org/index.php/AUR_helpers) and install:
+- [gitless](https://aur.archlinux.org/packages/gitless/) for the latest
+  released version
+- [gitless-git](https://aur.archlinux.org/packages/gitless-git/) to 
+  build the latest version straight from this repo
+
 Documentation
 -------------
 
