@@ -98,7 +98,7 @@ snap install --channel=beta gitless
 
 You can also use the `edge` channel to install the most recent build.
 
-### Installing via the Arch User Repository
+### Installing via the Arch User Repository (Arch Linux only)
 
 If you are using [Arch Linux](https://www.archlinux.org/) or any of
 its derivatives, you can use your favorite
@@ -118,7 +118,7 @@ Documentation
 Contribute
 ----------
 
-If you find a bug, you can help us by submitting an issue to our
+If you find a bug, create an issue in our
 GitHub repository. If you'd like to contribute
 code, here are some useful things to know:
 
@@ -131,7 +131,7 @@ code, here are some useful things to know:
     https://google.github.io/styleguide/pyguide.html
     "Google Python Style Guide").
 Before submitting code, take a few seconds to look at the style guide and the
-Gitless's code so that your edits are consistent with the codebase
+Gitless code so that your edits are consistent with the codebase.
 
 - Finally, if you don't want [Travis](
     https://travis-ci.org/gitless-vcs/gitless "Travis") to
