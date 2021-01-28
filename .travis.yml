@@ -1,9 +1,5 @@
 language: python
 dist: xenial
-addons:
-  apt:
-    packages:
-    - snapcraft
 python:
   - '3.8'
   - '3.9'
@@ -22,10 +18,17 @@ branches:
 jobs:
   include:
   - stage: Pack snap
+    addons:
+      snaps:
+      - name: snapcraft
+        classic: true
+      - name: multipass
+        classic: true
+        channel: beta
     env: EMPTY
     before_install: skip
     install: skip
-    script: snapcraft
+    script: sudo snapcraft
     deploy:
       on:
         branch: master
