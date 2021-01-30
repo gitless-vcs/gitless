@@ -25,7 +25,6 @@ before_test:
 
 test_script:
   - cmd: dir /a:h
-  - cmd: gl
   - ps: |
       # 'gl' is installed in Python Scripts directory
       $env:PATH += ";$(Split-Path $env:PYTHON)\Scripts"
