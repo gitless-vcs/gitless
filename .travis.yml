@@ -28,7 +28,7 @@ jobs:
     env: EMPTY
     before_install: skip
     install: skip
-    script: sudo snapcraft
+    script: sudo snapcraft --destructive-mode
     deploy:
       on:
         branch: master
