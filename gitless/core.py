@@ -91,6 +91,9 @@ def init_repository(url=None, only=None, exclude=None):
         continue
       new_b = repo.create_branch(rb.branch_name, rb.head)
       new_b.upstream = rb
+
+    # Initialize submodules
+    git.submodule('update', '--init')
     return repo
 
 
