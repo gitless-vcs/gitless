@@ -87,7 +87,7 @@ def _do_rename(rename_r, remotes):
   errors_found = False
   if len(rename_r) != 2:
     pprint.err(
-        'Expected 2 arguments in the folllowing format: '
+        'Expected 2 arguments in the following format: '
         'gl remote -rn current_remote_name new_remote_name')
     errors_found = True
   else:
