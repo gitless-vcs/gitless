@@ -593,7 +593,7 @@ class TestFileDiff(TestFile):
   @assert_status_unchanged(
       UNTRACKED_FP, UNTRACKED_FP_WITH_SPACE,
       IGNORED_FP, IGNORED_FP_WITH_SPACE)
-  def test_diff_nontracked(self):
+  def test_diff_untracked(self):
     fps = [
         UNTRACKED_FP, UNTRACKED_FP_WITH_SPACE,
         IGNORED_FP, IGNORED_FP_WITH_SPACE]
