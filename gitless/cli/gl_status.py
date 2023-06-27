@@ -131,7 +131,7 @@ def _print_untracked_files(untracked_list, relative_paths, repo):
 def _print_conflict_exp(op):
   pprint.msg(
       'You are in the middle of a {0}; all conflicts must be resolved before '
-      'commiting'.format(op))
+      'committing'.format(op))
   pprint.exp(
       'use gl {0} --abort to go back to the state before the {0}'.format(op))
   pprint.exp('use gl resolve f to mark file f as resolved')

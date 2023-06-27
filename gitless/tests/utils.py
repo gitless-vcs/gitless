@@ -47,7 +47,7 @@ class TestBase(unittest.TestCase):
 
 def rmtree(path):
   # On Windows, running shutil.rmtree on a folder that contains read-only
-  # files throws errors. To workaround this, if removing a path fails, we make
+  # files throws errors. To work around this, if removing a path fails, we make
   # the path writable and then try again
   def onerror(func, path, unused_exc_info):  # error handler for rmtree
     if not os.access(path, os.W_OK):

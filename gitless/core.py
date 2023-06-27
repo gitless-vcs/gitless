@@ -198,7 +198,7 @@ class Repository(object):
   def listall_tags(self):
     """Returns a list with the names of all tags in this repository.
 
-    Use lookup_tag to get the Tag object corresponding to eacn name.
+    Use lookup_tag to get the Tag object corresponding to each name.
     """
     for ref in self.git_repo.listall_references():
       if ref.startswith('refs/tags/'):
@@ -1051,7 +1051,7 @@ class Branch(object):
         are inserted after this commit. ip has to correspond to one of the
         divergent commits from self or the divergent point.
       only: ids of commits to use only.
-      exclude: ids of commtis to exclude.
+      exclude: ids of commits to exclude.
       op_cb: see OpCb.
     """
     self._check_is_current()

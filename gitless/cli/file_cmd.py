@@ -39,7 +39,7 @@ def main(subcmd):
               fp, 'n' if subcmd.startswith(VOWELS) else '', subcmd,
               '' if subcmd.endswith('e') else 'e'))
       except KeyError:
-        pprint.err('Can\'t {0} non-existent file {1}'.format(subcmd, fp))
+        pprint.err('Can\'t {0} nonexistent file {1}'.format(subcmd, fp))
         success = False
       except ValueError as e:
         pprint.err(e)

@@ -593,7 +593,7 @@ class TestFileDiff(TestFile):
   @assert_status_unchanged(
       UNTRACKED_FP, UNTRACKED_FP_WITH_SPACE,
       IGNORED_FP, IGNORED_FP_WITH_SPACE)
-  def test_diff_nontracked(self):
+  def test_diff_untracked(self):
     fps = [
         UNTRACKED_FP, UNTRACKED_FP_WITH_SPACE,
         IGNORED_FP, IGNORED_FP_WITH_SPACE]
@@ -947,7 +947,7 @@ class TestBranchSwitch(TestBranch):
     self.repo.switch_current_branch(self.repo.lookup_branch('master'))
     self.assertEqual('commit', utils_lib.read_file(TRACKED_FP))
 
-  def test_switch_file_classification_is_mantained(self):
+  def test_switch_file_classification_is_maintained(self):
     self.curr_b.untrack_file(TRACKED_FP)
     self.repo.switch_current_branch(self.repo.lookup_branch(BRANCH))
     st = self.curr_b.status_file(TRACKED_FP)
