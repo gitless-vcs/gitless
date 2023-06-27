@@ -62,11 +62,11 @@ class TestBasic(TestEndToEnd):
     # Track
     utils.gl('track', 'file1')
     self.assertRaises(CalledProcessError, utils.gl, 'track', 'file1')
-    self.assertRaises(CalledProcessError, utils.gl, 'track', 'non-existent')
+    self.assertRaises(CalledProcessError, utils.gl, 'track', 'nonexistent')
     # Untrack
     utils.gl('untrack', 'file1')
     self.assertRaises(CalledProcessError, utils.gl, 'untrack', 'file1')
-    self.assertRaises(CalledProcessError, utils.gl, 'untrack', 'non-existent')
+    self.assertRaises(CalledProcessError, utils.gl, 'untrack', 'nonexistent')
     # Commit
     utils.gl('track', 'file1')
     utils.gl('commit', '-m', 'file1 commit')
@@ -155,7 +155,7 @@ class TestBasic(TestEndToEnd):
     self.assertRaises(
       CalledProcessError, utils.gl, 'commit', '-m', 'resolve not called')
     self.assertRaises(
-      CalledProcessError, utils.gl, 'resolve', 'non-existent')
+      CalledProcessError, utils.gl, 'resolve', 'nonexistent')
     utils.gl('resolve', 'file1')
     utils.gl('commit', '-m', 'fixed conflicts')
 
@@ -222,13 +222,13 @@ class TestCommit(TestEndToEnd):
       CalledProcessError, utils.gl, 'commit', '--exclude',
       self.TRACKED_FP, self.DIR_TRACKED_FP, '-m', 'msg')
     self.assertRaises(
-      CalledProcessError, utils.gl, 'commit', 'non-existent', '-m', 'msg')
+      CalledProcessError, utils.gl, 'commit', 'nonexistent', '-m', 'msg')
     self.assertRaises(
       CalledProcessError, utils.gl, 'commit', '-m', 'msg',
-      '--exclude', 'non-existent')
+      '--exclude', 'nonexistent')
     self.assertRaises(
       CalledProcessError, utils.gl, 'commit', '-m', 'msg',
-      '--include', 'non-existent')
+      '--include', 'nonexistent')
 
   def test_commit_dir(self):
     fp = 'dir/f'
@@ -313,9 +313,9 @@ class TestBranch(TestEndToEnd):
   def test_upstream(self):
     self.assertRaises(CalledProcessError, utils.gl, 'branch', '-uu')
     self.assertRaises(
-      CalledProcessError, utils.gl, 'branch', '-su', 'non-existent')
+      CalledProcessError, utils.gl, 'branch', '-su', 'nonexistent')
     self.assertRaises(
-      CalledProcessError, utils.gl, 'branch', '-su', 'non-existent/non-existent')
+      CalledProcessError, utils.gl, 'branch', '-su', 'nonexistent/nonexistent')
 
   def test_list(self):
     utils.gl('branch', '-c', self.BRANCH_1)
@@ -487,7 +487,7 @@ class TestFuse(TestOp):
 
   def test_only_errors(self):
     self.assertRaises(
-      CalledProcessError, utils.gl, 'fuse', self.OTHER, '-o', 'non-existent-id')
+      CalledProcessError, utils.gl, 'fuse', self.OTHER, '-o', 'nonexistent-id')
     self.assertRaises(
       CalledProcessError, utils.gl, 'fuse', self.OTHER,
       '-o', self.commits['master'][1])
@@ -504,7 +504,7 @@ class TestFuse(TestOp):
 
   def test_exclude_errors(self):
     self.assertRaises(
-      CalledProcessError, utils.gl, 'fuse', self.OTHER, '-e', 'non-existent-id')
+      CalledProcessError, utils.gl, 'fuse', self.OTHER, '-e', 'nonexistent-id')
     self.assertRaises(
       CalledProcessError, utils.gl, 'fuse', self.OTHER,
       '-e', self.commits['master'][1])

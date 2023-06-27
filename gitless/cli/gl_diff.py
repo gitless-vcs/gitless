@@ -38,7 +38,7 @@ def main(args, repo):
       try:
         patch = curr_b.diff_file(fp)
       except KeyError:
-        pprint.err('Can\'t diff non-existent file {0}'.format(fp))
+        pprint.err('Can\'t diff nonexistent file {0}'.format(fp))
         success = False
         continue
 
