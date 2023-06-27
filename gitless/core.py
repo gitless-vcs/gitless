@@ -1051,7 +1051,7 @@ class Branch(object):
         are inserted after this commit. ip has to correspond to one of the
         divergent commits from self or the divergent point.
       only: ids of commits to use only.
-      exclude: ids of commtis to exclude.
+      exclude: ids of commits to exclude.
       op_cb: see OpCb.
     """
     self._check_is_current()
