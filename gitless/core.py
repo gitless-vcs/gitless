@@ -198,7 +198,7 @@ class Repository(object):
   def listall_tags(self):
     """Returns a list with the names of all tags in this repository.
 
-    Use lookup_tag to get the Tag object corresponding to eacn name.
+    Use lookup_tag to get the Tag object corresponding to each name.
     """
     for ref in self.git_repo.listall_references():
       if ref.startswith('refs/tags/'):
