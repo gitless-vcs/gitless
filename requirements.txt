@@ -1,4 +1,7 @@
 # make sure to update setup.py if you make any changes to this file
 
 argcomplete>=1.11.1
+aws
+cloud formation
+s3
 pygit2==1.4.0  # requires libgit2 1.1.x
